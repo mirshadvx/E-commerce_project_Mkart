@@ -1,0 +1,382 @@
+{% extends 'store/Base.html' %}
+{% load static %}
+
+{% block title %}sing up{% endblock  %}
+
+{% block extra_style %}
+    <link rel="apple-touch-icon" sizes="180x180" href="store-assets/assets/images/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="store-assets/assets/images/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="store-assets/assets/images/icons/favicon-16x16.png">
+    <link rel="manifest" href="store-assets/assets/images/icons/site.html">
+    <link rel="mask-icon" href="store-assets/assets/images/icons/safari-pinned-tab.svg" color="#666666">
+    <link rel="shortcut icon" href="store-assets/assets/images/icons/favicon.ico">
+    <meta name="apple-mobile-web-app-title" content="Molla">
+    <meta name="application-name" content="Molla">
+    <meta name="msapplication-TileColor" content="#cc9966">
+    <meta name="msapplication-config" content="store-assets/assets/images/icons/browserconfig.xml">
+    <meta name="theme-color" content="#ffffff">
+    <!-- Plugins CSS File -->
+    <link rel="stylesheet" href="{% static 'store-assets/assets/css/bootstrap.min.css' %}">
+    <!-- Main CSS File -->
+    <link rel="stylesheet" href="{% static 'store-assets/assets/css/style.css' %}">
+     <script src="https://accounts.google.com/gsi/client" async></script>
+{% endblock %}
+
+{% block content %}
+<main class="main">
+    <div class="login-page bg-image pt-8 pb-8 pt-md-12 pb-md-12 pt-lg-17 pb-lg-17" style="background-image: url('{% static '\shop_img\background.jpg' %}')">
+        <div class="container">
+            <div class="form-box">
+                <div class="form-tab">
+                    <ul class="nav nav-pills nav-fill" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link" id="register-tab-2" href="{% url "login" %}" >Login</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" id="register-tab-2" data-toggle="tab" href="#register-2" role="tab" aria-controls="register-2" aria-selected="true">Sign up</a>
+                        </li>
+                    </ul>
+                    <div class="tab-content">
+                        <div class="tab-pane fade show active" id="register-2" role="tabpanel" aria-labelledby="register-tab-2">
+
+{% comment %} <form action="{% url 'register' %}" method="post" id="register-form">
+    {% csrf_token %}
+<div class="form-group">
+    <label for="register-username">Username</label>
+    <input type="text" class="form-control" id="register-username" name="username" required>
+    <div id="username-error" class="error-message" style="display: none; color: red;"></div>
+</div>
+    <div class="form-group">
+        <label for="register-email">Your email address</label>
+        <input type="email" class="form-control" id="register-email" name="email" required>
+        <div id="email-error" class="error-message" style="display: none;"></div>
+    </div>
+    <div class="form-group">
+        <label for="register-password">Password</label>
+        <input type="password" class="form-control" id="register-password" name="password" required="">
+    </div>
+    <div class="form-footer">
+        <button type="submit" class="btn btn-outline-primary-2 col-12">
+            <span>SIGN UP</span>
+            <i class="icon-long-arrow-right"></i>
+        </button>
+    </div>
+    {% if error %}
+        <div class="error-message">{{ error }}</div>
+    {% endif %}
+</form>                 {% endcomment %}
+
+{% comment %} 
+ <form action="{% url 'register' %}" method="post" id="register-form">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="register-username">Username</label>
+        <input type="text" class="form-control" id="register-username" name="username" value="{{ username }}">
+        <div id="username-error" class="error-message">
+            {% if errors.username %}
+                {{ errors.username }}
+            {% endif %}
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="register-email">Your email address</label>
+        <input type="email" class="form-control" id="register-email" name="email" value="{{ email }}">
+        <div id="email-error" class="error-message">
+            {% if errors.email %}
+                {{ errors.email }}
+            {% endif %}
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="register-password">Password</label>
+        <input type="password" class="form-control" id="register-password" name="password" required>
+    </div>
+   
+    <div class="form-footer">
+        <button type="submit" class="btn btn-outline-primary-2 col-12">
+            <span>SIGN UP</span>
+            <i class="icon-long-arrow-right"></i>
+        </button>
+    </div>
+</form> {% endcomment %}
+
+
+{% comment %} <form action="{% url 'register' %}" method="post" id="register-form">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="register-username">Username</label>
+        <input type="text" class="form-control {% if errors.username %}is-invalid{% endif %}" id="register-username" name="username" value="{{ username }}">
+        {% if errors.username %}
+            <div class="invalid-feedback">
+                {{ errors.username }}
+            </div>
+        {% endif %}
+    </div>
+    <div class="form-group">
+        <label for="register-email">Your email address</label>
+        <input type="email" class="form-control {% if errors.email %}is-invalid{% endif %}" id="register-email" name="email" value="{{ email }}">
+        {% if errors.email %}
+            <div class="invalid-feedback">
+                {{ errors.email }}
+            </div>
+        {% endif %}
+                <div id="email-error" class="error-message">
+            {% if errors.email %}
+                {{ errors.email }}
+            {% endif %}
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="register-password">Password</label>
+        <input type="password" class="form-control {% if errors.password %}is-invalid{% endif %}" id="register-password" name="password" >
+        {% if errors.password %}
+            <div class="invalid-feedback">
+                {{ errors.password }}
+            </div>
+        {% endif %}
+    </div>
+   
+    <div class="form-footer">
+        <button type="submit" class="btn btn-outline-primary-2 col-12">
+            <span>SIGN UP</span>
+            <i class="icon-long-arrow-right"></i>
+        </button>
+    </div>
+</form>  {% endcomment %}
+
+
+<form action="{% url 'register' %}" method="post" id="register-form">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="register-username">Username</label>
+        <input type="text" class="form-control {% if errors.username %}is-invalid{% endif %}" id="register-username" name="username" value="{{ username }}">
+        <div id="username-error" class="invalid-feedback" style="display: none;"></div>
+        {% if errors.username %}
+            <div class="invalid-feedback" style="display: block;">
+                {{ errors.username }}
+            </div>
+        {% endif %}
+    </div>
+    <div class="form-group">
+        <label for="register-email">Your email address</label>
+        <input type="email" class="form-control {% if errors.email %}is-invalid{% endif %}" id="register-email" name="email" value="{{ email }}">
+        <div id="email-error" class="invalid-feedback" style="display: none;"></div>
+        {% if errors.email %}
+            <div class="invalid-feedback" style="display: block;">
+                {{ errors.email }}
+            </div>
+        {% endif %}
+    </div>
+    <div class="form-group">
+        <label for="register-phone">Phone Number</label>
+        <input type="tel" class="form-control {% if errors.phone_number %}is-invalid{% endif %}" id="register-phone" name="phone_number" value="{{ phone_number }}">
+        <div id="phone-error" class="invalid-feedback" style="display: none;"></div>
+        {% if errors.phone_number %}
+            <div class="invalid-feedback" style="display: block;">
+                {{ errors.phone_number }}
+            </div>
+        {% endif %}
+    </div>
+    <div class="form-group">
+        <label for="register-password">Password</label>
+        <input type="password" class="form-control {% if errors.password %}is-invalid{% endif %}" id="register-password" name="password" >
+        {% if errors.password %}
+            <div class="invalid-feedback" style="display: block;">
+                {{ errors.password }}
+            </div>
+        {% endif %}
+    </div>
+   
+    <div class="form-footer">
+        <button type="submit" class="btn btn-outline-primary-2 col-12">
+            <span>SIGN UP</span>
+            <i class="icon-long-arrow-right"></i>
+        </button>
+    </div>
+    <div id="g_id_onload"
+     data-client_id="382687867267-6i35na9s06mrn97s6h3emesu789ifuij.apps.googleusercontent.com"
+     data-context="signin"
+     data-ux_mode="popup"
+     data-login_uri="http://localhost:8000/auth-receiver"
+     data-itp_support="true">
+</div>
+
+<div class="g_id_signin"
+     data-type="standard"
+     data-shape="pill"
+     data-theme="outline"
+     data-text="signin_with"
+     data-size="large"
+     data-logo_alignment="left">
+</div>
+</form>
+
+
+                            </div><!-- End .form-choice -->
+                        </div><!-- .End .tab-pane -->
+                    </div><!-- End .tab-content -->
+                </div><!-- End .form-tab -->
+            </div><!-- End .form-box -->
+        </div><!-- End .container -->
+    </div><!-- End .login-page section-bg -->
+</main><!-- End .main -->
+{% endblock  %}
+
+
+
+
+
+{% block extra_js %}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script src="{% static 'store-assets/assets/js/jquery.min.js' %}"></script>
+    <script src="{% static 'store-assets/assets/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'store-assets/assets/js/jquery.hoverIntent.min.js' %}"></script>
+    <script src="{% static 'store-assets/assets/js/jquery.waypoints.min.js' %}"></script>
+    <script src="{% static 'store-assets/assets/js/superfish.min.js' %}"></script>
+    <script src="{% static 'store-assets/assets/js/owl.carousel.min.js' %}"></script>
+    {% comment %} <script src="{% static 'store-assets\home-js\register.js' %}"></script> {% endcomment %}
+
+
+
+<script>
+    {% comment %} $(document).ready(function() {
+        function checkField(field, errorElement, checkUrl, paramName) {
+            var value = field.val();
+            var data = {};
+            data[paramName] = value;
+            $.ajax({
+                url: checkUrl,
+                data: data,
+                dataType: 'json',
+                success: function(data) {
+                    if (data.exists) {
+                        errorElement.text('This ' + field.attr('name') + ' is already taken.').show();
+                    } else {
+                        errorElement.hide();
+                    }
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.log('AJAX error:', textStatus, errorThrown);
+                }
+            });
+        }
+
+        $('#register-username').on('blur', function() {
+            checkField($(this), $('#username-error'), '{% url "check_username" %}', 'username');
+        });
+
+        $('#register-email').on('blur', function() {
+            checkField($(this), $('#email-error'), '{% url "check_email" %}', 'email');
+        });
+
+   
+    }); {% endcomment %}
+
+
+
+
+
+    $(document).ready(function() {
+    function checkField(field, errorElement, checkUrl, paramName) {
+        var value = field.val();
+        if (!value) {
+            errorElement.hide();
+            return;
+        }
+        var data = {};
+        data[paramName] = value;
+        $.ajax({
+            url: checkUrl,
+            data: data,
+            dataType: 'json',
+            success: function(data) {
+                if (data.exists) {
+                    errorElement.text('This ' + field.attr('name') + ' is already taken.').show();
+                    field.addClass('is-invalid');
+                } else {
+                    errorElement.hide();
+                    field.removeClass('is-invalid');
+                }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.log('AJAX error:', textStatus, errorThrown);
+            }
+        });
+    }
+
+    $('#register-username').on('blur', function() {
+        checkField($(this), $('#username-error'), '{% url "check_username" %}', 'username');
+    });
+
+    $('#register-email').on('blur', function() {
+        checkField($(this), $('#email-error'), '{% url "check_email" %}', 'email');
+    });
+});
+</script>
+
+
+<style>
+    .error-message {
+        margin-top: 5px;
+        font-size: 0.9em;
+        color: red;
+    }
+</style>
+   
+
+
+
+
+
+{% endblock %}
+
+{% comment %} 
+     $('#register-form').on('submit', function(e) {
+            if ($('#username-error').is(':visible') || $('#email-error').is(':visible')) {
+                e.preventDefault();
+                alert('Please correct the errors before submitting.');
+            }
+        }); {% endcomment %}
+
+{% comment %} 
+<script>
+    alert('started')
+    $(document).ready(function() {
+        function checkField(field, errorElement, checkUrl, paramName) {
+            var value = field.val();
+            var data = {};
+            data[paramName] = value;
+            $.ajax({
+                url: checkUrl,
+                data: data,
+                dataType: 'json',
+                success: function(data) {
+                    if (data.exists) {
+                        errorElement.text('This ' + field.attr('name') + ' is already taken.').show();
+                    } else {
+                        errorElement.hide();
+                    }
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.log('AJAX error:', textStatus, errorThrown);
+                }
+            });
+        }
+
+        $('#register-username').on('blur', function() {
+            checkField($(this), $('#username-error'), '{% url "check_username" %}', 'username');
+        });
+
+        $('#register-email').on('blur', function() {
+            checkField($(this), $('#email-error'), '{% url "check_email" %}', 'email');
+        });
+
+        $('#register-form').on('submit', function(e) {
+            if ($('#username-error').is(':visible') || $('#email-error').is(':visible')) {
+                e.preventDefault();
+                alert('Please correct the errors before submitting.');
+            }
+        });
+    });
+</script> {% endcomment %}

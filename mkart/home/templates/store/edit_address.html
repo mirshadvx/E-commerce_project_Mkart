@@ -1,0 +1,67 @@
+{% extends "store/Base.html" %}
+
+{% load static %}
+
+
+{% block title %}Edit Address{% endblock %}
+
+{% block content %}
+<main class="main">
+
+    <div class="container mb-3 mt-3">
+        <div class="row justify-content-center">
+            <div class="col-lg-9">
+                <form method="POST" action="{% url 'edit_address' address.id %}">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <label>First Name *</label>
+                            <input type="text" name="full_name" class="form-control" value="{{ address.full_name }}" required>
+                        </div>
+                        <div class="col-sm-6">
+                            <label>Last Name *</label>
+                            <input type="text" name="last_name" class="form-control" value="{{ address.last_name }}" required>
+                        </div>
+                    </div>
+
+                    <label>Phone *</label>
+                    <input type="tel" name="phone_number" class="form-control" value="{{ address.phone_number }}" required>
+
+                    <label>Email address *</label>
+                    <input type="email" name="email" class="form-control" value="{{ address.email }}" required>
+
+                    <label>Country *</label>
+                    <input type="text" name="country" class="form-control" value="{{ address.country }}" required>
+
+                    <label>Street address *</label>
+                    <input type="text" name="address_line_1" class="form-control" value="{{ address.address_line_1 }}" required>
+                    <input type="text" name="address_line_2" class="form-control" value="{{ address.address_line_2 }}">
+
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <label>Town / City *</label>
+                            <input type="text" name="city" class="form-control" value="{{ address.city }}" required>
+                        </div>
+                        <div class="col-sm-6">
+                            <label>State / County *</label>
+                            <input type="text" name="state" class="form-control" value="{{ address.state }}" required>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <label>Postcode / ZIP *</label>
+                            <input type="text" name="postal_code" class="form-control" value="{{ address.postal_code }}" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" href="account#tab-address-link" class="btn btn-outline-primary-2">
+                        <span>UPDATE ADDRESS</span>
+                        <i class="icon-long-arrow-right"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}

@@ -1,0 +1,774 @@
+{% extends "store/Base.html" %}
+{% load static %}
+
+{% block title %}Account{% endblock  %}
+
+
+{% block extra_style %}
+    <link rel="apple-touch-icon" sizes="180x180" href="store-assets/assets/images/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="store-assets/assets/images/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="store-assets/assets/images/icons/favicon-16x16.png">
+    <link rel="manifest" href="store-assets/assets/images/icons/site.html">
+    <link rel="mask-icon" href="store-assets/assets/images/icons/safari-pinned-tab.svg" color="#666666">
+    <link rel="shortcut icon" href="store-assets/assets/images/icons/favicon.ico">
+    <meta name="apple-mobile-web-app-title" content="Molla">
+    <meta name="application-name" content="Molla">
+    <meta name="msapplication-TileColor" content="#cc9966">
+    <meta name="msapplication-config" content="store-assets/assets/images/icons/browserconfig.xml">
+    <meta name="theme-color" content="#ffffff">
+    <!-- Plugins CSS File -->
+    <link rel="stylesheet" href="{% static 'store-assets/assets/css/bootstrap.min.css' %}">
+    <!-- Main CSS File -->
+    <link rel="stylesheet" href="{% static 'store-assets/assets/css/style.css' %}">
+<style>
+  /* The Modal (background) */
+  .modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1000; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+  }
+
+  /* Modal Content */
+  .modal-content {
+    background-color: #fefefe;
+    margin: 15% auto; /* 15% from the top and centered */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%; /* Could be more or less, depending on screen size */
+  }
+
+  /* The Close Button */
+  .close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+  }
+
+  .close:hover,
+  .close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+
+    .error {
+        color: red;
+        font-size: 13px;
+        margin-top: 0.25rem;
+        display: block;
+    }
+
+
+
+
+
+
+    .message-container {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1000;
+        width: 80%;
+        max-width: 400px;
+    }
+    .message {
+        padding: 15px;
+        margin-bottom: 10px;
+        border-radius: 5px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        position: relative;
+        animation: fadeIn 0.5s;
+    }
+    .message.error {
+        background-color: #ffebee;
+        color: #c62828;
+        border: 1px solid #ef9a9a;
+    }
+    .message.success {
+        background-color: #e8f5e9;
+        color: #2e7d32;
+        border: 1px solid #a5d6a7;
+    }
+    .message.warning {
+        background-color: #fff3e0;
+        color: #ef6c00;
+        border: 1px solid #ffcc80;
+    }
+    .message.info {
+        background-color: #e3f2fd;
+        color: #1565c0;
+        border: 1px solid #90caf9;
+    }
+    .close-btn {
+        position: absolute;
+        top: 5px;
+        right: 10px;
+        background: none;
+        border: none;
+        font-size: 18px;
+        cursor: pointer;
+        opacity: 0.5;
+    }
+    .close-btn:hover {
+        opacity: 1;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+{% endblock  %}
+
+{% block content %}
+
+<main class="main">
+{% comment %} 
+                                {% if messages %}
+                                    <div class="messages">
+                                        {% for message in messages %}
+                                            <div class="alert alert-{% if message.tags %}{{ message.tags }}{% else %}danger{% endif %} alert-dismissible fade show" role="alert">
+                                                {{ message }}
+                                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %} {% endcomment %}
+
+
+{% if messages %}
+<div class="message-container">
+    {% for message in messages %}
+        <div class="message {% if message.tags %}{{ message.tags }}{% endif %}">
+            {{ message }}
+            <button class="close-btn" onclick="this.parentElement.style.display='none';">×</button>
+        </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+    <div class="page-header text-center" style="background-image: url('store-assets/assets/images/page-header-bg.jpg')">
+        <div class="container">
+            <h1 class="page-title">My Account<span>Shop</span></h1>
+        </div><!-- End .container -->
+    </div><!-- End .page-header -->
+    
+
+    <nav aria-label="breadcrumb" class="breadcrumb-nav mb-3">
+        <div class="container">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+                <li class="breadcrumb-item"><a href="#">Shop</a></li>
+                <li class="breadcrumb-item active" aria-current="page">My Account</li>
+            </ol>
+        </div><!-- End .container -->
+    </nav><!-- End .breadcrumb-nav -->
+
+    <div class="page-content">
+        <div class="dashboard">
+            <div class="container">
+                <div class="row">
+                    <aside class="col-md-4 col-lg-2">
+                        <ul class="nav nav-dashboard flex-column mb-3 mb-md-0" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" id="tab-dashboard-link" data-toggle="tab" href="#tab-dashboard" role="tab" aria-controls="tab-dashboard" aria-selected="true">Dashboard</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="tab-orders-link" data-toggle="tab" href="#tab-orders" role="tab" aria-controls="tab-orders" aria-selected="false">Orders</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="tab-downloads-link" data-toggle="tab" href="#tab-downloads" role="tab" aria-controls="tab-downloads" aria-selected="false">Downloads</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="tab-address-link" data-toggle="tab" href="#tab-address" role="tab" aria-controls="tab-address" aria-selected="false">Addresses</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="tab-account-link" data-toggle="tab" href="#tab-account" role="tab" aria-controls="tab-account" aria-selected="false">Account Details</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'logout' %}">Log Out</a>
+                            </li>
+                        </ul>
+                    </aside><!-- End .col-lg-3 -->
+
+                    <div class="col-md-8 col-lg-10">
+                        <div class="tab-content">
+                            <div class="tab-pane fade show active" id="tab-dashboard" role="tabpanel" aria-labelledby="tab-dashboard-link">
+                                {% comment %} 
+                                <p>Hello <span class="font-weight-normal text-dark">User</span> (not <span class="font-weight-normal text-dark">User</span>? <a href="#">Log out</a>) 
+                                <br>
+                                From your account dashboard you can view your <a href="#tab-orders" class="tab-trigger-link link-underline">recent orders</a>, manage your <a href="#tab-address" class="tab-trigger-link">shipping and billing addresses</a>, and <a href="#tab-account" class="tab-trigger-link">edit your password and account details</a>.</p> 
+                                {% endcomment %}
+                            </div><!-- .End .tab-pane -->
+
+                            <div class="tab-pane fade" id="tab-orders" role="tabpanel" aria-labelledby="tab-orders-link">
+            <div class="tab-content">
+                <div class="tab-pane fade show active" id="tab-orders" role="tabpanel" aria-labelledby="tab-orders-link">
+                    {% if orders %}
+                        <table class="table table-orders">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>name</th>
+                                    <th>image</th>
+                                    <th>Status</th>
+                                    <th>Total</th>
+                                    <th>Payment Method</th>
+                                    <th>Details</th>
+                                </tr>
+                            </thead>
+
+                                    <tbody>
+                                        {% for order in orders %}
+                                        
+                                            {% for item in order.ordered_items.all %}
+                                                <tr>
+                                                    <td>{{ order.id }}</td>
+                                                    <td>{{ item.product_variant.product.name }}</td>
+                                                    <td>
+                                                        <img src="{{ item.product_variant.image_1.url }}" alt="{{ item.product_variant.product.name }}" style="width: 100px; height: auto;">
+                                                    </td>
+                                                    <td>{{ order.get_status_display }}</td>
+                                                    <td>{{ order.total_price }}</td>
+                                                    <td>{{ order.get_payment_method_display }}</td>
+                                                    <td>
+                                                        <a href="{% url "order_info" order_id=order.id %}"  class="btn btn-outline-primary-2">View Details</a>
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        {% endfor %}
+                                    </tbody>
+                        </table>
+                    {% else %}
+                        <p>No order has been made yet.</p>
+                        <a href="{% url 'productslist' %}" class="btn btn-outline-primary-2">
+                            <span>GO SHOP</span>
+                            <i class="icon-long-arrow-right"></i>
+                        </a>
+                    {% endif %}
+                </div><!-- .End .tab-pane -->
+            </div><!-- .End .tab-content -->
+
+                            </div><!-- .End .tab-pane -->
+
+                            <div class="tab-pane fade" id="tab-downloads" role="tabpanel" aria-labelledby="tab-downloads-link">
+                                <p>No downloads available yet.</p>
+                                <a href="category.html" class="btn btn-outline-primary-2"><span>GO SHOP</span><i class="icon-long-arrow-right"></i></a>
+                            </div><!-- .End .tab-pane -->
+
+                            <div class="tab-pane fade" id="tab-address" role="tabpanel" aria-labelledby="tab-address-link">
+                                <button style="border-radius: 25px; position: absolute; bottom: 0;" id="myBtn" class="btn btn-primary">Add Address</button>
+
+                                <div class="row">
+
+                                    {% for address in user.addresses.all %}
+                                    <div class="col-lg-6 ">
+                                        <div class="card card-dashboard">
+                                            <div class="card-body">
+                                                <h3 class="card-title">
+                                                    {% if address.is_default %}Default {% endif %}Address
+                                                </h3><!-- End .card-title -->
+
+                                                <p>
+                                                    {{ address.full_name }} {{ address.last_name }}<br>
+                                                    {{ address.address_line_1 }}<br>
+                                                    {% if address.address_line_2 %}{{ address.address_line_2 }}<br>{% endif %}
+                                                    {{ address.city }}, {{ address.state }} {{ address.postal_code }}<br>
+                                                    {{ address.country }}<br>
+                                                    {{ address.phone_number }}<br>
+                                                    {{ address.email }}<br>
+                                                    <a href="{% url 'edit_address' address.id %}">Edit <i class="icon-edit"></i></a>
+                                                    <button class="btn btn-sm btn-danger delete-address" style="background: none; color: #f00; border: none; padding: 0; font: inherit; cursor: pointer; outline: inherit;" data-address-id="{{ address.id }}">Delete</button>
+                                                </p>
+                                            </div><!-- End .card-body -->
+                                        </div><!-- End .card-dashboard -->
+                                    </div><!-- End .col-lg-6 -->
+                                    {% empty %}
+                                    <div class="col-12">
+                                        <p>You have no saved addresses.</p>
+                                    </div>
+                                    {% endfor %}
+
+
+                                  
+
+                                    {% comment %} <div class="col-lg-9">
+                                        <div id="myModal" class="modal">
+                                            <div class="modal-content">
+                                                <span class="close">&times;</span>
+                                                <form method="POST" action="{% url 'submit_address' %}">
+                                                    {% csrf_token %}
+                                                    <div class="row">
+                                                        <div class="col-sm-6">
+                                                            <label>First Name *</label>
+                                                            <input type="text" name="full_name" class="form-control" required>
+                                                        </div><!-- End .col-sm-6 -->
+
+                                                        <div class="col-sm-6">
+                                                            <label>Last Name *</label>
+                                                            <input type="text" name="last_name" class="form-control" required>
+                                                        </div><!-- End .col-sm-6 -->
+                                                    </div><!-- End .row -->
+
+                                                    <label>Address line 1 *</label>
+                                                    <input type="text" name="address_line_1" class="form-control" required>
+
+                                                    <label>Address line 2 </label>
+                                                    <input type="text" name="address_line_2" class="form-control">
+
+                                                    <div class="row">
+                                                        <div class="col-sm-6">
+                                                            <label>City *</label>
+                                                            <input type="text" name="city" class="form-control" required>
+                                                        </div><!-- End .col-sm-6 -->
+
+                                                        <div class="col-sm-6">
+                                                            <label>State *</label>
+                                                            <input type="text" name="state" class="form-control" required>
+                                                        </div><!-- End .col-sm-6 -->
+                                                    </div><!-- End .row -->
+
+                                                    <div class="row">
+                                                        <div class="col-sm-6">
+                                                            <label>Postal Code *</label>
+                                                            <input type="text" name="postal_code" class="form-control" required>
+                                                        </div><!-- End .col-sm-6 -->
+
+                                                        <div class="col-sm-6">
+                                                            <label>Country *</label>
+                                                            <input type="text" name="country" class="form-control" required>
+                                                        </div><!-- End .col-sm-6 -->
+                                                    </div><!-- End .row -->
+
+                                                    <div class="row">
+                                                        <div class="col-sm-6">
+                                                            <label>Phone Number *</label>
+                                                            <input type="text" name="phone_number" class="form-control" required>
+                                                        </div><!-- End .col-sm-6 -->
+
+                                                        <div class="col-sm-6">
+                                                            <label>Email Address *</label>
+                                                            <input type="text" name="email" class="form-control" required>
+                                                        </div><!-- End .col-sm-6 -->
+                                                    </div><!-- End .row -->
+
+                                                    <div class="custom-control custom-checkbox">
+                                                        <input type="checkbox" class="custom-control-input" id="default-address" name="is_default">
+                                                        <label class="custom-control-label" for="default-address">Default Address</label>
+                                                    </div><!-- End .custom-checkbox -->
+
+                                                    <button type="submit" class="btn btn-outline-primary-2">
+                                                        <span>Save</span>
+                                                        <i class="icon-long-arrow-right"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div><!-- End .col-lg-6 -->
+                                </div><!-- End .row -->
+                            </div><!-- .End .tab-pane --> {% endcomment %}
+
+<div class="col-lg-9">
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <form id="addressForm" method="POST" action="{% url 'submit_address' %}">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-sm-6">
+                        <label>First Name *</label>
+                        <input type="text" name="full_name" class="form-control" >
+                        <span class="error" id="full_name_error"></span>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <label>Last Name *</label>
+                        <input type="text" name="last_name" class="form-control" >
+                        <span class="error" id="last_name_error"></span>
+                    </div>
+                </div>
+
+                <label>Address line 1 *</label>
+                <input type="text" name="address_line_1" class="form-control" >
+                <span class="error" id="address_line_1_error"></span>
+
+                <label>Address line 2</label>
+                <input type="text" name="address_line_2" class="form-control">
+                <span class="error" id="address_line_2_error"></span>
+
+                <div class="row">
+                    <div class="col-sm-6">
+                        <label>City *</label>
+                        <input type="text" name="city" class="form-control" >
+                        <span class="error" id="city_error"></span>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <label>State *</label>
+                        <input type="text" name="state" class="form-control" >
+                        <span class="error" id="state_error"></span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-sm-6">
+                        <label>Postal Code *</label>
+                        <input type="text" name="postal_code" class="form-control">
+                        <span class="error" id="postal_code_error"></span>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <label>Country *</label>
+                        <input type="text" name="country" class="form-control" >
+                        <span class="error" id="country_error"></span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-sm-6">
+                        <label>Phone Number *</label>
+                        <input type="text" name="phone_number" class="form-control">
+                        <span class="error" id="phone_number_error"></span>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <label>Email Address *</label>
+                        <input type="text" name="email" class="form-control">
+                        <span class="error" id="email_error"></span>
+                    </div>
+                </div>
+
+                <div class="custom-control custom-checkbox">
+                    <input type="checkbox" class="custom-control-input" id="default-address" name="is_default">
+                    <label class="custom-control-label" for="default-address">Default Address</label>
+                </div>
+
+                <button type="submit" class="btn btn-outline-primary-2">
+                    <span>Save</span>
+                    <i class="icon-long-arrow-right"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+
+
+<div class="tab-pane fade" id="tab-account" role="tabpanel" aria-labelledby="tab-account-link">
+    <form action="{% url 'edit_details' %}" method="POST">
+        {% csrf_token %}
+        <div class="row">
+            <div class="col-sm-6">
+                <label>User name</label>
+                <input type="text" name="username" class="form-control" value="{{ user.username }}" required>
+            </div><!-- End .col-sm-6 -->
+
+            <div class="col-sm-6">
+                <label>Last Name</label>
+                <input type="text" name="last_name" class="form-control" value="{{ user.last_name }}" required>
+            </div><!-- End .col-sm-6 -->
+        </div><!-- End .row -->
+
+        <div class="row">
+            <div class="col-sm-6">
+                <label>Email address</label>
+                <input type="email" name="email" class="form-control" value="{{ user.email }}" required>
+            </div><!-- End .col-sm-6 -->
+
+            <div class="col-sm-6">
+                <label>Phone number</label>
+                <input type="text" name="phone_number" class="form-control" value="{{ profile.phone }}" required>
+            </div><!-- End .col-sm-6 -->
+        </div><!-- End .row -->
+
+        <label>Current password</label>
+        <input type="password" name="current_password" class="form-control">
+
+        <label>New password</label>
+        <input type="password" name="new_password" class="form-control">
+
+        <label>Confirm new password</label>
+        <input type="password" name="confirm_new_password" class="form-control mb-2">
+
+        <button type="submit" class="btn btn-outline-primary-2">
+            <span>SAVE CHANGES</span>
+            <i class="icon-long-arrow-right"></i>
+        </button>
+    </form>
+</div><!-- .End .tab-pane -->
+
+
+
+                        </div><!-- End .tab-content -->
+                    </div><!-- End .col-lg-9 -->
+                </div><!-- End .row -->
+            </div><!-- End .container -->
+        </div><!-- End .dashboard -->
+    </div><!-- End .page-content -->
+</main><!-- End .main -->
+
+{% endblock %}
+
+
+{% block extra_js %}
+    <script src="{% static 'store-assets/assets/js/jquery.min.js' %}"></script>
+    <script src="{% static 'store-assets/assets/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'store-assets/assets/js/jquery.hoverIntent.min.js' %}"></script>
+    <script src="{% static 'store-assets/assets/js/jquery.waypoints.min.js' %}"></script>
+    <script src="{% static 'store-assets/assets/js/superfish.min.js' %}"></script>
+    <script src="{% static 'store-assets/assets/js/owl.carousel.min.js' %}"></script>
+    <!-- Main JS File -->
+    <script src="{% static 'store-assets/assets/js/main.js' %}"></script>
+
+	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+{% comment %} // Get the modal
+var modal = document.getElementById("myModal");
+
+// Get the button that opens the modal
+var btn = document.getElementById("myBtn");
+
+// Get the <span> element that closes the modal
+var span = document.getElementsByClassName("close")[0];
+
+// When the user clicks the button, open the modal 
+btn.onclick = function() {
+  modal.style.display = "block";
+}
+
+// When the user clicks on <span> (x), close the modal
+span.onclick = function() {
+  modal.style.display = "none";
+}
+
+// When the user clicks anywhere outside of the modal, close it
+window.onclick = function(event) {
+  if (event.target == modal) {
+    modal.style.display = "none";
+  }
+} {% endcomment %}
+
+
+    // Modal-related scripts
+    var modal = document.getElementById("myModal");
+    var btn = document.getElementById("myBtn");
+    var span = document.getElementsByClassName("close")[0];
+    btn.onclick = function() {
+        modal.style.display = "block";
+    }
+    span.onclick = function() {
+        modal.style.display = "none";
+    }
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
+
+
+        document.getElementById('addressForm').onsubmit = function(e) {
+        let isValid = true;
+
+        // Clear previous error messages
+        const errorElements = document.querySelectorAll('.error');
+        errorElements.forEach(function(element) {
+            element.innerText = '';
+        });
+
+        // Regex to check if input contains numbers or special characters
+        const invalidPattern = /[^a-zA-Z\s]/;
+
+        // Validate First Name (no numbers or special characters allowed)
+        const firstName = document.getElementsByName('full_name')[0].value.trim();
+        if (firstName === '') {
+            document.getElementById('full_name_error').innerText = 'First name is required.';
+            isValid = false;
+        } else if (invalidPattern.test(firstName)) {
+            document.getElementById('full_name_error').innerText = 'First name cannot contain numbers or special characters.';
+            isValid = false;
+        }
+
+        // Validate Last Name (no numbers or special characters allowed)
+        const lastName = document.getElementsByName('last_name')[0].value.trim();
+        if (lastName === '') {
+            document.getElementById('last_name_error').innerText = 'Last name is required.';
+            isValid = false;
+        } else if (invalidPattern.test(lastName)) {
+            document.getElementById('last_name_error').innerText = 'Last name cannot contain numbers or special characters.';
+            isValid = false;
+        }
+
+        // Validate Address Line 1 (no special characters allowed)
+        const addressLine1 = document.getElementsByName('address_line_1')[0].value.trim();
+        if (addressLine1 === '') {
+            document.getElementById('address_line_1_error').innerText = 'Address line 1 is required.';
+            isValid = false;
+        } else if (invalidPattern.test(addressLine1)) {
+            document.getElementById('address_line_1_error').innerText = 'Address line 1 cannot contain special characters.';
+            isValid = false;
+        }
+
+        // Validate Address Line 2 (no special characters allowed, but this field is optional)
+        const addressLine2 = document.getElementsByName('address_line_2')[0].value.trim();
+        if (addressLine2 !== '' && invalidPattern.test(addressLine2)) {
+            document.getElementById('address_line_2_error').innerText = 'Address line 2 cannot contain special characters.';
+            isValid = false;
+        }
+
+        // Validate City (no numbers or special characters allowed)
+        const city = document.getElementsByName('city')[0].value.trim();
+        if (city === '') {
+            document.getElementById('city_error').innerText = 'City is required.';
+            isValid = false;
+        } else if (invalidPattern.test(city)) {
+            document.getElementById('city_error').innerText = 'City cannot contain numbers or special characters.';
+            isValid = false;
+        }
+
+        // Validate State (no numbers or special characters allowed)
+        const state = document.getElementsByName('state')[0].value.trim();
+        if (state === '') {
+            document.getElementById('state_error').innerText = 'State is required.';
+            isValid = false;
+        } else if (invalidPattern.test(state)) {
+            document.getElementById('state_error').innerText = 'State cannot contain numbers or special characters.';
+            isValid = false;
+        }
+
+        // Validate Postal Code (6-digit number)
+        const postalCode = document.getElementsByName('postal_code')[0].value.trim();
+        const postalCodePattern = /^[0-9]{6}$/;
+        if (!postalCodePattern.test(postalCode)) {
+            document.getElementById('postal_code_error').innerText = 'Postal code must be a 6-digit number.';
+            isValid = false;
+        }
+
+        // Validate Country (no numbers or special characters allowed)
+        const country = document.getElementsByName('country')[0].value.trim();
+        if (country === '') {
+            document.getElementById('country_error').innerText = 'Country is required.';
+            isValid = false;
+        } else if (invalidPattern.test(country)) {
+            document.getElementById('country_error').innerText = 'Country cannot contain numbers or special characters.';
+            isValid = false;
+        }
+
+        // Validate Phone Number (10-digit number)
+        const phoneNumber = document.getElementsByName('phone_number')[0].value.trim();
+        const phoneNumberPattern = /^[0-9]{10}$/;
+        if (!phoneNumberPattern.test(phoneNumber)) {
+            document.getElementById('phone_number_error').innerText = 'Phone number must be a 10-digit number.';
+            isValid = false;
+        }
+
+        // Validate Email Address
+        const email = document.getElementsByName('email')[0].value.trim();
+        const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+        if (!emailPattern.test(email)) {
+            document.getElementById('email_error').innerText = 'Please enter a valid email address.';
+            isValid = false;
+        }
+
+        // Prevent form submission if validation fails
+        if (!isValid) {
+            e.preventDefault();
+        }
+    }
+
+
+$(document).ready(function() {
+    $('.delete-address').click(function() {
+        var addressId = $(this).data('address-id');
+        var addressCard = $(this).closest('.col-lg-6');
+
+        // SweetAlert for confirmation
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '/delete_address/' + addressId + '/',
+                    method: 'POST',
+                    headers: {'X-CSRFToken': '{{ csrf_token }}'},
+                    success: function(response) {
+                        if (response.status === 'success') {
+                            addressCard.fadeOut(300, function() { $(this).remove(); });
+                            Swal.fire(
+                                'Deleted!',
+                                response.message,
+                                'success'
+                            );
+                        } else {
+                            Swal.fire(
+                                'Error!',
+                                'Error: ' + response.message,
+                                'error'
+                            );
+                        }
+                    },
+                    error: function() {
+                        Swal.fire(
+                            'Error!',
+                            'An error occurred while trying to delete the address.',
+                            'error'
+                        );
+                    }
+                });
+            }
+        });
+    });
+});
+
+</script>
+
+
+{% endblock  %}
+
+
+{% comment %} $(document).ready(function() {
+    $('.delete-address').click(function() {
+        var addressId = $(this).data('address-id');
+        var addressCard = $(this).closest('.col-lg-6');
+        
+        if (confirm('Are you sure you want to delete this address?')) {
+            $.ajax({
+                url: '/delete_address/' + addressId + '/',
+                method: 'POST',
+                headers: {'X-CSRFToken': '{{ csrf_token }}'},
+                success: function(response) {
+                    if (response.status === 'success') {
+                        addressCard.fadeOut(300, function() { $(this).remove(); });
+                        alert(response.message);
+                    } else {
+                        alert('Error: ' + response.message);
+                    }
+                },
+                error: function() {
+                    alert('An error occurred while trying to delete the address.');
+                }
+            });
+        }
+    });
+}); {% endcomment %}

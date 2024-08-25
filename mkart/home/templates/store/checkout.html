@@ -1,0 +1,550 @@
+{% extends "store/Base.html" %}
+
+{% load static %}
+
+{% block title %}checkout{% endblock  %}
+
+{% block extra_style %}
+
+    <link rel="apple-touch-icon" sizes="180x180" href="store-assets/assets/images/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="store-assets/assets/images/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="store-assets/assets/images/icons/favicon-16x16.png">
+    <link rel="manifest" href="store-assets/assets/images/icons/site.html">
+    <link rel="mask-icon" href="store-assets/assets/images/icons/safari-pinned-tab.svg" color="#666666">
+    <link rel="shortcut icon" href="store-assets/assets/images/icons/favicon.ico">
+    <meta name="apple-mobile-web-app-title" content="Molla">
+    <meta name="application-name" content="Molla">
+    <meta name="msapplication-TileColor" content="#cc9966">
+    <meta name="msapplication-config" content="store-assets/assets/images/icons/browserconfig.xml">
+    <meta name="theme-color" content="#ffffff">
+    <!-- Plugins CSS File -->
+    <link rel="stylesheet" href="{% static 'store-assets/assets/css/bootstrap.min.css' %}">
+    <!-- Main CSS File -->
+    <link rel="stylesheet" href="{% static 'store-assets/assets/css/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+
+    <style>
+    .modal-content {
+        border-radius: 15px;
+        overflow: hidden;
+    }
+
+    .modal-header {
+        padding: 1.5rem;
+    }
+
+    .modal-body {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    .alert {
+        border-radius: 10px;
+        border: none;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .alert-success {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .alert-info {
+        background-color: #d1ecf1;
+        color: #0c5460;
+    }
+
+    .alert-warning {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+
+    .alert-danger {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        border: none;
+        border-radius: 5px;
+        padding: 10px 20px;
+        transition: background-color 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        background-color: #0056b3;
+    }
+</style>
+</head>
+{% endblock  %}
+
+
+{% block content %}
+<main class="main">
+    <!-- Page Header -->
+    <div class="page-header text-center" style="background-image: url('{% static 'store-assets/assets/images/page-header-bg.jpg' %}')">
+        <div class="container">
+            <h1 class="page-title">Checkout<span>Shop</span></h1>
+        </div>
+    </div>
+
+<!-- Message Modal -->
+<div class="modal fade" id="messageModal" tabindex="-1" aria-labelledby="messageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0 bg-primary text-white">
+                <h5 class="modal-title" id="messageModalLabel">
+                    <i class="fas fa-info-circle me-2"></i>checkout Updates
+                </h5>
+                {% comment %} <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button> {% endcomment %}
+            </div>
+            <div class="modal-body p-4">
+                {% if messages %}
+                    <div id="messageContent">
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} fade show" role="alert">
+                                <i class="fas fa-{{ message.tags }}-circle me-2"></i>
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Got it</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+    <!-- Breadcrumb Navigation -->
+    <nav aria-label="breadcrumb" class="breadcrumb-nav">
+        <div class="container">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'productslist' %}">Shop</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Checkout</li>
+            </ol>
+        </div>
+    </nav>
+
+    <!-- Page Content -->
+    <div class="page-content">
+        <div class="checkout">
+            <div class="container">
+                <!-- Checkout Form -->
+                <form action="{% url 'checkout' %}" method="POST">
+                    {% csrf_token %}
+                    <div class="row">
+                        <!-- Delivery Details -->
+                        <div class="col-lg-9">
+                            <h2 class="checkout-title">Delivery Details</h2>
+
+                            <!-- Address Selection -->
+                            <div class="row mb-4">
+                                {% for address in user.addresses.all %}
+                                    <div class="col-lg-6 mb-3">
+                                        <div class="card">
+                                            <div class="card-body">
+                                                <h5 class="card-title">
+                                                    {% if address.is_default %}Default {% endif %}Address
+                                                </h5>
+                                                <p>{{ address.full_name }} {{ address.last_name }}</p>
+                                                <p>{{ address.address_line_1 }}</p>
+                                                {% if address.address_line_2 %}
+                                                    <p>{{ address.address_line_2 }}</p>
+                                                {% endif %}
+                                                <p>{{ address.city }}, {{ address.state }} {{ address.postal_code }}</p>
+                                                <p>{{ address.country }}</p>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="radio" name="selected_address" id="address_{{ address.id }}" value="{{ address.id }}" {% if address.is_default %}checked{% endif %}>
+                                                    <label class="form-check-label" for="address_{{ address.id }}">
+                                                        Use this address
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+
+                            <!-- New Address Form -->
+                            <div id="new_address_form" style="display: {% if user.addresses.all %}none{% else %}block{% endif %};">
+                                <div class="row">
+                                    <div class="col-sm-6">
+                                        <label for="full_name">First Name *</label>
+                                        <input type="text" name="full_name" id="full_name" class="form-control" >
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <label for="last_name">Last Name *</label>
+                                        <input type="text" name="last_name" id="last_name" class="form-control" >
+                                    </div>
+                                </div>
+
+                                <label for="phone_number">Phone *</label>
+                                <input type="tel" name="phone_number" id="phone_number" class="form-control" >
+
+                                <label for="email">Email address *</label>
+                                <input type="email" name="email" id="email" class="form-control" >
+
+                                <label for="address_line_1">Street address *</label>
+                                <input type="text" name="address_line_1" id="address_line_1" class="form-control" >
+                                <input type="text" name="address_line_2" id="address_line_2" class="form-control" placeholder="Apartment, suite, unit, etc. (optional)">
+
+                                <div class="row">
+                                    <div class="col-sm-6">
+                                        <label for="city">Town / City *</label>
+                                        <input type="text" name="city" id="city" class="form-control" >
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <label for="state">State / County *</label>
+                                        <input type="text" name="state" id="state" class="form-control" >
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-sm-6">
+                                        <label for="postal_code">Postcode / ZIP *</label>
+                                        <input type="text" name="postal_code" id="postal_code" class="form-control" >
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <label for="country">Country *</label>
+                                        <input type="text" name="country" id="country" class="form-control" >
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="custom-control custom-checkbox mt-3">
+                                <input type="checkbox" class="custom-control-input" id="use_new_address" name="use_new_address">
+                                <label class="custom-control-label" for="use_new_address">Enter a new address</label>
+                            </div>
+                        </div>
+
+                        <!-- Order Summary -->
+                        <aside class="col-lg-3">
+                            <div class="summary">
+                                <h3 class="summary-title">Your Order</h3>
+
+                                <table class="table table-summary">
+                                    <thead>
+                                        <tr>
+                                            <th>Product</th>
+                                            <th>Total</th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody>
+                                        {% for item in cart_items %}
+                                        <tr>
+                                            <td><a href="{% url 'product_info' item.product_variant.product.id %}">{{ item.product_variant.product.name }}</a></td>
+                                            <td>{{ item.get_total_price }}</td>
+                                        </tr>
+                                        {% endfor %}
+
+                                        <tr class="summary-subtotal">
+                                            <td>Subtotal:</td>
+                                            <td>{{ cart_total }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Shipping:</td>
+                                            <td>Free shipping</td>
+                                        </tr>
+                                        <tr class="summary-total">
+                                            <td>Total:</td>
+                                            <td>{{ cart_total }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+
+                                <!-- Payment Options -->
+                                <div class="form-group">
+                                    <label for="payment_method">Payment Method</label>
+                                    <select name="payment_method" id="payment_method" class="form-control" required>
+                                        <option value="cod">Cash on Delivery</option>
+                                        <option value="razorpay">Razorpay</option>
+                                        <option value="wallet">Wallet</option>
+                                    </select>
+                                </div>
+
+                                <button type="submit" class="btn btn-outline-primary-2 btn-order btn-block">
+                                    <span class="btn-text">Place Order</span>
+                                    <span class="btn-hover-text">Proceed to Checkout</span>
+                                </button>
+                            </div>
+                        </aside>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'store-assets/assets/js/jquery.min.js' %}"></script>
+    <script src="{% static 'store-assets/assets/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'store-assets/assets/js/jquery.hoverIntent.min.js' %}"></script>
+    <script src="{% static 'store-assets/assets/js/jquery.waypoints.min.js' %}"></script>
+    <script src="{% static 'store-assets/assets/js/superfish.min.js' %}"></script>
+    <script src="{% static 'store-assets/assets/js/owl.carousel.min.js' %}"></script>
+    <!-- Main JS File -->
+    <script src="{% static 'store-assets/assets/js/main.js' %}"></script>
+    <script src="{% static 'store-assets/assets/js/jquery.min.js' %}"></script>
+    <script src="{% static 'store-assets/assets/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js"></script>
+ 
+
+    <script>
+    $(document).ready(function() {
+
+        if ($("#messageContent").children().length > 0) {
+            $("#messageModal").modal('show');
+        }
+        
+        $('.btn-close, .btn-primary').on('click', function() {
+            $('#messageModal').modal('hide');
+        });
+
+
+
+
+        $('#use_new_address').change(function() {
+            if(this.checked) {
+                $('#new_address_form').show();
+                $('input[name="selected_address"]').prop('checked', false);
+            } else {
+                $('#new_address_form').hide();
+                $('input[name="selected_address"]:first').prop('checked', true);
+            }
+        });
+    }); 
+</script>
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{% comment %} {% block content %}
+<main class="main">
+    <!-- Page Header -->
+    <div class="page-header text-center" style="background-image: url('store-assets/assets/images/page-header-bg.jpg')">
+        <div class="container">
+            <h1 class="page-title">Checkout<span>Shop</span></h1>
+        </div><!-- End .container -->
+    </div><!-- End .page-header -->
+
+    <!-- Breadcrumb Navigation -->
+    <nav aria-label="breadcrumb" class="breadcrumb-nav">
+        <div class="container">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="">Home</a></li>
+                <li class="breadcrumb-item"><a href="#">Shop</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Checkout</li>
+            </ol>
+        </div><!-- End .container -->
+    </nav><!-- End .breadcrumb-nav -->
+
+    <!-- Page Content -->
+    <div class="page-content">
+        <div class="checkout">
+            <div class="container">
+                <!-- Discount Form -->
+                <div class="checkout-discount">
+                    <form action="#">
+                        <input type="text" class="form-control" id="checkout-discount-input">
+                        <label for="checkout-discount-input" class="text-truncate">Have a coupon? <span>Click here to enter your code</span></label>
+                    </form>
+                </div><!-- End .checkout-discount -->
+
+                <!-- Address Selection -->
+                <div class="row">
+                    {% for address in user.addresses.all %}
+                        <div class="col-lg-4 col-md-6 mb-4">
+                            <div class="card card-dashboard">
+                                <div class="card-body">
+                                    <h3 class="card-title">
+                                        {% if address.is_default %}Default {% endif %}Address
+                                    </h3>
+                                    <p>{{ address.full_name }} {{ address.last_name }}</p>
+                                    <p>{{ address.address_line_1 }}</p>
+                                    {% if address.address_line_2 %}
+                                        <p>{{ address.address_line_2 }}</p>
+                                    {% endif %}
+                                    <p>{{ address.city }}, {{ address.state }} {{ address.postal_code }}</p>
+                                    <p>{{ address.country }}</p>
+                                    <p>{{ address.phone_number }}</p>
+                                    <p>{{ address.email }}</p>
+                                    <p>
+                                        <a href="{% url 'edit_address' address.id %}">Edit <i class="icon-edit"></i></a>
+                                        <button class="btn btn-sm btn-danger delete-address" style="background: none; color: #f00; border: none; padding: 0; font: inherit; cursor: pointer; outline: inherit;">Delete</button>
+                                    </p>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="selected_address" id="address_{{ address.id }}" value="{{ address.id }}" {% if address.is_default %}checked{% endif %}>
+                                        <label class="form-check-label" for="address_{{ address.id }}">
+                                            Select for delivery
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="col-12">
+                            <p>You have no saved addresses.</p>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Checkout Form -->
+                <form method="POST" action="{% url 'checkout' %}">
+                    {% csrf_token %}
+                    <div class="row">
+                        <!-- Delivery Details -->
+                        <div class="col-lg-9">
+                            <h2 class="checkout-title">Delivery Details</h2><!-- End .checkout-title -->
+
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <label for="full_name">First Name *</label>
+                                    <input type="text" name="full_name" id="full_name" class="form-control" >
+                                </div><!-- End .col-sm-6 -->
+
+                                <div class="col-sm-6">
+                                    <label for="last_name">Last Name *</label>
+                                    <input type="text" name="last_name" id="last_name" class="form-control" >
+                                </div><!-- End .col-sm-6 -->
+                            </div><!-- End .row -->
+
+                            <label for="phone_number">Phone *</label>
+                            <input type="tel" name="phone_number" id="phone_number" class="form-control" >
+
+                            <label for="email">Email address *</label>
+                            <input type="email" name="email" id="email" class="form-control" >
+
+                            <label for="country">Country *</label>
+                            <input type="text" name="country" id="country" class="form-control" >
+
+                            <label for="address_line_1">Street address *</label>
+                            <input type="text" name="address_line_1" id="address_line_1" class="form-control" >
+                            <input type="text" name="address_line_2" id="address_line_2" class="form-control">
+
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <label for="city">Town / City *</label>
+                                    <input type="text" name="city" id="city" class="form-control" >
+                                </div>
+                                <div class="col-sm-6">
+                                    <label for="state">State / County *</label>
+                                    <input type="text" name="state" id="state" class="form-control" >
+                                </div>
+                            </div><!-- End .row -->
+
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <label for="postal_code">Postcode / ZIP *</label>
+                                    <input type="text" name="postal_code" id="postal_code" class="form-control" >
+                                </div>
+                            </div><!-- End .row -->
+                        </div><!-- End .col-lg-9 -->
+
+                        <!-- Order Summary -->
+                        <aside class="col-lg-3">
+                            <div class="summary">
+                                <h3 class="summary-title">Your Order</h3><!-- End .summary-title -->
+
+                                <table class="table table-summary">
+                                    <thead>
+                                        <tr>
+                                            <th>Product</th>
+                                            <th>Total</th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody>
+                                        <tr>
+                                            <td><a href="#">Beige knitted elastic runner shoes</a></td>
+                                            <td>84.00</td>
+                                        </tr>
+
+                                        <tr>
+                                            <td><a href="#">Blue utility pinafore denim dress</a></td>
+                                            <td>76.00</td>
+                                        </tr>
+
+                                        <tr class="summary-subtotal">
+                                            <td>Subtotal:</td>
+                                            <td>160.00</td>
+                                        </tr><!-- End .summary-subtotal -->
+                                        <tr>
+                                            <td>Shipping:</td>
+                                            <td>Free shipping</td>
+                                        </tr>
+                                        <tr class="summary-total">
+                                            <td>Total:</td>
+                                            <td>160.00</td>
+                                        </tr><!-- End .summary-total -->
+                                    </tbody>
+                                </table><!-- End .table table-summary -->
+
+                                <!-- Payment Options -->
+                                <div class="accordion-summary" id="accordion-payment">
+                                    <div class="card">
+                                        <div class="card-header" id="heading-3">
+                                            <h2 class="card-title">
+                                                <a class="collapsed" role="button" data-toggle="collapse" href="#collapse-3" aria-expanded="false" aria-controls="collapse-3">
+                                                    Cash on delivery
+                                                </a>
+                                            </h2>
+                                        </div><!-- End .card-header -->
+                                        <div id="collapse-3" class="collapse" aria-labelledby="heading-3" data-parent="#accordion-payment">
+                                            <div class="card-body">
+                                                You can pay with cash upon delivery. Please ensure the amount is exact as our couriers may not carry change.
+                                            </div><!-- End .card-body -->
+                                        </div><!-- End .collapse -->
+                                    </div><!-- End .card -->
+
+                                    <div class="card">
+                                        <div class="card-header" id="heading-5">
+                                            <h2 class="card-title">
+                                                <a class="collapsed" role="button" data-toggle="collapse" href="#collapse-5" aria-expanded="false" aria-controls="collapse-5">
+                                                    Credit Card (Stripe)
+                                                    <img src="{% static 'store-assets/assets/images/payments-summary.png' %}" alt="payments cards">
+                                                </a>
+                                            </h2>
+                                        </div><!-- End .card-header -->
+                                        <div id="collapse-5" class="collapse" aria-labelledby="heading-5" data-parent="#accordion-payment">
+                                            <div class="card-body">
+                                                Pay securely using your credit card via Stripe. Your card details will be securely processed.
+                                            </div><!-- End .card-body -->
+                                        </div><!-- End .collapse -->
+                                    </div><!-- End .card -->
+                                </div><!-- End .accordion -->
+
+                                <button type="submit" class="btn btn-outline-primary-2 btn-order btn-block">
+                                    <span class="btn-text">Place Order</span>
+                                    <span class="btn-hover-text">Proceed to Checkout</span>
+                                </button>
+                            </div><!-- End .summary -->
+                        </aside><!-- End .col-lg-3 -->
+                    </div><!-- End .row -->
+                </form>
+            </div><!-- End .container -->
+        </div><!-- End .checkout -->
+    </div><!-- End .page-content -->
+</main><!-- End .main -->
+{% endblock %} {% endcomment %}

@@ -1,0 +1,237 @@
+{% extends "Base.html" %} {% load static %} {% block title %}user Lists{% endblock %} {% block extra_style %}
+<link rel="shortcut icon" type="image/x-icon" href="admin-assets/img/favicon.jpg" />
+
+<link rel="stylesheet" href="{% static 'admin-assets/css/bootstrap.min.css' %}" />
+
+<link rel="stylesheet" href="{% static 'admin-assets/css/animate.css' %}" />
+
+<link rel="stylesheet" href="{% static 'admin-assets/plugins/select2/css/select2.min.css' %}" />
+
+<link rel="stylesheet" href="{% static 'admin-assets/css/bootstrap-datetimepicker.min.css' %}" />
+
+<link rel="stylesheet" href="{% static 'admin-assets/css/dataTables.bootstrap4.min.css' %}" />
+
+<link rel="stylesheet" href="{% static 'admin-assets/plugins/fontawesome/css/fontawesome.min.css' %}" />
+<link rel="stylesheet" href="{% static 'admin-assets/plugins/fontawesome/css/all.min.css' %}" />
+
+<link rel="stylesheet" href="{% static 'admin-assets/css/style.css' %}" />
+<style>
+    .btn-success{
+        background-color: #41d441;
+        width: 111px;
+    }
+    .btn-danger{
+        width: 111px;
+    }
+</style>
+{% endblock %} {% block content %}
+
+<div class="page-wrapper">
+    <div class="content">
+        <div class="page-header">
+            <div class="page-title">
+                <h4>User List</h4>
+                <h6>Manage your User</h6>
+            </div>
+            <div class="page-btn">
+                <a href="newuser.html" class="btn btn-added"
+                    ><img src="{% static 'admin-assets/img/icons/plus.svg' %}" alt="img" />Add User</a
+                >
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <div class="table-top">
+                    <div class="search-set">
+                        <div class="search-path">
+                            <a class="btn btn-filter" id="filter_search">
+                                <img src="{% static 'admin-assets/img/icons/filter.svg' %}" alt="img" />
+                                <span><img src="{% static 'admin-assets/img/icons/closes.svg' %}" alt="img" /></span>
+                            </a>
+                        </div>
+                        <div class="search-input">
+                            <a class="btn btn-searchset"
+                                ><img src="{% static 'admin-assets/img/icons/search-white.svg' %}" alt="img"
+                            /></a>
+                        </div>
+                    </div>
+                    <div class="wordset">
+                        <ul>
+                            <li>
+                                <a data-bs-toggle="tooltip" data-bs-placement="top" title="pdf"
+                                    ><img src="{% static 'admin-assets/img/icons/pdf.svg' %}" alt="img"
+                                /></a>
+                            </li>
+                            <li>
+                                <a data-bs-toggle="tooltip" data-bs-placement="top" title="excel"
+                                    ><img src="{% static 'admin-assets/img/icons/excel.svg' %}" alt="img"
+                                /></a>
+                            </li>
+                            <li>
+                                <a data-bs-toggle="tooltip" data-bs-placement="top" title="print"
+                                    ><img src="{% static 'admin-assets/img/icons/printer.svg' %}" alt="img"
+                                /></a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card" id="filter_inputs">
+                    <div class="card-body pb-0">
+                        <div class="row">
+                            <div class="col-lg-2 col-sm-6 col-12">
+                                <div class="form-group">
+                                    <input type="text" placeholder="Enter User Name" />
+                                </div>
+                            </div>
+                            <div class="col-lg-2 col-sm-6 col-12">
+                                <div class="form-group">
+                                    <input type="text" placeholder="Enter Phone" />
+                                </div>
+                            </div>
+                            <div class="col-lg-2 col-sm-6 col-12">
+                                <div class="form-group">
+                                    <input type="text" placeholder="Enter Email" />
+                                </div>
+                            </div>
+                            <div class="col-lg-2 col-sm-6 col-12">
+                                <div class="form-group">
+                                    <input type="text" class="datetimepicker cal-icon" placeholder="Choose Date" />
+                                </div>
+                            </div>
+                            <div class="col-lg-2 col-sm-6 col-12">
+                                <div class="form-group">
+                                    <select class="select">
+                                        <option>Disable</option>
+                                        <option>Enable</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-lg-1 col-sm-6 col-12 ms-auto">
+                                <div class="form-group">
+                                    <a class="btn btn-filters ms-auto"
+                                        ><img src="{% static 'admin-assets/img/icons/search-whites.svg' %}" alt="img"
+                                    /></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+<div class="table-responsive">
+    <table class="table datanew">
+        <thead>
+            <tr>
+                <th>
+                    <label class="checkboxs">
+                        <input type="checkbox" />
+                        <span class="checkmarks"></span>
+                    </label>
+                </th>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Date Joined</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>
+                    <label class="checkboxs">
+                        <input type="checkbox" />
+                        <span class="checkmarks"></span>
+                    </label>
+                </td>
+                <td>{{ user.username }}</td>
+                <td>{{ user.email }}</td>
+                <td>{{ user.date_joined|date:"m/d/Y" }}</td>
+                <td>
+                    <button class="btn btn-sm status-toggle {% if user.is_active %}btn-success{% else %}btn-danger{% endif %}" 
+                            data-user-id="{{ user.id }}">
+                        {% if user.is_active %}Active{% else %}Inactive{% endif %}
+                    </button>
+                </td>
+                <td>
+                    <a class="me-3" href="{% url 'admin:auth_user_change' user.id %}">
+                        <img src="{% static 'admin-assets/img/icons/edit.svg' %}" alt="img" />
+                    </a>
+                    <a class="me-3 confirm-text" href="javascript:void(0);" data-user-id="{{ user.id }}">
+                        <img src="{% static 'admin-assets/img/icons/delete.svg' %}" alt="img" />
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %} {% block extra_js %}
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script
+    data-cfasync="false"
+    src="{% static '../../cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js' %}"
+></script>
+<script src="{% static 'admin-assets/js/jquery-3.6.0.min.js' %}"></script>
+
+<script src="{% static 'admin-assets/js/feather.min.js' %}"></script>
+
+<script src="{% static 'admin-assets/js/jquery.slimscroll.min.js' %}"></script>
+
+<script src="{% static 'admin-assets/js/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'admin-assets/js/dataTables.bootstrap4.min.js' %}"></script>
+
+<script src="{% static 'admin-assets/js/bootstrap.bundle.min.js' %}"></script>
+
+<script src="{% static 'admin-assets/plugins/select2/js/select2.min.js' %}"></script>
+
+<script src="{% static 'admin-assets/js/moment.min.js' %}"></script>
+<script src="{% static 'admin-assets/js/bootstrap-datetimepicker.min.js' %}"></script>
+
+<script src="{% static 'admin-assets/plugins/sweetalert/sweetalert2.all.min.js' %}"></script>
+<script src="{% static 'admin-assets/plugins/sweetalert/sweetalerts.min.js' %}"></script>
+
+<script src="{% static 'admin-assets/js/script.js' %}"></script>
+<script>
+$(document).ready(function() {
+    $('.status-toggle').click(function() {
+        var button = $(this);
+        var userId = button.data('user-id');
+        var isCurrentlyActive = button.hasClass('btn-success');
+        var newStatus = !isCurrentlyActive;
+        
+        $.ajax({
+            url: '{% url "toggle_user_status" %}',
+            type: 'POST',
+            data: {
+                'user_id': userId,
+                'is_active': newStatus,
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
+            },
+            success: function(response) {
+                if (response.success) {
+                    if (newStatus) {
+                        button.removeClass('btn-danger').addClass('btn-success').text('Active');
+                    } else {
+                        button.removeClass('btn-success').addClass('btn-danger').text('Inactive');
+                    }
+                } else {
+                    alert('Failed to update user status');
+                }
+            },
+            error: function() {
+                alert('An error occurred while updating user status');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

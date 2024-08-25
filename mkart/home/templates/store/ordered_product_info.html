@@ -1,0 +1,219 @@
+{% extends "store/Base.html" %}
+{% load static %}
+{% block title %}order information{% endblock  %}
+
+{% block extra_style %}
+    <link rel="apple-touch-icon" sizes="180x180" href="store-assets/assets/images/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="store-assets/assets/images/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="store-assets/assets/images/icons/favicon-16x16.png">
+    <link rel="manifest" href="store-assets/assets/images/icons/site.html">
+    <link rel="mask-icon" href="store-assets/assets/images/icons/safari-pinned-tab.svg" color="#666666">
+    <link rel="shortcut icon" href="store-assets/assets/images/icons/favicon.ico">
+    <meta name="apple-mobile-web-app-title" content="Molla">
+    <meta name="application-name" content="Molla">
+    <meta name="msapplication-TileColor" content="#cc9966">
+    <meta name="msapplication-config" content="store-assets/assets/images/icons/browserconfig.xml">
+    <meta name="theme-color" content="#ffffff">
+    <!-- Plugins CSS File -->
+    <link rel="stylesheet" href="{% static 'store-assets/assets/css/bootstrap.min.css' %}">
+    <!-- Main CSS File -->
+    <link rel="stylesheet" href="{% static 'store-assets/assets/css/style.css' %}">
+
+    <link rel="stylesheet" href="{% static 'store-assets/assets/css/bootstrap.min.css' %}">
+    <!-- Main CSS File -->
+    <link rel="stylesheet" href="{% static 'store-assets/assets/css/style.css' %}">
+    <!-- Add Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+
+
+   <style>
+        body {
+            font-family: 'Poppins', Arial, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        .order-details-container {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 30px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f1f1f1;
+        }
+        .order-header h2 {
+            font-size: 32px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        .order-status {
+            font-size: 18px;
+            padding: 8px 15px;
+            border-radius: 20px;
+            background-color: #e1f5fe;
+            color: #0288d1;
+        }
+        .order-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+        .order-meta-item {
+            text-align: center;
+        }
+        .order-meta-item i {
+            font-size: 24px;
+            color: #3498db;
+            margin-bottom: 10px;
+        }
+        .order-meta-item p {
+            margin: 0;
+            font-size: 14px;
+        }
+        .order-meta-item strong {
+            display: block;
+            font-size: 18px;
+            color: #2c3e50;
+        }
+        .section-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f1f1f1;
+        }
+        .table {
+            margin-bottom: 30px;
+        }
+        .table thead th {
+            background-color: #f8f9fa;
+            color: #2c3e50;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .table tbody td {
+            vertical-align: middle;
+        }
+        .product-img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+        .order-address {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .order-actions {
+            text-align: right;
+            margin-top: 30px;
+        }
+        .order-actions a {
+            margin-left: 15px;
+            padding: 10px 20px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .order-meta-item i.fa-rupee-sign {
+            font-size: 22px; /* Slightly smaller for better alignment */
+        }
+    </style>
+{% endblock  %}
+
+
+{% block content %}
+<main class="main">
+    {% comment %} <div class="page-header text-center" style="background-image: url('{% static 'store-assets/assets/images/page-header-bg.jpg' %}')">
+        <div class="container">
+            <h1 class="page-title">Order Details<span>Shop</span></h1>
+        </div>
+    </div> {% endcomment %}
+
+    <div class="page-content">
+        <div class="order-details-container">
+            <div class="order-header">
+                <h2>Order #{{ order.id }}</h2>
+                <span class="order-status">{{ order.get_status_display }}</span>
+            </div>
+
+            <div class="order-meta">
+                <div class="order-meta-item ">
+                    <i class="far fa-calendar-alt"></i>
+                    <p>Order Date</p>
+                    <strong>{{ order.created_at|date:"M d, Y" }}</strong>
+                </div>
+                <div class="order-meta-item">
+                    <i class="fas fa-rupee-sign"></i>
+                    <p>Total Amount</p>
+                    <strong>₹{{ order.total_price }}</strong>
+                </div>
+                <div class="order-meta-item">
+                    <i class="fas fa-credit-card"></i>
+                    <p>Payment Method</p>
+                    <strong>{{ order.get_payment_method_display }}</strong>
+                </div>
+            </div>
+
+            <div class="order-items">
+                <h3 class="section-title">Items in Your Order</h3>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Image</th>
+                            <th>Quantity</th>
+                            <th>Price</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in order_items %}
+                        <tr>
+                            <td>{{ item.product_variant.product.name }}</td>
+                            <td><img src="{{ item.product_variant.image_1.url }}" alt="{{ item.product_variant.product.name }}" class="product-img"></td>
+                            <td>{{ item.quantity }}</td>
+                            <td>₹{{ item.price }}</td>
+                            <td>₹{{ item.get_total_price }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="order-address">
+                <h3 class="section-title">Shipping Address</h3>
+                <p><strong>Name:</strong> {{ order_address.full_name }} {{ order_address.last_name }}</p>
+                <p><strong>Phone:</strong> {{ order_address.phone_number }}</p>
+                <p><strong>Email:</strong> {{ order_address.email }}</p>
+                <p><strong>Address:</strong> {{ order_address.address_line_1 }}, {{ order_address.address_line_2 }}, {{ order_address.city }}, {{ order_address.state }}, {{ order_address.country }} - {{ order_address.postal_code }}</p>
+            </div>
+
+            <div class="order-actions">
+                <a href="{% url 'account' %}" class="btn btn-outline-primary"><i class="fas fa-arrow-left"></i> Back to Orders</a>
+                <a href="{% url 'productslist' %}" class="btn btn-primary">Continue Shopping <i class="fas fa-shopping-cart"></i></a>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}
+
+
+{% block extra_js %}
+    <script src="{% static 'store-assets/assets/js/jquery.min.js' %}"></script>
+    <script src="{% static 'store-assets/assets/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'store-assets/assets/js/jquery.hoverIntent.min.js' %}"></script>
+    <script src="{% static 'store-assets/assets/js/jquery.waypoints.min.js' %}"></script>
+    <script src="{% static 'store-assets/assets/js/superfish.min.js' %}"></script>
+    <script src="{% static 'store-assets/assets/js/owl.carousel.min.js' %}"></script>
+{% endblock  %}

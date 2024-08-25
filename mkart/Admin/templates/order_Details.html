@@ -1,0 +1,628 @@
+{% extends "Base.html" %}
+{% load static %}
+
+{% block title %}Order Details{% endblock %}
+
+{% block extra_style %}
+<link rel="stylesheet" href="{% static 'admin-assets/css/bootstrap.min.css' %}">
+<link rel="stylesheet" href="{% static 'admin-assets/css/animate.css' %}">
+<link rel="stylesheet" href="{% static 'admin-assets/plugins/select2/css/select2.min.css' %}">
+<link rel="stylesheet" href="{% static 'admin-assets/css/dataTables.bootstrap4.min.css' %}">
+<link rel="stylesheet" href="{% static 'admin-assets/plugins/fontawesome/css/all.min.css' %}">
+<link rel="stylesheet" href="{% static 'admin-assets/css/style.css' %}">
+<style>
+    .order-card {
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+    }
+    .order-header {
+        background-color: #f8f9fa;
+        border-radius: 15px 15px 0 0;
+        padding: 20px;
+    }   
+     .order-header {
+        background-color: #f8f9fa;
+        padding: 20px;
+        border-bottom: 1px solid #e0e0e0;
+    }
+    .order-body {
+        padding: 30px;
+    }
+    .product-img {
+        width: 60px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+    .status-badge {
+        font-size: 0.8rem;
+        padding: 0.4em 0.8em;
+    }
+    .timeline {
+        position: relative;
+        padding-left: 30px;
+    }
+    .timeline:before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: #e0e0e0;
+    }
+    .timeline-item {
+        position: relative;
+        padding-bottom: 20px;
+    }
+    .timeline-item:before {
+        content: '';
+        position: absolute;
+        left: -34px;
+        top: 0;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #007bff;
+    }
+    .status-dropdown {
+        min-width: 120px;
+    }
+    .shipping-info {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 15px;
+    }
+    .shipping-info p {
+        margin-bottom: 5px;
+    }
+    .table th, .table td {
+        vertical-align: middle;
+    }
+    .action-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    .action-buttons .btn {
+        flex: 1;
+    }
+
+
+        .order-card {
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+        overflow: hidden;
+    }
+
+    .order-body {
+        padding: 30px;
+    }
+    .product-img {
+        width: 60px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+    .status-badge {
+        font-size: 0.8rem;
+        padding: 0.4em 0.8em;
+    }
+    .status-dropdown {
+        min-width: 120px;
+    }
+    .shipping-info {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 15px;
+    }
+    .shipping-info p {
+        margin-bottom: 5px;
+    }
+    .table th, .table td {
+        vertical-align: middle;
+    }
+    .action-buttons {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+    .summary-table td {
+        padding: 8px 0;
+    }
+    .summary-table .total-row {
+        font-size: 1.1em;
+        font-weight: bold;
+    }
+</style>
+
+{% csrf_token %}
+{% endblock %}
+
+{% block content %}
+<div class="page-wrapper">
+    <div class="content container-fluid">
+        <div class="page-header">
+            <div class="row align-items-center">
+                <div class="col">
+                    <h3 class="page-title">Order Details</h3>
+                    <ul class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'order_list' %}">Orders</a></li>
+                        <li class="breadcrumb-item active">Order Details</li>
+                    </ul>
+                </div>
+                <div class="col-auto">
+                    <a href="javascript:void(0);" class="btn btn-primary" onclick="window.print()">
+                        <i class="fas fa-print me-2"></i> Print
+                    </a>
+                    <a href="javascript:void(0);" class="btn btn-secondary">
+                        <i class="fas fa-file-pdf me-2"></i> Download PDF
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card order-card">
+                    <div class="order-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h4 class="mb-0">Order #{{ order.id }}</h4>
+                            <div>
+                                <span class="badge bg-{{ order.status }} status-badge me-2">{{ order.get_status_display }}</span>
+                                <span class="badge bg-{{ order.payment_status }} status-badge">{{ order.get_payment_status_display }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="order-body">
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <h5 class="text-muted mb-3">Order Information</h5>
+                                <p><strong>Date:</strong> {{ order.created_at|date:"F d, Y" }}</p>
+                                <p><strong>Payment Method:</strong> {{ order.get_payment_method_display }}</p>
+                                <p>
+                                    <strong>Payment Status:</strong> 
+                                    <span style="color: black; font-size: small;" class="badge bg-{{ order.payment_status }}">{{ order.get_payment_status_display }}</span>
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <h5 class="text-muted mb-3">Customer Details</h5>
+                                <p><strong>Name:</strong> {{ order.user.get_full_name }}</p>
+                                <p><strong>Email:</strong> {{ order.user.email }}</p>
+                                <p><strong>Phone:</strong> {{ order.order_address.phone_number }}</p>
+                            </div>
+                        </div>
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <h5 class="text-muted mb-3">Shipping Information</h5>
+                                <div class="shipping-info">
+                                    <p><strong>Name:</strong> {{ order.order_address.full_name }} {{ order.order_address.last_name }}</p>
+                                    <p><strong>Address:</strong> {{ order.order_address.address_line_1 }}
+                                    {% if order.order_address.address_line_2 %}
+                                        <br>{{ order.order_address.address_line_2 }}
+                                    {% endif %}
+                                    </p>
+                                    <p><strong>City:</strong> {{ order.order_address.city }}</p>
+                                    <p><strong>State:</strong> {{ order.order_address.state }}</p>
+                                    <p><strong>Country:</strong> {{ order.order_address.country }}</p>
+                                    <p><strong>Zip Code:</strong> {{ order.order_address.postal_code }}</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h5 class="text-muted mb-3">Order Summary</h5>
+                                <table class="table table-borderless summary-table">
+                                    <tr>
+                                        <td>Subtotal:</td>
+                                        <td class="text-end">{{ order.total_price }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Shipping:</td>
+                                        <td class="text-end">0.00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Tax:</td>
+                                        <td class="text-end">0.00</td>
+                                    </tr>
+                                    <tr class="total-row">
+                                        <td>Total:</td>
+                                        <td class="text-end">{{ order.total_price }}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                         <h5 class="text-muted mb-3">Order Items</h5>
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Quantity</th>
+                                        <th>Price</th>
+                                        <th>Total</th>
+                                        <th>Status</th>
+                                        <th>Payment Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in order.ordered_items.all %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <img src="{{ item.product_variant.image_1.url }}" alt="{{ item.product_variant.product.name }}" class="product-img me-3">
+                                                <div>
+                                                    <h6 class="mb-0">{{ item.product_variant.product.name }}</h6>
+                                                    <small class="text-muted">
+                                                        Brand: {{ item.product_variant.product.brand.name }} |
+                                                        Category: {{ item.product_variant.product.category.name }} |
+                                                        Color: {{ item.product_variant.color.name }}
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>{{ item.quantity }}</td>
+                                        <td>{{ item.price }}</td>
+                                        <td>{{ item.get_total_price }}</td>
+                                        <td>
+                                            {% comment %} <select class="form-select status-dropdown" data-item-id="{{ item.id }}">
+                                                {% for status, display in item.STATUS_CHOICES %}
+                                                    <option value="{{ status }}" {% if status == item.item_status %}selected{% endif %}>{{ display }}</option>
+                                                {% endfor %}
+                                            </select> {% endcomment %}
+
+<select class="form-select status-dropdown" data-item-id="{{ item.id }}" data-initial-status="{{ item.item_status }}">
+    {% for status, display in item.STATUS_CHOICES %}
+        <option value="{{ status }}" {% if status == item.item_status %}selected{% endif %}>{{ display }}</option>
+    {% endfor %}
+</select>
+
+
+                                        </td>
+                                        <td>
+                                            <span style="color: black; font-size: small;" class="badge bg-{{ item.payment_status_item }}">{{ item.get_payment_status_item_display }}</span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+                    <div class="col-lg-4">
+                <div class="card order-card">
+                    <div class="order-header">
+                        <h5 class="mb-0">Order Actions</h5>
+                    </div>
+                    <div class="order-body">
+                        <div class="action-buttons">
+                            <button class="btn btn-primary" id="updateStatus">Update Status</button>
+                            <button class="btn btn-info">Send Invoice</button>
+                            <button class="btn btn-warning">Cancel Order</button>
+                            <button class="btn btn-danger">Refund</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'admin-assets/js/jquery-3.6.0.min.js' %}"></script>
+<script src="{% static 'admin-assets/js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'admin-assets/js/feather.min.js' %}"></script>
+<script src="{% static 'admin-assets/js/jquery.slimscroll.min.js' %}"></script>
+<script src="{% static 'admin-assets/js/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'admin-assets/js/dataTables.bootstrap4.min.js' %}"></script>
+<script src="{% static 'admin-assets/plugins/select2/js/select2.min.js' %}"></script>
+<script src="{% static 'admin-assets/plugins/sweetalert/sweetalert2.all.min.js' %}"></script>
+<script src="{% static 'admin-assets/js/script.js' %}"></script>
+<script>
+    $(document).ready(function() {
+    $('.status-dropdown').change(function() {
+        var $dropdown = $(this);
+        var itemId = $dropdown.data('item-id');
+        var newStatus = $dropdown.val();
+        var initialStatus = $dropdown.data('initial-status'); // Get the original status
+
+        $.ajax({
+            url: '{% url "update_order_item_status" %}',
+            type: 'POST',
+            data: {
+                'item_id': itemId,
+                'new_status': newStatus,
+                'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+            },
+            success: function(response) {
+                if (response.success) {
+                    // Update the initial status if the change was successful
+                    $dropdown.data('initial-status', newStatus);
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Status Updated',
+                        text: 'The order item status has been updated successfully.',
+                    });
+                } else {
+                    // Revert the dropdown to its initial status
+                    $dropdown.val(initialStatus);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: response.error || 'There was an error updating the status. Please try again.',
+                    });
+                }
+            },
+            error: function() {
+                // Revert the dropdown to its initial status
+                $dropdown.val(initialStatus);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'There was an error communicating with the server. Please try again.',
+                });
+            }
+        });
+    });
+});
+
+</script>
+{% comment %} <script>$(document).ready(function() {
+    $('.status-dropdown').change(function() {
+        var itemId = $(this).data('item-id');
+        var newStatus = $(this).val();
+        
+        $.ajax({
+            url: '{% url "update_order_item_status" %}',
+            type: 'POST',
+            data: {
+                'item_id': itemId,
+                'new_status': newStatus,
+                'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+            },
+            success: function(response) {
+                if (response.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Status Updated',
+                        text: 'The order item status has been updated successfully.',
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: response.error || 'There was an error updating the status. Please try again.',
+                    });
+                }
+            },
+            error: function() {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'There was an error communicating with the server. Please try again.',
+                });
+            }
+        });
+    });
+});</script> {% endcomment %}
+{% endblock %}
+
+
+{% comment %} $(document).ready(function() {
+    $('.status-dropdown').change(function() {
+        var itemId = $(this).data('item-id');
+        var newStatus = $(this).val();
+        
+        $.ajax({
+            url: '{% url "update_order_item_status" %}',  // You'll need to create this URL
+            type: 'POST',
+            data: {
+                'item_id': itemId,
+                'new_status': newStatus,
+                'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+            },
+            success: function(response) {
+                if (response.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Status Updated',
+                        text: 'The order item status has been updated successfully.',
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'There was an error updating the status. Please try again.',
+                    });
+                }
+            },
+            error: function() {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'There was an error communicating with the server. Please try again.',
+                });
+            }
+        });
+    });
+});
+</script> {% endcomment %}
+
+
+
+{% comment %} <script>
+    $(document).ready(function() {
+        $('.status-dropdown').on('change', function() {
+            var itemId = $(this).data('item-id');
+            var newStatus = $(this).val();
+            // Here you can add AJAX call to update the status in the backend
+            console.log("Status changed for item " + itemId + " to: " + newStatus);
+        });
+
+        $('#updateStatus').on('click', function() {
+            // Collect all statuses and update them in bulk
+            var statuses = [];
+            $('.status-dropdown').each(function() {
+                statuses.push({
+                    itemId: $(this).data('item-id'),
+                    status: $(this).val()
+                });
+            });
+            console.log("Updating statuses:", statuses);
+            // Here you can add AJAX call to update all statuses in the backend
+        });
+    });
+</script> {% endcomment %}
+{% comment %} {% extends "Base.html" %} {% load static %} {% block title %} Order full details {% endblock %} {% block extra_style %}
+<link rel="shortcut icon" type="image/x-icon" href="admin-assets/img/favicon.jpg" />
+
+<link rel="stylesheet" href="{% static 'admin-assets/css/bootstrap.min.css' %}" />
+
+<link rel="stylesheet" href="{% static 'admin-assets/css/animate.css' %}" />
+
+<link rel="stylesheet" href="{% static 'admin-assets/plugins/select2/css/select2.min.css' %}" />
+
+<link rel="stylesheet" href="{% static 'admin-assets/css/dataTables.bootstrap4.min.css' %}" />
+
+<link rel="stylesheet" href="{% static 'admin-assets/plugins/fontawesome/css/fontawesome.min.css' %}" />
+<link rel="stylesheet" href="{% static 'admin-assets/plugins/fontawesome/css/all.min.css' %}" />
+
+<link rel="stylesheet" href="{% static 'admin-assets/css/style.css' %}" />
+
+{% endblock %} 
+
+
+
+{% block content %}
+<div class="page-wrapper">
+    <div class="content">
+        <div class="page-header">
+            <div class="page-title">
+                <h4>Order Details</h4>
+                <h6>View order details</h6>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>Order ID: 101</h2>
+                    <a href="javascript:void(0);" class="btn btn-sm btn-primary">
+                        <i class="fas fa-file-pdf"></i> Download PDF
+                    </a>
+                </div>
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h5 class="text-primary mb-3">Order Information</h5>
+                        <p><strong>Order Date:</strong> 17/04/2004</p>
+                        <p><strong>Total Amount:</strong> $3500.00</p>
+                        <p><strong>Order Status:</strong> <span class="badge bg-warning">Pending</span></p>
+                        <p><strong>Payment Type:</strong> Wallet</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h5 class="text-primary mb-3">Shipping Address</h5>
+                        <p><strong>Name:</strong> John Doe</p>
+                        <p><strong>Street:</strong> 123 Main St</p>
+                        <p><strong>City:</strong> New York</p>
+                        <p><strong>State:</strong> NY</p>
+                        <p><strong>Phone:</strong> (123) 456-7890</p>
+                        <p><strong>Email:</strong> john@example.com</p>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Product</th>
+                                <th>QTY</th>
+                                <th>Price</th>
+                                <th>Status</th>
+                                <th>Payment</th>
+                                <th>Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <img src="{% static 'admin-assets/img/product/product1.jpg' %}" alt="Macbook pro" class="me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                                        <span>Macbook pro</span>
+                                    </div>
+                                </td>
+                                <td>1</td>
+                                <td>$1500.00</td>
+                                <td><span class="badge bg-danger">Pending</span></td>
+                                <td><span class="badge bg-success">Paid</span></td>
+                                <td>$1500.00</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <img src="{% static 'admin-assets/img/product/product7.jpg' %}" alt="Apple Earpods" class="me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                                        <span>Apple Earpods</span>
+                                    </div>
+                                </td>
+                                <td>1</td>
+                                <td>$2000.00</td>
+                                <td><span class="badge bg-info">Shipped</span></td>
+                                <td><span class="badge bg-danger">Unpaid</span></td>
+                                <td>$2000.00</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="row mt-4">
+                    <div class="col-md-6 offset-md-6">
+                        <table class="table table-bordered">
+                            <tr>
+                                <td><strong>Shipping</strong></td>
+                                <td class="text-end">$0.00</td>
+                            </tr>
+                            <tr class="table-primary">
+                                <td><strong>Grand Total</strong></td>
+                                <td class="text-end"><strong>$3500.00</strong></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <a href="javascript:void(0);" class="btn btn-primary me-2">Update</a>
+                    <a href="javascript:void(0);" class="btn btn-secondary">Cancel</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 
+
+{% endblock %}
+
+
+
+{% block extra_js %}
+<script
+    data-cfasync="false"
+    src="{% static '../../cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js' %}"
+></script>
+<script src="{% static 'admin-assets/js/jquery-3.6.0.min.js' %}"></script>
+
+<script src="{% static 'admin-assets/js/feather.min.js' %}"></script>
+
+<script src="{% static 'admin-assets/js/jquery.slimscroll.min.js' %}"></script>
+
+<script src="{% static 'admin-assets/js/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'admin-assets/js/dataTables.bootstrap4.min.js' %}"></script>
+
+<script src="{% static 'admin-assets/js/bootstrap.bundle.min.js' %}"></script>
+
+<script src="{% static 'admin-assets/plugins/select2/js/select2.min.js' %}"></script>
+
+<script src="{% static 'admin-assets/plugins/sweetalert/sweetalert2.all.min.js' %}"></script>
+<script src="{% static 'admin-assets/plugins/sweetalert/sweetalerts.min.js' %}"></script>
+
+<script src="{% static 'admin-assets/js/script.js' %}"></script>
+
+<script src="{% static 'admin-assets/js/jquery-3.6.0.min.js' %}"></script>
+<script src="{% static 'admin-assets/js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'admin-assets/js/script.js' %}"></script>    
+{% endblock %} {% endcomment %}

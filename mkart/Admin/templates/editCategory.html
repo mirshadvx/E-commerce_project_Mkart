@@ -1,0 +1,91 @@
+{% extends "Base.html" %}
+{% load static %}
+
+{% block title %}Edit Category{% endblock  %}
+
+{% block extra_style %}
+    <link rel="shortcut icon" type="image/x-icon" href="admin-assets/img/favicon.jpg">
+
+    <link rel="stylesheet" href="{% static 'admin-assets/css/bootstrap.min.css' %}">
+
+    <link rel="stylesheet" href="{% static 'admin-assets/css/animate.css' %}">
+
+    <link rel="stylesheet" href="{% static 'admin-assets/plugins/select2/css/select2.min.css' %}">
+
+    <link rel="stylesheet" href="{% static 'admin-assets/css/dataTables.bootstrap4.min.css' %}">
+
+    <link rel="stylesheet" href="{% static 'admin-assets/plugins/fontawesome/css/fontawesome.min.css' %}">
+    <link rel="stylesheet" href="{% static 'admin-assets/plugins/fontawesome/css/all.min.css' %}">
+
+    <link rel="stylesheet" href="{% static 'admin-assets/css/style.css' %}">
+{% endblock  %}
+
+{% block content %}
+<div class="page-wrapper">
+    <div class="content container-fluid">
+        <div class="page-header">
+            <div class="row">
+                <div class="col-sm-12">
+                    <h3 class="page-title">Edit Category</h3>
+                    <ul class="breadcrumb">
+                        <li class="breadcrumb-item"><a >Dashboard</a></li>
+                        <li class="breadcrumb-item active">Edit Category</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Category Name <span class="text-danger">*</span></label>
+                                <input type="text" name="name" class="form-control" value="{{ category.name }}" required />
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label>Description <span class="text-danger">*</span></label>
+                                <textarea name="description" class="form-control" rows="4" required>{{ category.description }}</textarea>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="text-right mt-4">
+                                <button type="submit" class="btn btn-primary">Update Category</button>
+                                <a href="{% url 'categorylist' %}" class="btn btn-secondary">Cancel</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock  %}
+
+{% block extra_js %}
+
+
+    <script src="{% static 'admin-assets/js/jquery-3.6.0.min.js' %}"></script>
+
+    <script src="{% static 'admin-assets/js/feather.min.js' %}"></script>
+
+    <script src="{% static 'admin-assets/js/jquery.slimscroll.min.js' %}"></script>
+
+    <script src="{% static 'admin-assets/js/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static 'admin-assets/js/dataTables.bootstrap4.min.js' %}"></script>
+
+    <script src="{% static 'admin-assets/js/bootstrap.bundle.min.js' %}"></script>
+
+    <script src="{% static 'admin-assets/plugins/select2/js/select2.min.js' %}"></script>
+
+    <script src="{% static 'admin-assets/plugins/sweetalert/sweetalert2.all.min.js' %}"></script>
+    <script src="{% static 'admin-assets/plugins/sweetalert/sweetalerts.min.js' %}"></script>
+
+    <script src="{% static 'admin-assets/js/script.js' %}"></script>
+
+
+{% endblock  %}

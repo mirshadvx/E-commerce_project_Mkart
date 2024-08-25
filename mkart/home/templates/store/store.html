@@ -1,0 +1,411 @@
+{% extends "store/Base.html" %}
+{% load static %}
+
+{% block title %}Home Page{% endblock %}
+
+{% block extra_style %}
+    <link rel="apple-touch-icon" sizes="180x180" href="store-assets/assets/images/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="store-assets/assets/images/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="store-assets/assets/images/icons/favicon-16x16.png">
+    <link rel="manifest" href="store-assets/assets/images/icons/site.html">
+    <link rel="mask-icon" href="store-assets/assets/images/icons/safari-pinned-tab.svg" color="#666666">
+    <link rel="shortcut icon" href="store-assets/assets/images/icons/favicon.ico">
+    <meta name="apple-mobile-web-app-title" content="Molla">
+    <meta name="application-name" content="Molla">
+    <meta name="msapplication-TileColor" content="#cc9966">
+    <meta name="msapplication-config" content="store-assets/assets/images/icons/browserconfig.xml">
+    <meta name="theme-color" content="#ffffff">
+    <!-- Plugins CSS File -->
+    <link rel="stylesheet" href="{% static 'store-assets/assets/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'store-assets/assets/css/plugins/owl-carousel/owl.carousel.css' %}">
+    <link rel="stylesheet" href="{% static 'store-assets/assets/css/plugins/magnific-popup/magnific-popup.css' %}">
+    <!-- Main CSS File -->
+    <link rel="stylesheet" href="{% static 'store-assets/assets/css/style.css' %}">
+{% endblock  %}
+
+
+{% block content %}
+        <main class="main">
+            <div class="intro-section bg-lighter pt-5 pb-6">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-lg-8">
+                            <div class="intro-slider-container slider-container-ratio slider-container-1 mb-2 mb-lg-0">
+                                <div class="intro-slider intro-slider-1 owl-carousel owl-simple owl-light owl-nav-inside" data-toggle="owl" data-owl-options='{
+                                        "nav": false, 
+                                        "responsive": {
+                                            "768": {
+                                                "nav": true
+                                            }
+                                        }
+                                    }'>
+                                    <div class="intro-slide">
+                                        <figure class="slide-image">
+                                            <picture style="height: 100%;">
+                                                {% comment %} <source media="(max-width: 480px)" srcset="store-assets/assets/images/slider/slide-1-480w.jpg"> {% endcomment %}
+                                                <img src="{% static 'shop_img/homewatch.jpg' %}" style="height: -webkit-fill-available;" alt="Image Desc">
+                                            </picture>
+                                        </figure><!-- End .slide-image -->
+
+                                        <div class="intro-content">
+                                            <h3 class="intro-subtitle">Topsale Collection</h3><!-- End .h3 intro-subtitle -->
+                                            {% comment %} <h1 class="intro-title">Living Room<br>Furniture</h1><!-- End .intro-title --> {% endcomment %}
+
+                                            <a href="category.html" class="btn btn-outline-white">
+                                                <span>SHOP NOW</span>
+                                                <i class="icon-long-arrow-right"></i>
+                                            </a>
+                                        </div><!-- End .intro-content -->
+                                    </div><!-- End .intro-slide -->
+
+                                    {% comment %} <div class="intro-slide">
+                                        <figure class="slide-image">
+                                            <picture>
+                                                <source media="(max-width: 480px)" srcset="store-assets/assets/images/slider/slide-2-480w.jpg">
+                                                <img src="{% static 'store-assets/assets/images/slider/slide-2.jpg' %}" alt="Image Desc">
+                                            </picture>
+                                        </figure><!-- End .slide-image -->
+
+                                        <div class="intro-content">
+                                            <h3 class="intro-subtitle">News and Inspiration</h3><!-- End .h3 intro-subtitle -->
+                                            <h1 class="intro-title">New Arrivals</h1><!-- End .intro-title -->
+
+                                            <a href="category.html" class="btn btn-outline-white">
+                                                <span>SHOP NOW</span>
+                                                <i class="icon-long-arrow-right"></i>
+                                            </a>
+                                        </div><!-- End .intro-content -->
+                                    </div><!-- End .intro-slide --> {% endcomment %}
+
+                                    <div class="intro-slide">
+                                        <figure class="slide-image">
+                                            <picture style="height: 100%;">
+                                                {% comment %} <source media="(max-width: 480px)" srcset="store-assets/assets/images/slider/slide-1-480w.jpg"> {% endcomment %}
+                                                <img src="{% static 'shop_img/homewatch.jpg' %}" style="height: -webkit-fill-available;" alt="Image Desc">
+                                            </picture>
+                                        </figure><!-- End .slide-image -->
+
+                                        <div class="intro-content">
+                                            <h3 class="intro-subtitle">Omega highlights</h3><!-- End .h3 intro-subtitle -->
+                                            <h1 class="intro-title">branded wathes</h1><!-- End .intro-title -->
+
+                                            <a href="category.html" class="btn btn-outline-white">
+                                                <span>SHOP NOW</span>
+                                                <i class="icon-long-arrow-right"></i>
+                                            </a>
+                                        </div><!-- End .intro-content -->
+                                    </div><!-- End .intro-slide -->
+                                </div><!-- End .intro-slider owl-carousel owl-simple -->
+                                
+                                <span class="slider-loader"></span><!-- End .slider-loader -->
+                            </div><!-- End .intro-slider-container -->
+                        </div><!-- End .col-lg-8 -->
+                        <div class="col-lg-4">
+                            <div class="intro-banners">
+                                <div class="row row-sm">
+                                    <div class="col-md-6 col-lg-12">
+                                        <div class="banner banner-display">
+                                            <a href="#">
+                                                {% comment %} <img src="{% static 'store-assets/assets/images/banners/home/intro/banner-1.jpg' %}" alt="Banner"> {% endcomment %}
+                                                <img src="{% static 'shop_img/homewatch.jpg' %}" style="height: -webkit-fill-available;" alt="Image Desc">
+                                                
+                                            </a>
+
+                                            <div class="banner-content">
+                                                <h4 class="banner-subtitle text-darkwhite"><a href="#">Clearence</a></h4><!-- End .banner-subtitle -->
+                                                <h3 class="banner-title text-white"><a href="#">Chairs & Chaises <br>Up to 40% off</a></h3><!-- End .banner-title -->
+                                                <a href="#" class="btn btn-outline-white banner-link">Shop Now<i class="icon-long-arrow-right"></i></a>
+                                            </div><!-- End .banner-content -->
+                                        </div><!-- End .banner -->
+                                    </div><!-- End .col-md-6 col-lg-12 -->
+
+                                    <div class="col-md-6 col-lg-12">
+                                        <div class="banner banner-display mb-0">
+                                            <a href="#">
+                                                {% comment %} <img src="{% static 'store-assets/assets/images/banners/home/intro/banner-2.jpg' %}" alt="Banner"> {% endcomment %}
+                                                <img src="{% static 'shop_img/homewatch.jpg' %}" style="height: -webkit-fill-available;" alt="Image Desc">
+                                            </a>
+
+                                            <div class="banner-content">
+                                                <h4 class="banner-subtitle text-darkwhite"><a href="#">New in</a></h4><!-- End .banner-subtitle -->
+                                                <h3 class="banner-title text-white"><a href="#">Best Lighting <br>Collection</a></h3><!-- End .banner-title -->
+                                                <a href="#" class="btn btn-outline-white banner-link">Discover Now<i class="icon-long-arrow-right"></i></a>
+                                            </div><!-- End .banner-content -->
+                                        </div><!-- End .banner -->
+                                    </div><!-- End .col-md-6 col-lg-12 -->
+                                </div><!-- End .row row-sm -->
+                            </div><!-- End .intro-banners -->
+                        </div><!-- End .col-lg-4 -->
+                    </div><!-- End .row -->
+
+                    <div class="mb-6"></div><!-- End .mb-6 -->
+
+                    <div class="owl-carousel owl-simple" data-toggle="owl" 
+                        data-owl-options='{
+                            "nav": false, 
+                            "dots": false,
+                            "margin": 30,
+                            "loop": false,
+                            "responsive": {
+                                "0": {
+                                    "items":2
+                                },
+                                "420": {
+                                    "items":3
+                                },
+                                "600": {
+                                    "items":4
+                                },
+                                "900": {
+                                    "items":5
+                                },
+                                "1024": {
+                                    "items":6
+                                }
+                            }
+                        }'>
+                        <a href="#" class="brand">
+                            <img src="{% static 'store-assets/assets/images/brands/1.png' %}" alt="Brand Name">
+                        </a>
+
+                        <a href="#" class="brand">
+                            <img src="{% static 'store-assets/assets/images/brands/2.png' %}" alt="Brand Name">
+                        </a>
+
+                        <a href="#" class="brand">
+                            <img src="{% static 'store-assets/assets/images/brands/3.png' %}" alt="Brand Name">
+                        </a>
+
+                        <a href="#" class="brand">
+                            <img src="{% static 'store-assets/assets/images/brands/4.png' %}" alt="Brand Name">
+                        </a>
+
+                        <a href="#" class="brand">
+                            <img src="{% static 'store-assets/assets/images/brands/5.png' %}" alt="Brand Name">
+                        </a>
+
+                        <a href="#" class="brand">
+                            <img src="{% static 'store-assets/assets/images/brands/6.png' %}" alt="Brand Name">
+                        </a>
+                    </div><!-- End .owl-carousel -->
+                </div><!-- End .container -->
+            </div><!-- End .bg-lighter -->
+
+            <div class="mb-6"></div><!-- End .mb-6 -->
+
+
+
+            <div class="mb-5"></div><!-- End .mb-6 -->
+
+
+
+<div class="container">
+    <div class="heading heading-center mb-6">
+        <h2 class="title">Trendy Products</h2>
+
+        <ul class="nav nav-pills nav-border-anim justify-content-center" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" id="top-all-link" data-toggle="tab" href="#top-all-tab" role="tab" aria-controls="top-all-tab" aria-selected="true">All</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="top-fur-link" data-toggle="tab" href="#top-fur-tab" role="tab" aria-controls="top-fur-tab" aria-selected="false">Men's</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="top-decor-link" data-toggle="tab" href="#top-decor-tab" role="tab" aria-controls="top-decor-tab" aria-selected="false">Women's</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="top-light-link" data-toggle="tab" href="#top-light-tab" role="tab" aria-controls="top-light-tab" aria-selected="false">Kids</a>
+            </li>
+        </ul>
+    </div>
+
+    <div class="tab-content">
+        <div class="tab-pane p-0 fade show active" id="top-all-tab" role="tabpanel" aria-labelledby="top-all-link">
+            <div class="products">
+                <div class="row justify-content-center">
+                    {% for product in products %}
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <div href=" {% url "product_info" product.id %}" class="product product-11 mt-v3 text-center">
+                            <figure class="product-media">
+                                <a href=" {% url "product_info" product.id %}" >
+                                    <img src="{{ product.variants.first.image_1.url }}" alt="Product image" class="product-image">
+                                </a>
+
+                                <div class="product-action-vertical">
+                                    <a href="#" class="btn-product-icon btn-wishlist "><span>add to wishlist</span></a>
+                                </div>
+                            </figure>
+
+                            <div class="product-body">
+                                <h3 class="product-title"><a >{{ product.name }}</a></h3>
+                                <div class="product-price">
+                                    {{ product.variants.first.price }}
+                                </div>
+                            </div>
+
+                            <div class="product-action">
+                                <a href="#" class="btn-product btn-cart"><span>add to cart</span></a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane p-0 fade" id="top-fur-tab" role="tabpanel" aria-labelledby="top-fur-link">
+            <div class="products">
+                <div class="row justify-content-center">
+                    {% for product in men_products %}
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <div class="product product-11 mt-v3 text-center">
+                            <figure class="product-media">
+                                <a href="{% url 'product_detail' product.slug %}">
+                                    <img src="{{ product.variants.first.image_1.url }}" alt="Product image" class="product-image">
+                                </a>
+                                <div class="product-action-vertical">
+                                    <a href="#" class="btn-product-icon btn-wishlist "><span>add to wishlist</span></a>
+                                </div>
+                            </figure>
+                            <div class="product-body">
+                                <h3 class="product-title"><a >{{ product.name }}</a></h3>
+                                <div class="product-price">
+                                    {{ product.variants.first.price }}
+                                </div>
+                            </div>
+                            <div class="product-action">
+                                <a href="#" class="btn-product btn-cart"><span>add to cart</span></a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane p-0 fade" id="top-decor-tab" role="tabpanel" aria-labelledby="top-decor-link">
+            <div class="products">
+                <div class="row justify-content-center">
+                    {% for product in women_products %}
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <div class="product product-11 mt-v3 text-center">
+                            <figure class="product-media">
+                                <a href="{% url 'product_detail' product.slug %}">
+                                    <img src="{{ product.variants.first.image_1.url }}" alt="Product image" class="product-image">
+                                </a>
+                                <div class="product-action-vertical">
+                                    <a href="#" class="btn-product-icon btn-wishlist "><span>add to wishlist</span></a>
+                                </div>
+                            </figure>
+                            <div class="product-body">
+                                <h3 class="product-title"><a href="{% url 'product_detail' product.slug %}">{{ product.name }}</a></h3>
+                                <div class="product-price">
+                                    {{ product.variants.first.price }}
+                                </div>
+                            </div>
+                            <div class="product-action">
+                                <a href="#" class="btn-product btn-cart"><span>add to cart</span></a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane p-0 fade" id="top-light-tab" role="tabpanel" aria-labelledby="top-light-link">
+            <div class="products">
+                <div class="row justify-content-center">
+                    {% for product in kids_products %}
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <div class="product product-11 mt-v3 text-center">
+                            <figure class="product-media">
+                                <a href="{% url 'product_detail' product.slug %}">
+                                    <img src="{{ product.variants.first.image_1.url }}" alt="Product image" class="product-image">
+                                </a>
+                                <div class="product-action-vertical">
+                                    <a href="#" class="btn-product-icon btn-wishlist "><span>add to wishlist</span></a>
+                                </div>
+                            </figure>
+                            <div class="product-body">
+                                <h3 class="product-title"><a >{{ product.name }}</a></h3>
+                                <div class="product-price">
+                                    {{ product.variants.first.price }}
+                                </div>
+                            </div>
+                            <div class="product-action">
+                                <a href="#" class="btn-product btn-cart"><span>add to cart</span></a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="more-container text-center">
+        <a href="#" class="btn btn-outline-darker btn-more"><span>Load more products</span><i class="icon-long-arrow-down"></i></a>
+    </div>
+</div>
+
+
+
+            <div class="container">
+                <hr>
+            	<div class="row justify-content-center">
+                    <div class="col-lg-4 col-sm-6">
+                        <div class="icon-box icon-box-card text-center">
+                            <span class="icon-box-icon">
+                                <i class="icon-rocket"></i>
+                            </span>
+                            <div class="icon-box-content">
+                                <h3 class="icon-box-title">Payment & Delivery</h3><!-- End .icon-box-title -->
+                                <p>Free shipping for orders over $50</p>
+                            </div><!-- End .icon-box-content -->
+                        </div><!-- End .icon-box -->
+                    </div><!-- End .col-lg-4 col-sm-6 -->
+
+                    <div class="col-lg-4 col-sm-6">
+                        <div class="icon-box icon-box-card text-center">
+                            <span class="icon-box-icon">
+                                <i class="icon-rotate-left"></i>
+                            </span>
+                            <div class="icon-box-content">
+                                <h3 class="icon-box-title">Return & Refund</h3><!-- End .icon-box-title -->
+                                <p>Free 100% money back guarantee</p>
+                            </div><!-- End .icon-box-content -->
+                        </div><!-- End .icon-box -->
+                    </div><!-- End .col-lg-4 col-sm-6 -->
+
+                    <div class="col-lg-4 col-sm-6">
+                        <div class="icon-box icon-box-card text-center">
+                            <span class="icon-box-icon">
+                                <i class="icon-life-ring"></i>
+                            </span>
+                            <div class="icon-box-content">
+                                <h3 class="icon-box-title">Quality Support</h3><!-- End .icon-box-title -->
+                                <p>Alway online feedback 24/7</p>
+                            </div><!-- End .icon-box-content -->
+                        </div><!-- End .icon-box -->
+                    </div><!-- End .col-lg-4 col-sm-6 -->
+                </div><!-- End .row -->
+
+                <div class="mb-2"></div><!-- End .mb-2 -->
+            </div><!-- End .container -->
+
+
+        </main><!-- End .main -->
+{% endblock  %}
+
+{% block extra_js %}
+    <script src="{% static 'store-assets/assets/js/jquery.min.js' %}"></script>
+    <script src="{% static 'store-assets/assets/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'store-assets/assets/js/jquery.hoverIntent.min.js' %}"></script>
+    <script src="{% static 'store-assets/assets/js/jquery.waypoints.min.js' %}"></script>
+    <script src="{% static 'store-assets/assets/js/superfish.min.js' %}"></script>
+    <script src="{% static 'store-assets/assets/js/owl.carousel.min.js' %}"></script>
+    <script src="{% static 'store-assets/assets/js/jquery.magnific-popup.min.js' %}"></script>
+    <!-- Main JS File -->
+    <script src="{% static 'store-assets/assets/js/main.js' %}"></script>
+{% endblock  %}

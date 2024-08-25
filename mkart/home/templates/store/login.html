@@ -1,0 +1,248 @@
+{% extends 'store/Base.html' %}
+{% comment %} {% load socialaccount %} {% endcomment %}
+{% load static %}
+
+{% block title %}login{% endblock  %}
+
+{% block extra_style %}
+    
+    <link rel="apple-touch-icon" sizes="180x180" href="store-assets/assets/images/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="store-assets/assets/images/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="store-assets/assets/images/icons/favicon-16x16.png">
+    <link rel="manifest" href="store-assets/assets/images/icons/site.html">
+    <link rel="mask-icon" href="store-assets/assets/images/icons/safari-pinned-tab.svg" color="#666666">
+    <link rel="shortcut icon" href="store-assets/assets/images/icons/favicon.ico">
+    <meta name="apple-mobile-web-app-title" content="Molla">
+    <meta name="application-name" content="Molla">
+    <meta name="msapplication-TileColor" content="#cc9966">
+    <meta name="msapplication-config" content="store-assets/assets/images/icons/browserconfig.xml">
+    <meta name="theme-color" content="#ffffff">
+    <!-- Plugins CSS File -->
+    <link rel="stylesheet" href="{% static 'store-assets/assets/css/bootstrap.min.css' %}">
+    <!-- Main CSS File -->
+    <link rel="stylesheet" href="{% static 'store-assets/assets/css/style.css' %}">
+<style>
+    .modal-content {
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .modal-header {
+        background-color: #007bff;
+        color: #fff;
+        border-top-left-radius: 10px;
+        border-top-right-radius: 10px;
+    }
+
+    .modal-title {
+        font-weight: bold;
+        font-size: 1.2rem;
+    }
+
+    .close {
+        color: #fff;
+        font-size: 1.5rem;
+        font-weight: bold;
+        opacity: 1;
+    }
+
+    .close:hover {
+        color: #e6e6e6;
+    }
+
+    .modal-body {
+        padding: 2rem;
+    }
+
+    .modal-footer {
+        border-top: none;
+        justify-content: center;
+    }
+
+    .btn {
+        font-weight: bold;
+        border-radius: 5px;
+        padding: 0.75rem 1.5rem;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+
+    .btn-primary:hover {
+        background-color: #0056b3;
+        border-color: #004a9a;
+    }
+
+    .btn-secondary {
+        background-color: #6c757d;
+        border-color: #6c757d;
+    }
+
+    .btn-secondary:hover {
+        background-color: #5a6268;
+        border-color: #545b62;
+    }
+</style>
+
+
+</head>
+{% endblock  %}
+
+{% block content %}
+
+
+<main class="main">
+    <div class="login-page bg-image pt-8 pb-8 pt-md-12 pb-md-12 pt-lg-17 pb-lg-17" style="background-image: url('{% static '\shop_img\background.jpg' %}')">
+        <div class="container">
+            <div class="form-box">
+                <div class="form-tab">
+                    <ul class="nav nav-pills nav-fill" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" id="signin-tab-2" data-toggle="tab" href="#signin-2" role="tab" aria-controls="signin-2" aria-selected="true">Login</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'register' %}">Sign up</a>
+                        </li>
+                    </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane fade show active" id="signin-2" role="tabpanel" aria-labelledby="signin-tab-2">
+                                {% if messages %}
+                                    <div class="messages">
+                                        {% for message in messages %}
+                                            <div class="alert alert-{% if message.tags %}{{ message.tags }}{% else %}danger{% endif %} alert-dismissible fade show" role="alert">
+                                                {{ message }}
+                                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <form id="login-form" action="{% url 'login' %}" method="post">
+                                    {% csrf_token %}
+                                    <div class="form-group">
+                                        <label for="singin-username-2">Username</label>
+                                        <input type="text" class="form-control" id="singin-username-2" name="username" >
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="singin-password-2">Password</label>
+                                        <input type="password" class="form-control" id="singin-password-2" name="password" >
+                                    </div>
+                                    <div class="form-footer">
+                                        <button type="submit" class="btn btn-outline-primary-2">
+                                            <span>LOG IN</span>
+                                            <i class="icon-long-arrow-right"></i>
+                                        </button>
+                                        <a href="{% url "password_reset" %}" class="forgot-link">Forgot Your Password?</a>
+                                    </div>
+                                </form>                            
+                                <div class="form-choice">
+                                    <p class="text-center">or sign in with</p>
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            <a class="btn btn-login btn-g" >
+                                                <i class="icon-google"></i>
+                                                Login With Google
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% comment %}     
+  <!-- Bootstrap Modal -->
+    <div class="modal fade" id="adminModal" tabindex="-1" role="dialog" aria-labelledby="adminModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="adminModalLabel">Welcome, Admin!</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Please choose where you would like to go:</p>
+                    <button class="btn btn-primary" onclick="window.location.href='{% url 'store' %}'">Go to Store</button>
+                    <button class="btn btn-secondary" onclick="window.location.href='/admin/'">Go to Admin Panel</button>
+                </div>
+            </div>
+        </div>
+    </div> {% endcomment %}
+
+     <!-- Enhanced Bootstrap Modal -->
+
+
+</main>
+
+
+<div class="modal fade" id="adminModal" tabindex="-1" role="dialog" aria-labelledby="adminModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="adminModalLabel">Welcome Admin</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <h4>You have successfully logged in. Where would you like to go?</h4>
+                <div class="row justify-content-center">
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <button class="btn btn-primary btn-block" onclick="window.location.href='{% url 'store' %}'">
+                            <h6 class="mb-0">Go to Store</h6>
+                        </button>
+                    </div>
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <button class="btn btn-secondary btn-block" onclick="window.location.href='/admin_panel/'">
+                            <h6 class="mb-0">Go to Admin Panel</h6>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+  
+{% endblock  %}
+
+
+
+
+
+
+{% block extra_js %}
+<!-- Your other script tags -->
+
+
+<script src="{% static 'store-assets/assets/js/jquery.min.js' %}"></script>
+<script src="{% static 'store-assets/assets/js/bootstrap.bundle.min.js' %}"></script>
+
+<script src="{% static 'store-assets/assets/js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'store-assets/assets/js/jquery.hoverIntent.min.js' %}"></script>
+<script src="{% static 'store-assets/assets/js/jquery.waypoints.min.js' %}"></script>
+<script src="{% static 'store-assets/assets/js/superfish.min.js' %}"></script>
+<script src="{% static 'store-assets/assets/js/owl.carousel.min.js' %}"></script>
+<!-- Main JS File -->
+<script src="{% static 'store-assets/assets/js/main.js' %}"></script>
+
+
+
+
+  <!-- Script to trigger modal if admin -->
+    {% if show_admin_modal %}
+    <script>
+        $(document).ready(function() {
+            $('#adminModal').modal('show');
+        });
+    </script>
+    {% endif %}
+
+{% endblock %}
+

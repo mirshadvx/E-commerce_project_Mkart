@@ -1,0 +1,251 @@
+{% extends "Base.html" %}
+{% load static %}
+
+{% block title %}Edit Product{% endblock %}
+
+{% block extra_style %}
+    <link rel="stylesheet" href="{% static 'admin-assets/css/bootstrap.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'admin-assets/css/animate.css' %}" />
+    <link rel="stylesheet" href="{% static 'admin-assets/plugins/select2/css/select2.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'admin-assets/css/dataTables.bootstrap4.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'admin-assets/plugins/fontawesome/css/fontawesome.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'admin-assets/plugins/fontawesome/css/all.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'admin-assets/css/style.css' %}" />
+    <link rel="stylesheet" href="https://unpkg.com/cropperjs/dist/cropper.min.css">
+    <style>
+        .cropper-container {
+            max-width: 100%;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="page-wrapper">
+    <div class="content container-fluid">
+        <div class="page-header">
+            <div class="row">
+                <div class="col-sm-12">
+                    <h3 class="page-title">Edit Product</h3>
+                    <ul class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="#">Dashboard</a></li>
+                        <li class="breadcrumb-item active">Edit Product</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="name">Product Name <span class="text-danger">*</span></label>
+                                <input type="text" name="name" class="form-control" value="{{ product.name }}" required />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="gender">Gender <span class="text-danger">*</span></label>
+                                <select name="gender" class="form-control select" required>
+                                    {% for gender in genders %}
+                                    <option value="{{ gender.id }}" {% if gender == product.gender %}selected{% endif %}>{{ gender.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="category">Category <span class="text-danger">*</span></label>
+                                <select name="category" class="form-control select" required>
+                                    {% for category in categories %}
+                                    <option value="{{ category.id }}" {% if category == product.category %}selected{% endif %}>{{ category.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="brand">Brand <span class="text-danger">*</span></label>
+                                <select name="brand" class="form-control select" required>
+                                    {% for brand in brands %}
+                                    <option value="{{ brand.id }}" {% if brand == product.brand %}selected{% endif %}>{{ brand.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="description">Description <span class="text-danger">*</span></label>
+                                <textarea name="description" class="form-control" rows="4" required>{{ product.description }}</textarea>
+                            </div>
+                        </div>
+                        
+                        <!-- Product Variants -->
+<div class="col-md-12">
+    <h4>Product Variants</h4>
+    {% for variant in variants_data %}
+    <div class="row variant-row">
+        <div class="col-md-3">
+            <div class="form-group">
+                <label>Color</label>
+                <select name="variant_color_{{ variant.id }}" class="form-control select">
+                    {% for color in colors %}
+                    <option value="{{ color.id }}" {% if color == variant.color %}selected{% endif %}>{{ color.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label>Price</label>
+                <input type="number" step="0.01" name="variant_price_{{ variant.id }}" class="form-control" value="{{ variant.price }}" required />
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label>Stock</label>
+                <input type="number" name="variant_stock_{{ variant.id }}" class="form-control" value="{{ variant.stock }}" required />
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label>Available</label>
+                <select name="variant_is_available_{{ variant.id }}" class="form-control select">
+                    <option value="True" {% if variant.is_available %}selected{% endif %}>Yes</option>
+                    <option value="False" {% if not variant.is_available %}selected{% endif %}>No</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-md-12">
+            <div class="form-group">
+                <label>Images</label>
+                {% for image in variant.images %}
+                <div class="mb-2">
+                    <input type="file" name="variant_image_{{ variant.id }}_{{ forloop.counter }}" class="form-control-file image-input" accept="image/*" data-variant-id="{{ variant.id }}" data-image-number="{{ forloop.counter }}" />
+                    <small class="form-text text-muted">Variant Image {{ forloop.counter }}</small>
+                    {% if image %}
+                        <img src="{{ image.url }}" alt="Current Image {{ forloop.counter }}" style="max-width: 100px; margin-top: 10px;" />
+                    {% endif %}
+                    <img class="image-preview" id="imagePreview_{{ variant.id }}_{{ forloop.counter }}" style="display: none; max-width: 100%" />
+                    <input type="hidden" name="cropped_image_{{ variant.id }}_{{ forloop.counter }}" id="croppedImage_{{ variant.id }}_{{ forloop.counter }}" />
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <hr>
+    {% endfor %}
+</div>
+
+                        
+                        <div class="col-md-12">
+                            <div class="text-right mt-4">
+                                <button type="submit" class="btn btn-primary">Update Product</button>
+                                <a href="{% url 'productlist' %}" class="btn btn-secondary">Cancel</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal for Image Cropping -->
+<div id="cropModal" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Crop Image</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <img id="imageToCrop" src="" alt="Image to crop" style="max-width: 100%" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="cropImage">Crop</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+
+{% block extra_js %}
+<script src="https://unpkg.com/cropperjs/dist/cropper.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    let cropper;
+    let currentImageInput;
+
+    document.querySelectorAll('.image-input').forEach(input => {
+        input.addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    document.getElementById('imageToCrop').src = event.target.result;
+                    $('#cropModal').modal('show');
+                    currentImageInput = input;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    });
+
+    document.getElementById('cropImage').addEventListener('click', function () {
+        const canvas = cropper.getCroppedCanvas();
+        const croppedImage = canvas.toDataURL();
+        const variantId = currentImageInput.dataset.variantId;
+        const imageNumber = currentImageInput.dataset.imageNumber;
+        const previewId = `imagePreview_${variantId}_${imageNumber}`;
+        const croppedImageId = `croppedImage_${variantId}_${imageNumber}`;
+        
+        document.getElementById(previewId).src = croppedImage;
+        document.getElementById(previewId).style.display = 'block';
+        document.getElementById(croppedImageId).value = croppedImage;
+        
+        $('#cropModal').modal('hide');
+    });
+
+    $('#cropModal').on('shown.bs.modal', function () {
+        cropper = new Cropper(document.getElementById('imageToCrop'), {
+            aspectRatio: 1,
+            viewMode: 1
+        });
+    }).on('hidden.bs.modal', function () {
+        cropper.destroy();
+        cropper = null;
+    });
+
+    // Initialize Select2
+    $('.select').select2();
+});
+</script>
+        <script src="{% static 'admin-assets/js/jquery-3.6.0.min.js' %}"></script>
+        <script src="{% static 'admin-assets/js/bootstrap.bundle.min.js' %}"></script>
+        <script src="{% static 'admin-assets/plugins/select2/js/select2.min.js' %}"></script>
+
+
+        <script src="{% static 'admin-assets/js/feather.min.js' %}"></script>
+
+        <script src="{% static 'admin-assets/js/jquery.slimscroll.min.js' %}"></script>
+
+        <script src="{% static 'admin-assets/js/jquery.dataTables.min.js' %}"></script>
+        <script src="{% static 'admin-assets/js/dataTables.bootstrap4.min.js' %}"></script>
+
+        <script src="{% static 'admin-assets/js/bootstrap.bundle.min.js' %}"></script>
+
+        <script src="{% static 'admin-assets/plugins/select2/js/select2.min.js' %}"></script>
+
+        <script src="{% static 'admin-assets/plugins/sweetalert/sweetalert2.all.min.js' %}"></script>
+        <script src="{% static 'admin-assets/plugins/sweetalert/sweetalerts.min.js' %}"></script>
+
+        <script src="{% static 'admin-assets/js/script.js' %}"></script>
+
+{% endblock %}

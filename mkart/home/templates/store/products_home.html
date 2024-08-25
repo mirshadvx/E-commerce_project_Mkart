@@ -1,0 +1,594 @@
+{% extends "store/Base.html" %}
+ {% load static %} 
+ {% block title %}products list{% endblock %}
+ 
+ {% block extra_style %}
+<!-- Favicon -->
+<link rel="apple-touch-icon" sizes="180x180" href="store-assets/assets/images/icons/apple-touch-icon.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="store-assets/assets/images/icons/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="store-assets/assets/images/icons/favicon-16x16.png" />
+<link rel="manifest" href="store-assets/assets/images/icons/site.html" />
+<link rel="mask-icon" href="store-assets/assets/images/icons/safari-pinned-tab.svg" color="#666666" />
+<link rel="shortcut icon" href="store-assets/assets/images/icons/favicon.ico" />
+<meta name="apple-mobile-web-app-title" content="Molla" />
+<meta name="application-name" content="Molla" />
+<meta name="msapplication-TileColor" content="#cc9966" />
+<meta name="msapplication-config" content="store-assets/assets/images/icons/browserconfig.xml" />
+<meta name="theme-color" content="#ffffff" />
+<!-- Plugins CSS File -->
+<link rel="stylesheet" href="{% static 'store-assets/assets/css/bootstrap.min.css' %}" />
+<!-- Main CSS File -->
+<link rel="stylesheet" href="{% static 'store-assets/assets/css/style.css' %}" />
+<link rel="stylesheet" href="{% static 'store-assets/assets/css/plugins/owl-carousel/owl.carousel.css' %}" />
+<link rel="stylesheet" href="{% static 'store-assets/assets/css/plugins/magnific-popup/magnific-popup.css' %}" />
+<link rel="stylesheet" href="{% static 'store-assets/assets/css/plugins/nouislider/nouislider.css' %}" />
+
+{% endblock %}
+
+{% block content %}
+
+<main class="main">
+    <div class="page-header text-center" style="background-color: beige;">
+        <div class="container">
+            <h1 class="page-title">All watches here<span>Shop Now</span></h1>
+        </div>
+        <!-- End .container -->
+    </div>
+    <!-- End .page-header -->
+    <nav aria-label="breadcrumb" class="breadcrumb-nav mb-2">
+        <div class="container">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url "home" %}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{% url "productslist" %}">All products</a></li>
+            </ol>
+        </div>
+        <!-- End .container -->
+    </nav>
+    <!-- End .breadcrumb-nav -->
+
+    <div class="page-content">
+        <div class="container">
+            <div class="toolbox">
+                <div class="toolbox-left">
+                    <a href="#" class="sidebar-toggler"><i class="icon-bars"></i>Filters</a>
+                </div>
+                <!-- End .toolbox-left -->
+
+                <!-- End .toolbox-center -->
+
+<div class="toolbox-right">
+    <div class="toolbox-sort">
+        <label for="sortby">Sort by:</label>
+        <div class="select-custom">
+            <select name="sortby" id="sortby" class="form-control">
+                <option value="Most Popular" {% if sort_by == 'Most Popular' %}selected{% endif %}>Most Popular</option>
+                <option value="low to high" {% if sort_by == 'low to high' %}selected{% endif %}>Low to High</option>
+                <option value="high to low" {% if sort_by == 'high to low' %}selected{% endif %}>High to Low</option>
+                <option value="new arrivals" {% if sort_by == 'new arrivals' %}selected{% endif %}>New Arrivals</option>
+                <option value="aA-zZ" {% if sort_by == 'aA-zZ' %}selected{% endif %}>A-Z</option>
+                <option value="zZ-aA" {% if sort_by == 'zZ-aA' %}selected{% endif %}>Z-A</option>
+            </select>
+        </div>
+    </div>
+    <!-- End .toolbox-sort -->
+</div>
+                <!-- End .toolbox-right -->
+            </div>
+            <!-- End .toolbox -->
+
+
+            <div class="products">
+<div class="row justify-content-center">
+    {% for product in products %}
+    <div class="col-6 col-md-4 col-lg-3">
+        <div  class="product product-7 text-center">
+            <figure  class="product-media">
+                {% if not product.variants.first.is_available %}
+                <span class="product-label label-out">Out of stock</span>
+                {% endif %}
+                <a href="{% url "product_info" product.id %}"><img  class="product-image" src="{{ product.variants.first.image_1.url }}" alt="{{ product.name }}" /></a>
+                
+                <div class="product-action-vertical">
+                    <a  class="btn-product-icon btn-wishlist btn-expandable"><span>add to wishlist</span></a>
+                </div>
+                <div class="product-action">
+                    <a href="{% url 'add_wishlist' id=product.id %}" class="btn-product btn-cart"
+                        ><span>add to cart</span></a
+                    >
+                </div>
+            </figure>
+            <div class="product-body">
+                <div class="product-cat">
+                    <a>{{ product.category.name }}</a>
+                    {% if product.gender %}
+                    <a>/ {{ product.gender.name }}</a>
+                    {% endif %}
+                </div>
+                <h3 class="product-title"><a>{{ product.name }}</a></h3>
+
+                <div class="product-price">{{ product.variants.first.price }}</div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+
+                <div class="load-more-container text-center">
+                    <a href="#" class="btn btn-outline-darker btn-load-more">More Products <i class="icon-refresh"></i></a>
+                </div>
+            </div>
+            <div class="sidebar-filter-overlay"></div>
+            <!-- End .sidebar-filter-overlay -->
+            {% comment %} <aside class="sidebar-shop sidebar-filter">
+                <div class="sidebar-filter-wrapper">
+                    <div class="widget widget-clean">
+                        <label><i class="icon-close"></i>Filters</label>
+                        <a href="#" class="sidebar-filter-clear">Clean All</a>
+                    </div>
+                    <!-- End .widget -->
+                    <div class="widget widget-collapsible">
+                        <h3 class="widget-title">
+                            <a
+                                data-toggle="collapse"
+                                href="#widget-1"
+                                role="button"
+                                aria-expanded="true"
+                                aria-controls="widget-1"
+                            >
+                                Category
+                            </a>
+                        </h3>
+                        <!-- End .widget-title -->
+                        <div class="collapse show" id="widget-1">
+                            <div class="widget-body">
+                                <div class="filter-items filter-items-count">
+                                    <div class="filter-item">
+                                        <div class="custom-control custom-checkbox">
+                                            <input type="checkbox" class="custom-control-input" id="cat-1" />
+                                            <label class="custom-control-label" for="cat-1">Luxury</label>
+                                        </div>
+                                    </div>
+                                    <!-- End .filter-item -->
+
+                                    <div class="filter-item">
+                                        <div class="custom-control custom-checkbox">
+                                            <input type="checkbox" class="custom-control-input" id="cat-2" />
+                                            <label class="custom-control-label" for="cat-2">Sports</label>
+                                        </div>
+                                    </div>
+                                    <!-- End .filter-item -->
+                                </div>
+                                <!-- End .filter-items -->
+                            </div>
+                            <!-- End .widget-body -->
+                        </div>
+                        <!-- End .collapse -->
+                    </div>
+                    <!-- End .widget -->
+                    <div class="widget widget-collapsible">
+                        <h3 class="widget-title">
+                            <a
+                                data-toggle="collapse"
+                                href="#widget-2"
+                                role="button"
+                                aria-expanded="true"
+                                aria-controls="widget-2"
+                            >
+                                Gender
+                            </a>
+                        </h3>
+                        <!-- End .widget-title -->
+                        <div class="collapse show" id="widget-2">
+                            <div class="widget-body">
+                                <div class="filter-items">
+                                    <div class="filter-item">
+                                        <div class="custom-control custom-checkbox">
+                                            <input type="checkbox" class="custom-control-input" id="size-1" />
+                                            <label class="custom-control-label" for="size-1">Men</label>
+                                        </div>
+                                        <!-- End .custom-checkbox -->
+                                    </div>
+                                    <!-- End .filter-item -->
+
+                                    <div class="filter-item">
+                                        <div class="custom-control custom-checkbox">
+                                            <input type="checkbox" class="custom-control-input" id="size-2" />
+                                            <label class="custom-control-label" for="size-2">Women</label>
+                                        </div>
+                                        <!-- End .custom-checkbox -->
+                                    </div>
+                                </div>
+                                <!-- End .filter-items -->
+                            </div>
+                            <!-- End .widget-body -->
+                        </div>
+                        <!-- End .collapse -->
+                    </div>
+                    <!-- End .widget -->
+                    <div class="widget widget-collapsible">
+                        <h3 class="widget-title">
+                            <a
+                                data-toggle="collapse"
+                                href="#widget-4"
+                                role="button"
+                                aria-expanded="true"
+                                aria-controls="widget-4"
+                            >
+                                Brand
+                            </a>
+                        </h3>
+                        <!-- End .widget-title -->
+
+                        <div class="collapse show" id="widget-4">
+                            <div class="widget-body">
+                                <div class="filter-items">
+                                    <div class="filter-item">
+                                        <div class="custom-control custom-checkbox">
+                                            <input type="checkbox" class="custom-control-input" id="brand-1" />
+                                            <label class="custom-control-label" for="brand-1">Hublot</label>
+                                        </div>
+                                        <!-- End .custom-checkbox -->
+                                    </div>
+                                    <!-- End .filter-item -->
+
+                                    <div class="filter-item">
+                                        <div class="custom-control custom-checkbox">
+                                            <input type="checkbox" class="custom-control-input" id="brand-2" />
+                                            <label class="custom-control-label" for="brand-2">Titan</label>
+                                        </div>
+                                        <!-- End .custom-checkbox -->
+                                    </div>
+                                    <!-- End .filter-item -->
+                                </div>
+                                <!-- End .filter-items -->
+                            </div>
+                            <!-- End .widget-body -->
+                        </div>
+                        <!-- End .collapse -->
+                    </div>
+                    <!-- End .widget -->
+                    <div class="widget widget-collapsible">
+                        <h3 class="widget-title">
+                            <a
+                                data-toggle="collapse"
+                                href="#widget-4"
+                                role="button"
+                                aria-expanded="true"
+                                aria-controls="widget-4"
+                            >
+                                Color
+                            </a>
+                        </h3>
+                        <!-- End .widget-title -->
+
+                        <div class="collapse show" id="widget-4">
+                            <div class="widget-body">
+                                <div class="filter-items">
+                                    <div class="filter-item">
+                                        <div class="custom-control custom-checkbox">
+                                            <input type="checkbox" class="custom-control-input" id="brand-1" />
+                                            <label class="custom-control-label" for="brand-1">Gold</label>
+                                        </div>
+                                        <!-- End .custom-checkbox -->
+                                    </div>
+                                    <!-- End .filter-item -->
+
+                                    <div class="filter-item">
+                                        <div class="custom-control custom-checkbox">
+                                            <input type="checkbox" class="custom-control-input" id="brand-2" />
+                                            <label class="custom-control-label" for="brand-2">Silver</label>
+                                        </div>
+                                        <!-- End .custom-checkbox -->
+                                    </div>
+                                    <!-- End .filter-item -->
+
+                                    <div class="filter-item">
+                                        <div class="custom-control custom-checkbox">
+                                            <input type="checkbox" class="custom-control-input" id="brand-3" />
+                                            <label class="custom-control-label" for="brand-3">brown</label>
+                                        </div>
+                                        <!-- End .custom-checkbox -->
+                                    </div>
+                                    <!-- End .filter-item -->
+                                </div>
+                                <!-- End .filter-items -->
+                            </div>
+                            <!-- End .widget-body -->
+                        </div>
+                        <!-- End .collapse -->
+                    </div>
+                    <!-- End .widget -->
+
+                    <div class="widget widget-collapsible">
+                        <h3 class="widget-title">
+                            <a
+                                data-toggle="collapse"
+                                href="#widget-5"
+                                role="button"
+                                aria-expanded="true"
+                                aria-controls="widget-5"
+                            >
+                                Price
+                            </a>
+                        </h3>
+                        <!-- End .widget-title -->
+                        <div class="collapse show" id="widget-5">
+                            <div class="widget-body">
+                                <div class="filter-price">
+                                    <div class="filter-price-text">
+                                        Price Range:
+                                        <span id="filter-price-range"></span>
+                                    </div>
+                                    <!-- End .filter-price-text -->
+
+                                    <div id="price-slider"></div>
+                                    <!-- End #price-slider -->
+                                </div>
+                                <!-- End .filter-price -->
+                            </div>
+                            <!-- End .widget-body -->
+                        </div>
+                        <!-- End .collapse -->
+                    </div>
+                    <!-- End .widget -->
+                </div>
+                <!-- End .sidebar-filter-wrapper -->
+            </aside> {% endcomment %}
+
+<aside class="sidebar-shop sidebar-filter">
+    <div class="sidebar-filter-wrapper">
+        <div class="widget widget-clean">
+            <label><i class="icon-close"></i>Filters</label>
+            <a href="{% url 'productslist' %}" >Clear All</a>
+        </div>
+
+        <form id="filter-form" method="GET" action="{% url 'productslist' %}">
+            <!-- Category Filter -->
+            <div class="widget widget-collapsible">
+                <h3 class="widget-title">
+                    <a data-toggle="collapse" href="#widget-category" role="button" aria-expanded="true" aria-controls="widget-category">
+                        Category
+                    </a>
+                </h3>
+                <div class="collapse show" id="widget-category">
+                    <div class="widget-body">
+                        <div class="filter-items filter-items-count">
+                            {% for category in categories %}
+                            <div class="filter-item">
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input" id="cat-{{ category.id }}" name="category" value="{{ category.name }}">
+                                    <label class="custom-control-label" for="cat-{{ category.id }}">{{ category.name }}</label>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gender Filter -->
+            <div class="widget widget-collapsible">
+                <h3 class="widget-title">
+                    <a data-toggle="collapse" href="#widget-gender" role="button" aria-expanded="true" aria-controls="widget-gender">
+                        Gender
+                    </a>
+                </h3>
+                <div class="collapse show" id="widget-gender">
+                    <div class="widget-body">
+                        <div class="filter-items">
+                            {% for gender in genders %}
+                            <div class="filter-item">
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input" id="gender-{{ gender.id }}" name="gender" value="{{ gender.name }}">
+                                    <label class="custom-control-label" for="gender-{{ gender.id }}">{{ gender.name }}</label>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Brand Filter -->
+            <div class="widget widget-collapsible">
+                <h3 class="widget-title">
+                    <a data-toggle="collapse" href="#widget-brand" role="button" aria-expanded="true" aria-controls="widget-brand">
+                        Brand
+                    </a>
+                </h3>
+                <div class="collapse show" id="widget-brand">
+                    <div class="widget-body">
+                        <div class="filter-items">
+                            {% for brand in brands %}
+                            <div class="filter-item">
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input" id="brand-{{ brand.id }}" name="brand" value="{{ brand.name }}">
+                                    <label class="custom-control-label" for="brand-{{ brand.id }}">{{ brand.name }}</label>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Color Filter -->
+            <div class="widget widget-collapsible">
+                <h3 class="widget-title">
+                    <a data-toggle="collapse" href="#widget-color" role="button" aria-expanded="true" aria-controls="widget-color">
+                        Color
+                    </a>
+                </h3>
+                <div class="collapse show" id="widget-color">
+                    <div class="widget-body">
+                        <div class="filter-items">
+                            {% for color in colors %}
+                            <div class="filter-item">
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input" id="color-{{ color.id }}" name="color" value="{{ color.name }}">
+                                    <label class="custom-control-label" for="color-{{ color.id }}">
+                                        <span class="color-swatch" style="background-color: {{ color.hex_code }};"></span>
+                                        {{ color.name }}
+                                    </label>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Price Range Filter -->
+<!-- Price Range Filter -->
+<div class="widget widget-collapsible">
+    <h3 class="widget-title">
+        <a data-toggle="collapse" href="#widget-price" role="button" aria-expanded="true" aria-controls="widget-price">
+            Price
+        </a>
+    </h3>
+    <div class="collapse show" id="widget-price">
+        <div class="widget-body">
+            <div class="filter-price">
+                <div class="price-range-inputs">
+                    <label for="min_price">Min Price:</label>
+                    <input type="number" id="min_price" name="min_price" value="{{ min_price|default:'0' }}" min="0" step="500">
+                    
+                    <label for="max_price">Max Price:</label>
+                    <input type="number" id="max_price" name="max_price" value="{{ max_price|default:'' }}" min="0" step="500">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+            <button type="submit" class="btn btn-primary btn-block mt-3">Apply Filters</button>
+        </form>
+    </div>
+</aside>
+
+
+
+            <!-- End .sidebar-filter -->
+        </div>
+        <!-- End .container -->
+    </div>
+    <!-- End .page-content -->
+</main>
+<!-- End .main -->
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'store-assets/assets/js/jquery.min.js' %}"></script>
+<script src="{% static 'store-assets/assets/js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'store-assets/assets/js/jquery.hoverIntent.min.js' %}"></script>
+<script src="{% static 'store-assets/assets/js/jquery.waypoints.min.js' %}"></script>
+<script src="{% static 'store-assets/assets/js/superfish.min.js' %}"></script>
+<script src="{% static 'store-assets/assets/js/owl.carousel.min.js' %}"></script>
+<script src="{% static 'store-assets/assets/js/wNumb.js' %}"></script>
+<script src="{% static 'store-assets/assets/js/bootstrap-input-spinner.js' %}"></script>
+<script src="{% static 'store-assets/assets/js/jquery.magnific-popup.min.js' %}"></script>
+<script src="{% static 'store-assets/assets/js/nouislider.min.js' %}"></script>
+<!-- Main JS File -->
+<script src="{% static 'store-assets/assets/js/main.js' %}"></script>
+
+<script>
+    document.getElementById('sortby').addEventListener('change', function() {
+        this.form.submit();
+    });
+</script>
+{% endblock %}
+
+
+
+{% comment %}
+<div class="products">
+    <div class="row justify-content-center">
+        {% for product in products %}
+        <div class="col-6 col-md-4 col-lg-3">
+            <div class="product product-7 text-center">
+                <figure class="product-media">
+                    {% if not product.variants.first.is_available %}
+                    <span class="product-label label-out">Out of stock</span>
+                    {% endif %}
+
+                    <a href="{% url 'product_info' product.id %}">
+                        <img
+                            src="{{ product.variants.first.image_1.url|default:'no-image.jpg' }}"
+                            alt="{{ product.name }}"
+                            class="product-image"
+                        />
+                    </a>
+                    <div class="product-action-vertical">
+                        <a class="btn-product-icon btn-wishlist btn-expandable"><span>add to wishlist</span></a>
+                    </div>
+                    <div class="product-action">
+                        <a href="{% url 'add_wishlist' id=product.id %}" class="btn-product btn-cart"
+                            ><span>add to cart</span></a
+                        >
+                    </div>
+                </figure>
+                <div class="product-body">
+                    <div class="product-cat">
+                        <a>{{ product.category.name }}</a>
+                        {% if product.gender %}
+                        <a>/ {{ product.gender.name }}</a>
+                        {% endif %}
+                    </div>
+                    <h3 class="product-title"><a>{{ product.name }}</a></h3>
+
+                    <div class="product-price">{{ product.variants.first.price }}</div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="load-more-container text-center">
+        <a href="#" class="btn btn-outline-darker btn-load-more">More Products <i class="icon-refresh"></i></a>
+    </div>
+</div>
+{% endcomment %}
+            {% comment %}
+            <div class="products">
+                <div class="row justify-content-center">
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <div class="product product-7 text-center">
+                            <figure class="product-media">
+                                {% if not is_available %}
+                                <span class="product-label label-out">Out of stock</span>
+                                {% endif %}
+
+                                <a href="{% url 'product_info' product.id %}">
+                                    <img class="product-image" />
+                                </a>
+                                <div class="product-action-vertical">
+                                    <a class="btn-product-icon btn-wishlist btn-expandable"><span>add to wishlist</span></a>
+                                </div>
+                                <div class="product-action">
+                                    <a href="{% url 'add_wishlist' id=product.id %}" class="btn-product btn-cart"
+                                        ><span>add to cart</span></a
+                                    >
+                                </div>
+                            </figure>
+                            <div class="product-body">
+                                <div class="product-cat">
+                                    <a>{{ product.category.name }}</a>
+                                    {% if product.gender %}
+                                    <a>/ {{ product.gender.name }}</a>
+                                    {% endif %}
+                                </div>
+                                <h3 class="product-title"><a>{{ product.name }}</a></h3>
+
+                                <div class="product-price">{{ product.variants.first.price }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="load-more-container text-center">
+                    <a href="#" class="btn btn-outline-darker btn-load-more">More Products <i class="icon-refresh"></i></a>
+                </div>
+            </div>
+            {% endcomment %}
