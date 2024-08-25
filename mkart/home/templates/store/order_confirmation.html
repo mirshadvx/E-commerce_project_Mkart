@@ -1,4 +1,222 @@
 {% extends "store/Base.html" %}
+{% load static %}
+
+{% block title %}Order Confirmation{% endblock %}
+
+{% block extra_style %}
+        <link rel="stylesheet" href="{% static 'store-assets/assets/css/bootstrap.min.css' %}" />
+        <link rel="stylesheet" href="{% static 'store-assets/assets/css/plugins/owl-carousel/owl.carousel.css' %}" />
+        <link rel="stylesheet" href="{% static 'store-assets/assets/css/plugins/magnific-popup/magnific-popup.css' %}" />
+        <!-- Main CSS File -->
+        <link rel="stylesheet" href="{% static 'store-assets/assets/css/style.css' %}" />
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+
+
+        <style>
+
+/* Main container with a soft background and subtle shadow */
+.order-summary-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 40px;
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    font-family: 'Merriweather', serif;
+    color: #333;
+}
+
+/* Header section with a gentle tone and font style */
+.order-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.order-header h2 {
+    font-size: 28px;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.order-header p {
+    font-size: 16px;
+    color: #666;
+}
+
+/* Cards with minimalistic design, spacing, and elegant font */
+.order-details, .order-items, .order-shipping, .order-contact {
+    margin-bottom: 30px;
+}
+
+.order-detail-card, .order-total-card, .shipping-card, .contact-card {
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+}
+
+.order-detail-card h3, .order-total-card h3, .order-shipping h3, .order-contact h3 {
+    font-size: 20px;
+    margin-bottom: 15px;
+    color: #444;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
+}
+
+.total-amount {
+    font-size: 24px;
+    font-weight: bold;
+    color: #000;
+}
+
+.order-items h3 {
+    font-size: 22px;
+    margin-bottom: 20px;
+    color: #444;
+}
+
+/* Items layout with simple, clean design */
+.items-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.item-card {
+    background-color: #fff;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    padding: 15px;
+    width: 48%;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.item-image img {
+    max-width: 80px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+.item-details h4 {
+    font-size: 18px;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.item-details p {
+    font-size: 14px;
+    color: #555;
+    margin: 4px 0;
+}
+
+/* Shipping and Contact sections styled consistently */
+.shipping-card p, .contact-card p {
+    margin: 8px 0;
+    font-size: 14px;
+    color: #555;
+}
+
+@media (max-width: 768px) {
+    /* Responsive design tweaks */
+    .order-details {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .items-container {
+        flex-direction: column;
+    }
+
+    .item-card {
+        width: 100%;
+    }
+}
+
+</style>
+{% endblock  %}
+
+{% block content %}
+<main class="order-summary-container">
+    <section class="order-summary">
+        <div class="order-header">
+            <h2>Thank you for your order, {{ order.user.username }}!</h2>
+            <p>Your order has been successfully placed and is being processed.</p>
+        </div>
+        
+        <div class="order-details">
+            <div class="order-detail-card">
+                <h3>Order Details</h3>
+                <p><strong>Order Number:</strong> #{{ order.id }}</p>
+                <p><strong>Status:</strong> {{ order.get_status_display }}</p>
+                <p><strong>Date Created:</strong> {{ order.created_at|date:"F d, Y" }}</p>
+            </div>
+
+            <div class="order-total-card">
+                <h3>Total Price</h3>
+                <p class="total-amount">${{ order.total_price }}</p>
+            </div>
+        </div>
+
+        <div class="order-items">
+            <h3>Items in Your Order</h3>
+            <div class="items-container">
+                {% for item in order.ordered_items.all %}
+                <div class="item-card">
+                    <div class="item-image">
+                        <!-- Display the first available product variant image -->
+                        {% if item.product_variant.image_1 %}
+                        <img src="{{ item.product_variant.image_1.url }}" alt="{{ item.product_variant.product.name }}">
+                        {% elif item.product_variant.image_2 %}
+                        <img src="{{ item.product_variant.image_2.url }}" alt="{{ item.product_variant.product.name }}">
+                        {% elif item.product_variant.image_3 %}
+                        <img src="{{ item.product_variant.image_3.url }}" alt="{{ item.product_variant.product.name }}">
+                        {% else %}
+                        <img src="{% static 'path/to/default_image.jpg' %}" alt="No Image Available">
+                        {% endif %}
+                    </div>
+                    <div class="item-details">
+                        <h4>{{ item.product_variant.product.name }}</h4>
+                        <p><strong>Variant:</strong> {{ item.product_variant.color.name }}</p>
+                        <p><strong>Quantity:</strong> {{ item.quantity }}</p>
+                        <p><strong>Price:</strong> ${{ item.price }}</p>
+                        <p><strong>Total:</strong> ${{ item.get_total_price }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="order-shipping">
+            <h3>Shipping Address</h3>
+            <div class="shipping-card">
+                <p>{{ order.order_address.full_name }} {{ order.order_address.last_name }}</p>
+                <p>{{ order.order_address.address_line_1 }}</p>
+                {% if order.order_address.address_line_2 %}
+                <p>{{ order.order_address.address_line_2 }}</p>
+                {% endif %}
+                <p>{{ order.order_address.city }}, {{ order.order_address.state }} {{ order.order_address.postal_code }}</p>
+                <p>{{ order.order_address.country }}</p>
+            </div>
+        </div>
+
+        <div class="order-contact">
+            <h3>Contact Information</h3>
+            <div class="contact-card">
+                <p><strong>Email:</strong> {{ order.user.email }}</p>
+                <p><strong>Phone:</strong> {{ order.order_address.phone_number }}</p>
+            </div>
+        </div>
+    </section>
+</main>
+{% endblock %}
+
+
+
+
+{% comment %} {% extends "store/Base.html" %}
 
 {% block title %}order done{% endblock  %}
 
@@ -47,4 +265,4 @@
         </section>
     </main>
 
-{% endblock  %}
+{% endblock  %} {% endcomment %}

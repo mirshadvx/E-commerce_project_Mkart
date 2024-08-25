@@ -69,7 +69,7 @@ class Order(models.Model):
         ('shipped', 'Shipped' ),
         ('delivered', 'Delivered'),
         ('cancelled', 'Cancelled'),   
-        ('done', 'Done'), 
+        
     ]
 
     PAYMENT_METHODS = [
@@ -125,6 +125,7 @@ class OrderItem(models.Model):
     item_status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     payment_status_item = models.CharField(max_length=10,choices=PAYMENT_STATUS_CHOICES,default='unpaid')
     action_status = models.CharField(max_length=10,choices=Action_status_choice,default='cancel')
+    return_request = models.BooleanField(default=False)
     
     def get_total_price(self):
         return self.quantity * self.price

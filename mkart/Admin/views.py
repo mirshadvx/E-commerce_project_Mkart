@@ -420,21 +420,46 @@ def show_order_details(request, id):
 #         return JsonResponse({'success': False, 'error': str(e)})
 
 
-
 def update_order_item_status(request):
-    
     if request.method == 'POST':
-        print('workeddddd')
         item_id = request.POST.get('item_id')
         new_status = request.POST.get('new_status')
 
         try:
             order_item = OrderItem.objects.get(id=item_id)
+            
             if order_item.update_status(new_status):
+                # If the status is changed to 'delivered', update payment_status_item to 'paid'
+                if order_item.item_status == 'delivered':
+                    order_item.payment_status_item = 'paid'
+                    order_item.save()
+                
                 return JsonResponse({'success': True})
             else:
                 return JsonResponse({'success': False, 'error': 'Invalid status transition.'})
+        
         except OrderItem.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'Order item not found.'})
 
     return JsonResponse({'success': False, 'error': 'Invalid request method.'})
+
+
+# def update_order_item_status(request):
+    
+#     if request.method == 'POST':
+#         item_id = request.POST.get('item_id')
+#         new_status = request.POST.get('new_status')
+
+#         try:
+#             order_item = OrderItem.objects.get(id=item_id)
+#             if order_item.update_status(new_status):
+#                 if order_item.item_status == 'delivered':
+#                     order_item.payment_status_item = 'paid'
+#                     order_item.save()
+#                 return JsonResponse({'success': True})
+#             else:
+#                 return JsonResponse({'success': False, 'error': 'Invalid status transition.'})
+#         except OrderItem.DoesNotExist:
+#             return JsonResponse({'success': False, 'error': 'Order item not found.'})
+
+#     return JsonResponse({'success': False, 'error': 'Invalid request method.'})

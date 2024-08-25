@@ -66,12 +66,6 @@
         margin-top: 0.25rem;
         display: block;
     }
-
-
-
-
-
-
     .message-container {
         position: fixed;
         top: 50%;
@@ -125,6 +119,18 @@
     @keyframes fadeIn {
         from { opacity: 0; transform: translateY(-20px); }
         to { opacity: 1; transform: translateY(0); }
+    }
+
+
+
+
+        .order-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 5px;
+    }
+    .order-item img {
+        margin-right: 10px;
     }
 </style>
 {% endblock  %}
@@ -213,7 +219,7 @@
                             </div><!-- .End .tab-pane -->
 
                             <div class="tab-pane fade" id="tab-orders" role="tabpanel" aria-labelledby="tab-orders-link">
-            <div class="tab-content">
+            {% comment %} <div class="tab-content">
                 <div class="tab-pane fade show active" id="tab-orders" role="tabpanel" aria-labelledby="tab-orders-link">
                     {% if orders %}
                         <table class="table table-orders">
@@ -258,8 +264,52 @@
                         </a>
                     {% endif %}
                 </div><!-- .End .tab-pane -->
-            </div><!-- .End .tab-content -->
-
+            </div><!-- .End .tab-content --> {% endcomment %}
+<div class="tab-content">
+    <div class="tab-pane fade show active" id="tab-orders" role="tabpanel" aria-labelledby="tab-orders-link">
+        {% if orders %}
+            <table class="table table-orders">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Items</th>
+                        <th>Status</th>
+                        <th>Total</th>
+                        <th>Payment Method</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr>
+                        <td>{{ order.id }}</td>
+                        <td>
+                            {% for item in order.ordered_items.all %}
+                                <div class="order-item">
+                                    <img src="{{ item.product_variant.image_1.url }}" alt="{{ item.product_variant.product.name }}" style="width: 50px; height: auto;">
+                                    {{ item.product_variant.product.name }} (x{{ item.quantity }})
+                                </div>
+                            {% endfor %}
+                        </td>
+                        <td>{{ order.get_status_display }}</td>
+                        <td>{{ order.total_price }}</td>
+                        <td>{{ order.get_payment_method_display }}</td>
+                        <td>
+                            <a href="{% url 'order_info' order_id=order.id %}" class="btn btn-outline-primary-2">View Details</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No order has been made yet.</p>
+            <a href="{% url 'productslist' %}" class="btn btn-outline-primary-2">
+                <span>GO SHOP</span>
+                <i class="icon-long-arrow-right"></i>
+            </a>
+        {% endif %}
+    </div><!-- .End .tab-pane -->
+</div><!-- .End .tab-content -->
                             </div><!-- .End .tab-pane -->
 
                             <div class="tab-pane fade" id="tab-downloads" role="tabpanel" aria-labelledby="tab-downloads-link">

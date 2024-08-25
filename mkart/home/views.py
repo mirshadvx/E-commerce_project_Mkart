@@ -645,23 +645,35 @@ def remove_cart(request, id):
     return JsonResponse({'success': False, 'error': 'Invalid request'}, status=400)
 
 
-def account(request):
-    user  = request.user
-    orders = Order.objects.filter(user=user).order_by('-created_at')
+# def account(request):
+#     user  = request.user
+#     orders = Order.objects.filter(user=user).order_by('-created_at')
     
-    order_items = OrderItem.objects.filter(order__in=orders)
+#     order_items = OrderItem.objects.filter(order__in=orders)
     
-    profile = Profile.objects.get(user=user)
+#     profile = Profile.objects.get(user=user)
     
     
-    context = {
-        'user': request.user,
-        'orders': orders,
-        'order_items': order_items,
-        'profile': profile,
+#     context = {
+#         'user': request.user,
+#         'orders': orders,
+#         'order_items': order_items,
+#         'profile': profile,
 
+#     }
+#     return render(request,'store/Account.html',context)
+
+def account(request):
+    user = request.user
+    orders = Order.objects.filter(user=user).order_by('-created_at')
+    profile = Profile.objects.get(user=user)
+
+    context = {
+        'user': user,
+        'orders': orders,
+        'profile': profile,
     }
-    return render(request,'store/Account.html',context)
+    return render(request, 'store/Account.html', context)
 
 
 def submit_address(request):
@@ -829,10 +841,27 @@ def checkout(request):
     cart_items = cart.items.all()
     cart_total = cart.get_total_price()
     
+    count_of_cart = cart.items.count()
+    
+    if count_of_cart == 0:
+        messages.error(request,"There is no items in cart")
+        return redirect(request.META.get('HTTP_REFERER', 'home'))
+        
+    
+    
     if request.method == 'POST':
         checker = True
         for item in cart_items:
             product_variant = item.product_variant
+            
+            if count_of_cart == 0:
+                messages.error(request,"There is no items in cart")
+                checker = False
+                continue
+           
+            
+            
+            
             
             if not product_variant.is_available:
                 messages.error(request, f"{product_variant.product.name} - {product_variant.color} is not available.sorry !!!")
@@ -976,6 +1005,51 @@ def edit_details(request):
     messages.success(request, 'Your profile was successfully updated!')
     
     return redirect(request.META.get('HTTP_REFERER', 'home'))
+
+
+@require_POST
+def cancel_item(request):
+    item_id = request.POST.get('item_id')
+    try:
+        item = OrderItem.objects.get(id=item_id, order__user=request.user)
+        
+        # Check if the item can be cancelled
+        if item.item_status in ['pending', 'processing', 'shipped']:
+            # Update the item status
+            item.item_status = 'cancelled'
+            item.save()
+
+            # Update the order status if all items are cancelled
+            order = item.order
+            if all(oi.item_status == 'cancelled' for oi in order.ordered_items.all()):
+                order.status = 'cancelled'
+                order.save()
+
+            return JsonResponse({'success': True, 'message': 'Item cancelled successfully'})
+        else:
+            return JsonResponse({'success': False, 'message': 'Item cannot be cancelled in its current status'})
+
+    except OrderItem.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Item not found'})
+
+
+@require_POST
+def return_item(request):
+    item_id = request.POST.get('item_id')
+    reason = request.POST.get('reason')
+    try:
+        item = OrderItem.objects.get(id=item_id, order__user=request.user)
+        if item.item_status == 'delivered' and not item.return_request:
+            item.return_request = True
+            # item.item_status = 'returned'   correct this first, admin can decid
+            item.save()
+            # You might want to create a separate model to store return reasons
+            # For now, we'll just pass the success message
+            return JsonResponse({'success': True, 'message': 'Return request submitted successfully'})
+        else:
+            return JsonResponse({'success': False, 'message': 'Unable to process return request'})
+    except OrderItem.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Item not found'})
 
 
         

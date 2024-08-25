@@ -182,10 +182,10 @@
                                 <h5 class="text-muted mb-3">Order Information</h5>
                                 <p><strong>Date:</strong> {{ order.created_at|date:"F d, Y" }}</p>
                                 <p><strong>Payment Method:</strong> {{ order.get_payment_method_display }}</p>
-                                <p>
+                                {% comment %} <p>
                                     <strong>Payment Status:</strong> 
                                     <span style="color: black; font-size: small;" class="badge bg-{{ order.payment_status }}">{{ order.get_payment_status_display }}</span>
-                                </p>
+                                </p> {% endcomment %}
                             </div>
                             <div class="col-md-6">
                                 <h5 class="text-muted mb-3">Customer Details</h5>
@@ -244,6 +244,7 @@
                                         <th>Total</th>
                                         <th>Status</th>
                                         <th>Payment Status</th>
+                                        <th>Rrequest</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -283,6 +284,7 @@
                                         <td>
                                             <span style="color: black; font-size: small;" class="badge bg-{{ item.payment_status_item }}">{{ item.get_payment_status_item_display }}</span>
                                         </td>
+                                        {% if item.return_request == True %}<td><span style="color:red;">Requested to return</span></td>{% endif %}
                                     </tr>
                                     {% endfor %}
                                 </tbody>
