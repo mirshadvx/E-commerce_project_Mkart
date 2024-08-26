@@ -1,6 +1,7 @@
 {% extends 'store/Base.html' %}
-{% comment %} {% load socialaccount %} {% endcomment %}
+
 {% load static %}
+{% load socialaccount %}
 
 {% block title %}login{% endblock  %}
 
@@ -142,7 +143,7 @@
                                     <p class="text-center">or sign in with</p>
                                     <div class="row">
                                         <div class="col-sm-12">
-                                            <a class="btn btn-login btn-g" >
+                                            <a href="{% provider_login_url 'google' %}?next=/" class="btn btn-login btn-g" >
                                                 <i class="icon-google"></i>
                                                 Login With Google
                                             </a>

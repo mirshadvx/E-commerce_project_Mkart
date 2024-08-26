@@ -20,6 +20,7 @@ from django.db.models import Q
 from django.urls import reverse
 from django.contrib.auth import update_session_auth_hash
 from django.views.decorators.http import require_POST
+from allauth.socialaccount.models import SocialAccount
 # Create your views here.
 
 import os
@@ -89,6 +90,11 @@ def check_email(request):
 
 
 def register(request):
+    # if request.user.is_authenticated:
+    #     # Check if the user is authenticated via Google
+    #     if SocialAccount.objects.filter(user=request.user, provider='google').exists():
+    #         return redirect('home')
+        
     if request.method == 'POST':
         username = request.POST.get('username')
         email = request.POST.get('email')
@@ -239,7 +245,35 @@ def resend_otp(request):
     request.session['registration_data'] = stored_data
 
     return redirect('validate_otp')
+ 
+@never_cache
+def loginpage(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
 
+        if not username or not password:
+            messages.error(request, 'username and password are required.')
+            return render(request, 'store/login.html')
+
+
+        user = authenticate(request, username=username, password=password)
+        print(user)
+
+        if user is not None:
+            if not user.is_active:
+                messages.error(request, 'Your account is blocked. Please contact us.')
+                return render(request, 'store/login.html')
+            
+            login(request, user)
+            if user.is_staff:  
+                return render(request, 'store/login.html', {'show_admin_modal': True})
+            else:
+                return redirect('home') 
+        else:
+            messages.error(request, 'Invalid username or password')
+    
+    return render(request, 'store/login.html')
 # @login_required
 def home(request):
     if request.user.is_authenticated:  
@@ -269,41 +303,7 @@ def home(request):
     }
         
     return render(request,'store/store.html',context)
-    
-@never_cache
-def loginpage(request):
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-
-        if not username or not password:
-            messages.error(request, 'username and password are required.')
-            return render(request, 'store/login.html')
-
-
-        user = authenticate(request, username=username, password=password)
-        print(user)
-
-        if user is not None:
-            if not user.is_active:
-                messages.error(request, 'Your account is blocked. Please contact us.')
-                return render(request, 'store/login.html')
-            
-            login(request, user)
-            if user.is_staff:  
-                return render(request, 'store/login.html', {'show_admin_modal': True})
-            else:
-                return redirect('home') 
-        else:
-            messages.error(request, 'Invalid username or password')
-    
-    return render(request, 'store/login.html')
-
-
-
-
-
-
+   
 def check_username(request):
     username = request.GET.get('username', None)
     data = {
@@ -316,12 +316,6 @@ def logoutPage(request):
     return redirect('login') 
 
 
-
-
-
-
-
-
 def social_login_success(request):
     if request.user.is_authenticated:
         messages.success(request, 'Successfully logged in with Google!')
@@ -337,19 +331,19 @@ def social_login_success(request):
     else:
         messages.error(request, 'Social login failed. Please try again.')
         return redirect('login') 
-    
+from django.db.models import Min
+
 def show_products(request):
-    # products = Product.objects.all()
     products = Product.objects.filter(category__status=True)
-    
+
     category = request.GET.get('category')
     if category:
-        products = Product.objects.filter(category__name=category)
-    
+        products = products.filter(category__name=category)
+
     gender = request.GET.get('gender')
     if gender:
-        products = Product.objects.filter(gender__name=gender)
-        
+        products = products.filter(gender__name=gender)
+
     brand = request.GET.get('brand')
     if brand:
         products = products.filter(brand__name=brand)
@@ -357,12 +351,25 @@ def show_products(request):
     color = request.GET.get('color')
     if color:
         products = products.filter(variants__color__name=color).distinct()
-        
+
     min_price = request.GET.get('min_price')
     max_price = request.GET.get('max_price')
     if min_price and max_price:
         products = products.filter(variants__price__gte=min_price, variants__price__lte=max_price).distinct()
-    
+
+    sort_by = request.GET.get('sortby')
+    if sort_by:
+        if sort_by == 'low to high':
+            products = products.annotate(min_price=Min('variants__price')).order_by('min_price')
+        elif sort_by == 'high to low':
+            products = products.annotate(min_price=Min('variants__price')).order_by('-min_price')
+        elif sort_by == 'new arrivals':
+            products = products.order_by('-created_at')
+        elif sort_by == 'aA-zZ':
+            products = products.order_by('name')
+        elif sort_by == 'zZ-aA':
+            products = products.order_by('-name')
+
     categories = Category.objects.filter(status=True)
     genders = Gender.objects.all()
     brands = Brand.objects.all()
@@ -374,13 +381,11 @@ def show_products(request):
         'genders': genders,
         'brands': brands,
         'colors': colors,
+        'sort_by': sort_by,
     }
-    
+
     return render(request, 'store/products_home.html', context)
 
-# def product_info(request, id):
-#     product = get_object_or_404(Product, id=id)
-#     return render(request, 'store/product_info.html', {'product': product})
 
 def product_info(request, id):
     product = get_object_or_404(Product, id=id)
@@ -602,15 +607,12 @@ def add_to_cart(request, id):
 def update_cart(request, cart_item_id):
     if request.method == 'POST':
         try:
-            # Get the cart item, ensuring it belongs to the current user
             cart_item = CartItem.objects.get(id=cart_item_id, cart__user=request.user)
             quantity = int(request.POST.get('quantity', 1))
             
-            # Update the quantity
             cart_item.quantity = quantity
             cart_item.save()
             
-            # Calculate the new totals
             item_total = cart_item.get_total_price()
             cart_total = sum(item.get_total_price() for item in cart_item.cart.items.all())
             
@@ -632,7 +634,6 @@ def remove_cart(request, id):
             cart_item = CartItem.objects.get(id=id, cart__user=request.user)
             cart_item.delete()
             
-            # Recalculate cart total
             cart = Cart.objects.get(user=request.user)
             cart_total = sum(item.get_total_price() for item in cart.items.all())
             
@@ -678,7 +679,6 @@ def account(request):
 
 def submit_address(request):
     if request.method == 'POST':
-        # Create a new UserAddress instance
         
         street_1 = request.POST.get('address_line_1')
         street_2 = request.POST.get('address_line_2','')
@@ -740,7 +740,7 @@ def edit_address(request,id):
         
         address.save()
         messages.success(request, "Address updated successfully.")
-        return redirect('account')  # Redirect to the account page
+        return redirect('account')
     
     return render(request,'store/edit_address.html',{'address': address})
 
@@ -858,11 +858,7 @@ def checkout(request):
                 messages.error(request,"There is no items in cart")
                 checker = False
                 continue
-           
-            
-            
-            
-            
+
             if not product_variant.is_available:
                 messages.error(request, f"{product_variant.product.name} - {product_variant.color} is not available.sorry !!!")
                 checker = False
@@ -887,6 +883,9 @@ def checkout(request):
         )
 
         use_new_address = request.POST.get('use_new_address')
+        # if not use_new_address:
+        #     messages.error(request,"Please fill delivery address!!!")
+        #     return redirect('checkout')
 
         if use_new_address:
             order_address = OrderAddress.objects.create(
@@ -944,9 +943,6 @@ def checkout(request):
     return render(request, 'store/checkout.html', context)
 
 
-
-
-
 def order_confirmation(request, order_id):
     
     order = Order.objects.get(id=order_id)
@@ -995,7 +991,7 @@ def edit_details(request):
             if new_password == confirm_new_password:
                 user.set_password(new_password)
                 user.save()
-                update_session_auth_hash(request, user)  # Prevent logout after password change
+                update_session_auth_hash(request, user) 
                 messages.success(request, 'Your password was successfully updated!')
             else:
                 messages.error(request, 'New passwords do not match.')
@@ -1010,16 +1006,23 @@ def edit_details(request):
 @require_POST
 def cancel_item(request):
     item_id = request.POST.get('item_id')
+    variant_id = request.POST.get('variant_id')
+    inc_quantity = request.POST.get('inc_quantity')
+    variant = ProductVariant.objects.get(id=variant_id)
+    print(item_id,'item id ddddddd')
+    print(variant_id)
+    
+    
     try:
         item = OrderItem.objects.get(id=item_id, order__user=request.user)
         
-        # Check if the item can be cancelled
         if item.item_status in ['pending', 'processing', 'shipped']:
-            # Update the item status
             item.item_status = 'cancelled'
+            
+            variant.stock = variant.stock + int(inc_quantity)
+            variant.save()
             item.save()
 
-            # Update the order status if all items are cancelled
             order = item.order
             if all(oi.item_status == 'cancelled' for oi in order.ordered_items.all()):
                 order.status = 'cancelled'
@@ -1041,10 +1044,9 @@ def return_item(request):
         item = OrderItem.objects.get(id=item_id, order__user=request.user)
         if item.item_status == 'delivered' and not item.return_request:
             item.return_request = True
-            # item.item_status = 'returned'   correct this first, admin can decid
+            # item.item_status = 'returned'   
             item.save()
-            # You might want to create a separate model to store return reasons
-            # For now, we'll just pass the success message
+
             return JsonResponse({'success': True, 'message': 'Return request submitted successfully'})
         else:
             return JsonResponse({'success': False, 'message': 'Unable to process return request'})

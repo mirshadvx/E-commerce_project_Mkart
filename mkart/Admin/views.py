@@ -429,7 +429,6 @@ def update_order_item_status(request):
             order_item = OrderItem.objects.get(id=item_id)
             
             if order_item.update_status(new_status):
-                # If the status is changed to 'delivered', update payment_status_item to 'paid'
                 if order_item.item_status == 'delivered':
                     order_item.payment_status_item = 'paid'
                     order_item.save()

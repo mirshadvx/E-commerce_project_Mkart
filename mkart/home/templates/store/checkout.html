@@ -296,7 +296,134 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js"></script>
  
 
-    <script>
+<script>
+$(document).ready(function() {
+    if ($("#messageContent").children().length > 0) {
+        $("#messageModal").modal('show');
+    }
+    
+    $('.btn-close, .btn-primary').on('click', function() {
+        $('#messageModal').modal('hide');
+    });
+
+    $('#use_new_address').change(function() {
+        if(this.checked) {
+            $('#new_address_form').show();
+            $('input[name="selected_address"]').prop('checked', false);
+        } else {
+            $('#new_address_form').hide();
+            $('input[name="selected_address"]:first').prop('checked', true);
+        }
+    });
+
+    // New address form validation
+    $('form').submit(function(event) {
+        if ($('#use_new_address').is(':checked')) {
+            let isValid = true;
+            
+            // Full Name validation
+            if (!validateName($('#full_name').val())) {
+                showError($('#full_name'), 'Please enter a valid full name');
+                isValid = false;
+            }
+
+            // Last Name validation
+            if (!validateName($('#last_name').val())) {
+                showError($('#last_name'), 'Please enter a valid last name');
+                isValid = false;
+            }
+
+            // Phone number validation
+            if (!validatePhone($('#phone_number').val())) {
+                showError($('#phone_number'), 'Please enter a valid phone number');
+                isValid = false;
+            }
+
+            if (!validateEmail($('#email').val())) {
+                showError($('#email'), 'Please enter a valid email address');
+                isValid = false;
+            } else if (!validateGmail($('#email').val())) {
+                showError($('#email'), 'Please enter a valid Gmail address');
+                isValid = false;
+            }
+
+            // Address validation
+            if ($('#address_line_1').val().trim() === '') {
+                showError($('#address_line_1'), 'Address is required');
+                isValid = false;
+            }
+
+            // City validation
+            if ($('#city').val().trim() === '') {
+                showError($('#city'), 'City is required');
+                isValid = false;
+            }
+
+            // State validation
+            if ($('#state').val().trim() === '') {
+                showError($('#state'), 'State is required');
+                isValid = false;
+            }
+
+            // Postal code validation
+            if (!validatePostalCode($('#postal_code').val())) {
+                showError($('#postal_code'), 'Please enter a valid 6-digit postal code');
+                isValid = false;
+            }
+
+            // Country validation
+            if ($('#country').val().trim() === '') {
+                showError($('#country'), 'Country is required');
+                isValid = false;
+            }
+
+            if (!isValid) {
+                event.preventDefault();
+            }
+        }
+    });
+});
+
+function validateName(name) {
+    return /^[a-zA-Z\s]+$/.test(name);
+}
+
+function validatePhone(phone) {
+    return /^\d{10}$/.test(phone);
+}
+
+function validateEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function validateGmail(email) {
+    // This regex checks for the specific structure of Gmail addresses
+    return /^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(email);
+}
+
+function validatePostalCode(postalCode) {
+    return /^\d{6}$/.test(postalCode);
+}
+
+function showError(element, message) {
+    element.addClass('is-invalid');
+    if (!element.next('.invalid-feedback').length) {
+        element.after('<div class="invalid-feedback">' + message + '</div>');
+    } else {
+        element.next('.invalid-feedback').text(message);
+    }
+}
+
+// Remove error messages when user starts typing
+$('input').on('input', function() {
+    $(this).removeClass('is-invalid');
+    $(this).next('.invalid-feedback').remove();
+});
+</script>
+
+
+
+    {% comment %} <script>
     $(document).ready(function() {
 
         if ($("#messageContent").children().length > 0) {
@@ -306,9 +433,6 @@
         $('.btn-close, .btn-primary').on('click', function() {
             $('#messageModal').modal('hide');
         });
-
-
-
 
         $('#use_new_address').change(function() {
             if(this.checked) {
@@ -320,7 +444,7 @@
             }
         });
     }); 
-</script>
+</script> {% endcomment %}
 {% endblock %}
 
 

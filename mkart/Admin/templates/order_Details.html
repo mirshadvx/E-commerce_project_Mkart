@@ -294,7 +294,7 @@
                 </div>
             </div>
         </div>
-                    <div class="col-lg-4">
+                    {% comment %} <div class="col-lg-4">
                 <div class="card order-card">
                     <div class="order-header">
                         <h5 class="mb-0">Order Actions</h5>
@@ -308,7 +308,7 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> {% endcomment %}
     </div>
 </div>
 {% endblock %}
@@ -328,7 +328,7 @@
         var $dropdown = $(this);
         var itemId = $dropdown.data('item-id');
         var newStatus = $dropdown.val();
-        var initialStatus = $dropdown.data('initial-status'); // Get the original status
+        var initialStatus = $dropdown.data('initial-status'); 
 
         $.ajax({
             url: '{% url "update_order_item_status" %}',

@@ -187,11 +187,7 @@
                     <p>Payment Method</p>
                     <strong>{{ order.get_payment_method_display }}</strong>
                 </div>
-                {% comment %} <div class="order-meta-item">
-                    <i class="fas fa-money-check-alt"></i>
-                    <p>Payment Status</p>
-                    <strong>{{ order.get_payment_status_display }}</strong>
-                </div> {% endcomment %}
+
             </div>
 
 <div class="order-items">
@@ -205,7 +201,7 @@
                     <th>Quantity</th>
                     <th>Price</th>
                     <th>Total</th>
-                    <th>Payemnt Status</th>
+                    <th>Payment Status</th>
                     <th>Status</th>
                     <th>Actions</th>
                
@@ -228,43 +224,14 @@
                     {% endif %}
                     
                     <td><span class="item-status">{{ item.get_item_status_display }}</span></td>
-                    {% comment %} <td> {% endcomment %}
-                        {% comment %} <div class="action-buttons">
-                            {% if item.action_status == 'cancel' and item.item_status != 'cancelled' %}
-                                <button class="btn btn-sm btn-outline-danger">Cancel</button>
-                            {% endif %}
-                            {% if item.action_status == 'return' and item.item_status == 'delivered' %}
-                                <button class="btn btn-sm btn-outline-warning">Return</button>
-                            {% endif %}
-                        </div> {% endcomment %}
-{% comment %} <div class="action-buttons">
-    {% if item.action_status == 'cancel' and item.item_status != 'cancelled' %}
-        <button class="btn btn-sm btn-outline-danger cancel-item" data-item-id="{{ item.id }}">Cancel</button>
-    {% endif %}
-    {% if item.action_status == 'return' and item.item_status == 'delivered' %}
-        <button class="btn btn-sm btn-outline-warning return-item" data-item-id="{{ item.id }}">Return</button>
-    {% endif %}
-</div> {% endcomment %}
-{% comment %} <div class="action-buttons">
-    {% if item.item_status != 'delivered' %}
-    {% if item.action_status == 'cancel' and item.item_status != 'cancelled' %}
-        <button class="btn btn-sm btn-outline-danger cancel-item" data-item-id="{{ item.id }}">Cancel</button>
-    {% endif %}
-    {% else %}
-    {% if item.item_status == 'delivered' and not item.return_request %}
-        <button class="btn btn-sm btn-outline-warning return-item" data-item-id="{{ item.id }}">Return</button>
-    {% endif %}
-    {% endif %}
-</div>
-                    </td>
-                </tr> {% endcomment %}
+
 
 <td>
     {% if item.item_status != 'returned' %}
         <div class="action-buttons">
             {% if item.item_status != 'delivered' %}
                 {% if item.action_status == 'cancel' and item.item_status != 'cancelled' %}
-                    <button class="btn btn-sm btn-outline-danger cancel-item" data-item-id="{{ item.id }}">Cancel</button>
+                    <button class="btn btn-sm btn-outline-danger cancel-item" data-item-id="{{ item.id }}" data-variant-id="{{ item.product_variant.id }}" data-inc-quantity="{{ item.quantity }}">Cancel</button>
                 {% endif %}
             {% else %}
                 {% if not item.return_request %}
@@ -276,10 +243,6 @@
         <span class="text-muted">Returned</span>
     {% endif %}
 </td>   
-
-
-
-
 
 
                 {% endfor %}
@@ -323,7 +286,6 @@
     </div>
 
 
-    <!-- Return Request Modal -->
 <!-- Return Request Modal -->
 <div class="modal fade" id="returnModal" tabindex="-1" role="dialog" aria-labelledby="returnModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
@@ -366,7 +328,10 @@
 $(document).ready(function() {
 $('.cancel-item').click(function() {
     var itemId = $(this).data('item-id');
-    
+    var variantId = $(this).data("variant-id");
+    var inc_quantity = $(this).data("inc-quantity");
+
+
     Swal.fire({
         title: 'Are you sure?',
         text: "You won't be able to revert this!",
@@ -382,6 +347,8 @@ $('.cancel-item').click(function() {
                 type: 'POST',
                 data: {
                     'item_id': itemId,
+                    'variant_id': variantId,
+                    'inc_quantity':inc_quantity,
                     'csrfmiddlewaretoken': '{{ csrf_token }}'
                 },
                 success: function(response) {
@@ -414,14 +381,14 @@ $('.cancel-item').click(function() {
 });
 
 
-// Open return modal
+
 $('.return-item').click(function() {
     var itemId = $(this).data('item-id');
     $('#returnItemId').val(itemId);
     $('#returnModal').modal('show');
 });
 
-// Submit return request
+
 $('#submitReturn').click(function() {
     var itemId = $('#returnItemId').val();
     var reason = $('#returnReason').val();

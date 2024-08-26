@@ -156,17 +156,15 @@
 
             <div class="order-total-card">
                 <h3>Total Price</h3>
-                <p class="total-amount">${{ order.total_price }}</p>
+                <p class="total-amount">{{ order.total_price }}</p>
             </div>
         </div>
-
         <div class="order-items">
             <h3>Items in Your Order</h3>
             <div class="items-container">
                 {% for item in order.ordered_items.all %}
                 <div class="item-card">
                     <div class="item-image">
-                        <!-- Display the first available product variant image -->
                         {% if item.product_variant.image_1 %}
                         <img src="{{ item.product_variant.image_1.url }}" alt="{{ item.product_variant.product.name }}">
                         {% elif item.product_variant.image_2 %}
@@ -181,14 +179,13 @@
                         <h4>{{ item.product_variant.product.name }}</h4>
                         <p><strong>Variant:</strong> {{ item.product_variant.color.name }}</p>
                         <p><strong>Quantity:</strong> {{ item.quantity }}</p>
-                        <p><strong>Price:</strong> ${{ item.price }}</p>
-                        <p><strong>Total:</strong> ${{ item.get_total_price }}</p>
+                        <p><strong>Price:</strong> {{ item.price }}</p>
+                        <p><strong>Total:</strong> {{ item.get_total_price }}</p>
                     </div>
                 </div>
                 {% endfor %}
             </div>
         </div>
-
         <div class="order-shipping">
             <h3>Shipping Address</h3>
             <div class="shipping-card">

@@ -42,6 +42,11 @@ ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 # SITE_ID = 4
 
 INSTALLED_APPS = [
+    'django.contrib.sites',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -49,11 +54,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'home',
-    # 'django.contrib.sites',
-    # 'allauth',
-    # 'allauth.account',
-    # 'allauth.socialaccount',
-    # 'allauth.socialaccount.providers.google',
     'products',
     'Admin',
     'widget_tweaks',
@@ -74,7 +74,6 @@ INSTALLED_APPS = [
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.db' 
 
-
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -83,20 +82,51 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    # 'allauth.account.middleware.AccountMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
 
-AUTHENTICATION_BACKENDS = (
-    'django.contrib.auth.backends.ModelBackend',
-    # 'allauth.account.auth_backends.AuthenticationBackend',
-)
+
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'http'  # Change to 'https' if you're using HTTPS
+SOCIALACCOUNT_STORE_TOKENS = True
+
+# SOCIALACCOUNT_PROVIDERS = {
+#     'google': {
+#         'SCOPE': [
+#             'profile',
+#             'email',
+#         ],
+#         'AUTH_PARAMS': {
+#             'access_type': 'online',
+#         }
+#     }
+# } 
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': [
+            'profile',
+            'email',
+            # 'openid',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        }
+    }
+}
+
+ACCOUNT_EMAIL_VERIFICATION = 'none'
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+
 
 ROOT_URLCONF = 'mkart.urls'
 LOGIN_URL = '/'
 LOGIN_REDIRECT_URL = 'store'
-LOGOUT_REDIRECT_URL = '/'
+# LOGOUT_REDIRECT_URL = '/'
 
 # ACCOUNT_EMAIL_VERIFICATION = 'none'
 
@@ -126,20 +156,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'mkart.wsgi.application'
-
-
-
-
-
-# Database
-# https://docs.djangoproject.com/en/5.0/ref/settings/#databases
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
 
 DATABASES = {
     'default': {
@@ -232,3 +248,13 @@ SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
 INTERNAL_IPS = [
     "127.0.0.1",
 ]
+
+
+
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+)
+SITE_ID = 4
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'

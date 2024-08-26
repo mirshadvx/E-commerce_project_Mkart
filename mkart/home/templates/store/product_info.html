@@ -100,7 +100,7 @@
                                         {% if variant.image_1 %}
                                             <a class="{% if variant == selected_variant %}active{% endif %}" 
                                             href="?variant_id={{ variant.id }}"
-                                            style="background-color: {{ variant.color.hex_code }}; display: inline-block; width: 20px; height: 20px; border-radius: 50%;">
+                                            style="background-color: {{ variant.color.hex_code }}; display: inline-block; width: 20px; height: 20px;     border: 1px solid #212529;  border-radius: 50%;">
                                             </a>
                                         {% endif %}
                                     {% endfor %}

@@ -26,6 +26,7 @@ urlpatterns = [
     # path('accounts/', include('allauth.urls')),
     path('',include('home.urls')),
     path('admin_panel/',include('Admin.urls')),
+    path('accounts/', include('allauth.urls')),
 ]  + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) 
 
 
