@@ -12,6 +12,7 @@ import time
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login , logout
 from django.contrib import messages
+from requests import request
 from products.models import *
 from . models import *
 import re
@@ -21,6 +22,9 @@ from django.urls import reverse
 from django.contrib.auth import update_session_auth_hash
 from django.views.decorators.http import require_POST
 from allauth.socialaccount.models import SocialAccount
+import razorpay
+from django.conf import settings
+from decimal import Decimal
 # Create your views here.
 
 import os
@@ -304,6 +308,13 @@ def home(request):
         
     return render(request,'store/store.html',context)
    
+
+
+
+
+
+
+
 def check_username(request):
     username = request.GET.get('username', None)
     data = {
@@ -314,6 +325,12 @@ def logoutPage(request):
     if request.user.is_authenticated:
         logout(request)
     return redirect('login') 
+
+
+
+
+
+
 
 
 def social_login_success(request):
@@ -607,6 +624,7 @@ def add_to_cart(request, id):
 def update_cart(request, cart_item_id):
     if request.method == 'POST':
         try:
+
             cart_item = CartItem.objects.get(id=cart_item_id, cart__user=request.user)
             quantity = int(request.POST.get('quantity', 1))
             
@@ -752,38 +770,63 @@ def delete_address(request, address_id):
         return JsonResponse({'status': 'success', 'message': 'Address deleted successfully.'})
     except UserAddress.DoesNotExist:
         return JsonResponse({'status': 'error', 'message': 'Address not found.'}, status=404)
-    
+
+
+
 # def checkout(request):
 #     user = request.user
 #     cart = Cart.objects.get(user=user)
 #     cart_items = cart.items.all()
 #     cart_total = cart.get_total_price()
     
+#     count_of_cart = cart.items.count()
+    
+#     if count_of_cart == 0:
+#         messages.error(request, "There are no items in your cart")
+#         return redirect(request.META.get('HTTP_REFERER', 'home'))
+    
+#     # Initialize Razorpay client
+#     client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+    
 #     if request.method == 'POST':
+#         # Check if it's a Razorpay callback
+#         if 'razorpay_payment_id' in request.POST:
+#             # Verify the payment signature
+#             params_dict = {
+#                 'razorpay_order_id': request.POST.get('razorpay_order_id'),
+#                 'razorpay_payment_id': request.POST.get('razorpay_payment_id'),
+#                 'razorpay_signature': request.POST.get('razorpay_signature')
+#             }
+            
+#             try:
+#                 client.utility.verify_payment_signature(params_dict)
+#             except:
+#                 messages.error(request, "Payment verification failed")
+#                 return redirect('checkout')
+            
+#             payment_method = 'razorpay'
+#         else:
+#             payment_method = request.POST.get('payment_method', 'cod')
+        
+#         # Validate cart items
 #         checker = True
 #         for item in cart_items:
-#             product = item.product_variant
+#             product_variant = item.product_variant
             
-#             print(product)
-#             if not product.is_available:
-#                 messages.error(request, f"{product.product.name} - {product.color} is no longer available.")
+#             if not product_variant.is_available:
+#                 messages.error(request, f"{product_variant.product.name} - {product_variant.color} is not available. Sorry!")
 #                 checker = False
 #                 continue
             
-#             if item.quantity > product.stock:
-#                 print('hi')
-#                 messages.error(request, f"Sorry, we only have {product.stock} of {product.product.name} - {product.color} in stock.")
+#             if item.quantity > product_variant.stock:
+#                 messages.error(request, f"Sorry, we only have {product_variant.stock} of {product_variant.product.name} - {product_variant.color} in stock.")
 #                 checker = False
 #                 continue
-            
-#             if checker:
-#                 return redirect('order_confirmation', order_id=15)
-#             else:
-#                 return redirect('home')
-            
         
-#         payment_method = request.POST.get('payment_method', 'cod')
+#         if not checker:
+#             return redirect('checkout')
         
+#         # Create order
 #         order = Order.objects.create(
 #             user=user,
 #             status='pending',
@@ -791,37 +834,29 @@ def delete_address(request, address_id):
 #             payment_method=payment_method
 #         )
 
+#         # Handle address
 #         use_new_address = request.POST.get('use_new_address')
-
 #         if use_new_address:
-#             full_name = request.POST.get('full_name')
-#             last_name = request.POST.get('last_name')
-#             phone_number = request.POST.get('phone_number')
-#             email = request.POST.get('email')
-#             address_line_1 = request.POST.get('address_line_1')
-#             address_line_2 = request.POST.get('address_line_2')
-#             city = request.POST.get('city')
-#             state = request.POST.get('state')
-#             postal_code = request.POST.get('postal_code')
-#             country = request.POST.get('country')
-
 #             order_address = OrderAddress.objects.create(
 #                 order=order,
-#                 full_name=full_name,
-#                 last_name=last_name,
-#                 phone_number=phone_number,
-#                 email=email,
-#                 address_line_1=address_line_1,
-#                 address_line_2=address_line_2,
-#                 city=city,
-#                 state=state,
-#                 postal_code=postal_code,
-#                 country=country
+#                 full_name=request.POST.get('full_name'),
+#                 last_name=request.POST.get('last_name'),
+#                 phone_number=request.POST.get('phone_number'),
+#                 email=request.POST.get('email'),
+#                 address_line_1=request.POST.get('address_line_1'),
+#                 address_line_2=request.POST.get('address_line_2'),
+#                 city=request.POST.get('city'),
+#                 state=request.POST.get('state'),
+#                 postal_code=request.POST.get('postal_code'),
+#                 country=request.POST.get('country')
 #             )
 #         else:
 #             selected_address_id = request.POST.get('selected_address')
+#             if not selected_address_id:
+#                 messages.error(request, "Please select an address or enter a new one")
+#                 return redirect('checkout')
+            
 #             selected_address = user.addresses.get(id=selected_address_id)
-
 #             order_address = OrderAddress.objects.create(
 #                 order=order,
 #                 full_name=selected_address.full_name,
@@ -835,113 +870,370 @@ def delete_address(request, address_id):
 #                 postal_code=selected_address.postal_code,
 #                 country=selected_address.country
 #             )
+
+#         # Create order items and update stock
+#         for item in cart_items:
+#             OrderItem.objects.create(
+#                 order=order,
+#                 product_variant=item.product_variant,
+#                 quantity=item.quantity,
+#                 price=item.product_variant.price
+#             )
+            
+#             item.product_variant.stock -= item.quantity
+#             item.product_variant.save()
+
+#         # Clear the cart
+#         cart.items.all().delete()
+
+#         messages.success(request, "Your order has been placed successfully!")
+#         return redirect('order_confirmation', order_id=order.id)
+
+#     # Create Razorpay Order
+#     razorpay_order = client.order.create(dict(
+#         amount=int(cart_total * 100),  # Razorpay expects amount in paise
+#         currency='INR',
+#         payment_capture='0'
+#     ))
+    
+#     context = {
+#         'cart_items': cart_items,
+#         'cart_total': cart_total,
+#         'user': user,
+#         'razorpay_key_id': settings.RAZORPAY_KEY_ID,
+#         'razorpay_order_id': razorpay_order['id'],
+#         'cart_total_paise': int(cart_total * 100),
+#     }
+#     return render(request, 'store/checkout.html', context)
+
+# def checkout(request):
+#     user = request.user
+#     cart = Cart.objects.get(user=user)
+#     cart_items = cart.items.all()
+#     cart_total = cart.get_total_price()
+#     count_of_cart = cart.items.count()
+    
+#     if count_of_cart == 0:
+#         messages.error(request, "There are no items in your cart")
+#         return redirect(request.META.get('HTTP_REFERER', 'home'))
+    
+#     # Initialize Razorpay client
+#     client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+    
+#     if request.method == 'POST':
+#         # Determine payment method
+#         payment_method = 'razorpay' if 'razorpay_payment_id' in request.POST else request.POST.get('payment_method', 'cod')
+        
+#         # Validate cart items
+#         if not validate_cart_items(cart_items):
+#             return redirect('checkout')
+        
+#         # Create order
+#         order = create_order(user, cart_total, payment_method)
+        
+#         # Handle address
+#         if not handle_order_address(request, order, user):
+#             return redirect('checkout')
+        
+#         # Process Razorpay payment
+#         if payment_method == 'razorpay':
+#             if not process_razorpay_payment(request, client, order):
+#                 return redirect('checkout')
+        
+#         # Create order items and update stock
+#         create_order_items_and_update_stock(order, cart_items, payment_method)
+        
+#         # Clear the cart
+#         cart.items.all().delete()
+        
+#         messages.success(request, "Your order has been placed successfully!")
+#         return redirect('order_confirmation', order_id=order.id)
+
+#     # Create Razorpay Order for GET request
+#     razorpay_order = client.order.create(dict(
+#         amount=int(cart_total * 100),  # Razorpay expects amount in paise
+#         currency='INR',
+#         payment_capture='0'
+#     ))
+    
+#     context = {
+#         'cart_items': cart_items,
+#         'cart_total': cart_total,
+#         'user': user,
+#         'razorpay_key_id': settings.RAZORPAY_KEY_ID,
+#         'razorpay_order_id': razorpay_order['id'],
+#         'cart_total_paise': int(cart_total * 100),
+#     }
+#     return render(request, 'store/checkout.html', context)
+
+# def validate_cart_items(cart_items):
+#     for item in cart_items:
+#         product_variant = item.product_variant
+        
+#         if not product_variant.is_available:
+#             messages.error(request, f"{product_variant.product.name} - {product_variant.color} is not available. Sorry!")
+#             return False
+        
+#         if item.quantity > product_variant.stock:
+#             messages.error(request, f"Sorry, we only have {product_variant.stock} of {product_variant.product.name} - {product_variant.color} in stock.")
+#             return False
+    
+#     return True
+
+# def create_order(user, cart_total, payment_method):
+#     return Order.objects.create(
+#         user=user,
+#         status='pending',
+#         total_price=cart_total,
+#         payment_method=payment_method,
+#         payment_status='unpaid'
+#     )
+
+# def handle_order_address(request, order, user):
+#     use_new_address = request.POST.get('use_new_address')
+#     if use_new_address:
+#         OrderAddress.objects.create(
+#             order=order,
+#             full_name=request.POST.get('full_name'),
+#             last_name=request.POST.get('last_name'),
+#             phone_number=request.POST.get('phone_number'),
+#             email=request.POST.get('email'),
+#             address_line_1=request.POST.get('address_line_1'),
+#             address_line_2=request.POST.get('address_line_2'),
+#             city=request.POST.get('city'),
+#             state=request.POST.get('state'),
+#             postal_code=request.POST.get('postal_code'),
+#             country=request.POST.get('country')
+#         )
+#     else:
+#         selected_address_id = request.POST.get('selected_address')
+#         if not selected_address_id:
+#             messages.error(request, "Please select an address or enter a new one")
+#             return False
+        
+#         selected_address = user.addresses.get(id=selected_address_id)
+#         OrderAddress.objects.create(
+#             order=order,
+#             full_name=selected_address.full_name,
+#             last_name=selected_address.last_name,
+#             phone_number=selected_address.phone_number,
+#             email=selected_address.email,
+#             address_line_1=selected_address.address_line_1,
+#             address_line_2=selected_address.address_line_2,
+#             city=selected_address.city,
+#             state=selected_address.state,
+#             postal_code=selected_address.postal_code,
+#             country=selected_address.country
+#         )
+#     return True
+
+# def process_razorpay_payment(request, client, order):
+#     params_dict = {
+#         'razorpay_order_id': request.POST.get('razorpay_order_id'),
+#         'razorpay_payment_id': request.POST.get('razorpay_payment_id'),
+#         'razorpay_signature': request.POST.get('razorpay_signature')
+#     }
+    
+#     try:
+#         client.utility.verify_payment_signature(params_dict)
+#         order.status = 'processing'
+#         order.payment_status = 'paid'
+#         order.razorpay_order_id = params_dict['razorpay_order_id']
+#         order.razorpay_payment_id = params_dict['razorpay_payment_id']
+#         order.save()
+#         return True
+#     except:
+#         messages.error(request, "Payment verification failed")
+#         return False
+
+# def create_order_items_and_update_stock(order, cart_items, payment_method):
+#     for item in cart_items:
+#         OrderItem.objects.create(
+#             order=order,
+#             product_variant=item.product_variant,
+#             quantity=item.quantity,
+#             price=item.product_variant.price,
+#             item_status='processing' if payment_method == 'razorpay' else 'pending',
+#             payment_status_item='paid' if payment_method == 'razorpay' else 'unpaid'
+#         )
+        
+#         item.product_variant.stock -= item.quantity
+#         item.product_variant.save()
+
+
+
+# Set a maximum limit for COD orders
+COD_MAX_LIMIT = Decimal('10000.00')
 def checkout(request):
     user = request.user
     cart = Cart.objects.get(user=user)
     cart_items = cart.items.all()
     cart_total = cart.get_total_price()
-    
     count_of_cart = cart.items.count()
     
     if count_of_cart == 0:
-        messages.error(request,"There is no items in cart")
+        messages.error(request, "There are no items in your cart")
         return redirect(request.META.get('HTTP_REFERER', 'home'))
-        
     
+    # Initialize Razorpay client
+    client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
     
     if request.method == 'POST':
-        checker = True
-        for item in cart_items:
-            product_variant = item.product_variant
-            
-            if count_of_cart == 0:
-                messages.error(request,"There is no items in cart")
-                checker = False
-                continue
-
-            if not product_variant.is_available:
-                messages.error(request, f"{product_variant.product.name} - {product_variant.color} is not available.sorry !!!")
-                checker = False
-                continue
-            
-            if item.quantity > product_variant.stock:
-                messages.error(request, f"Sorry, we only have {product_variant.stock} of {product_variant.product.name} - {product_variant.color} in stock.")
-                checker = False
-                continue
-            
-        
-        if not checker:
-            return redirect('checkout')
-        
+        # Determine payment method
         payment_method = request.POST.get('payment_method', 'cod')
         
-        order = Order.objects.create(
-            user=user,
-            status='pending',
-            total_price=cart_total,
-            payment_method=payment_method
-        )
-
-        use_new_address = request.POST.get('use_new_address')
-        # if not use_new_address:
-        #     messages.error(request,"Please fill delivery address!!!")
+        # Check COD limit
+        # if payment_method == 'cod' and cart_total > COD_MAX_LIMIT:
+        #     messages.error(request, f"Cash on Delivery is not available for orders above ₹{COD_MAX_LIMIT}")
         #     return redirect('checkout')
-
-        if use_new_address:
-            order_address = OrderAddress.objects.create(
-                order=order,
-                full_name=request.POST.get('full_name'),
-                last_name=request.POST.get('last_name'),
-                phone_number=request.POST.get('phone_number'),
-                email=request.POST.get('email'),
-                address_line_1=request.POST.get('address_line_1'),
-                address_line_2=request.POST.get('address_line_2'),
-                city=request.POST.get('city'),
-                state=request.POST.get('state'),
-                postal_code=request.POST.get('postal_code'),
-                country=request.POST.get('country')
-            )
-        else:
-            selected_address_id = request.POST.get('selected_address')
-            selected_address = user.addresses.get(id=selected_address_id)
-
-            order_address = OrderAddress.objects.create(
-                order=order,
-                full_name=selected_address.full_name,
-                last_name=selected_address.last_name,
-                phone_number=selected_address.phone_number,
-                email=selected_address.email,
-                address_line_1=selected_address.address_line_1,
-                address_line_2=selected_address.address_line_2,
-                city=selected_address.city,
-                state=selected_address.state,
-                postal_code=selected_address.postal_code,
-                country=selected_address.country
-            )
-
-        for item in cart_items:
-            OrderItem.objects.create(
-                order=order,
-                product_variant=item.product_variant,
-                quantity=item.quantity,
-                price=item.product_variant.price
-            )
-            
-            item.product_variant.stock = item.product_variant.stock - item.quantity
-            item.product_variant.save()
-
-    
+        
+        # Validate cart items
+        if not validate_cart_items(request, cart_items):
+            return redirect('checkout')
+        
+        # Create order
+        order = create_order(user, cart_total, payment_method)
+        
+        # Handle address
+        if not handle_order_address(request, order, user):
+            return redirect('checkout')
+        
+        # Process payment
+        if payment_method == 'razorpay':
+            if not process_razorpay_payment(request, client, order):
+                return redirect('checkout')
+        elif payment_method == 'cod':
+            process_cod_order(order)
+        elif payment_method == 'wallet':
+            # Add wallet payment processing logic here
+            pass
+        
+        # Create order items and update stock
+        create_order_items_and_update_stock(order, cart_items, payment_method)
+        
+        # Clear the cart
         cart.items.all().delete()
-
+        
+        messages.success(request, "Your order has been placed successfully!")
         return redirect('order_confirmation', order_id=order.id)
 
+    # Create Razorpay Order for GET request
+    razorpay_order = client.order.create(dict(
+        amount=int(cart_total * 100),  # Razorpay expects amount in paise
+        currency='INR',
+        payment_capture='0'
+    ))
+    
     context = {
         'cart_items': cart_items,
         'cart_total': cart_total,
         'user': user,
+        'razorpay_key_id': settings.RAZORPAY_KEY_ID,
+        'razorpay_order_id': razorpay_order['id'],
+        'cart_total_paise': int(cart_total * 100),
+        # 'cod_available': cart_total <= COD_MAX_LIMIT,
+        # 'cod_max_limit': COD_MAX_LIMIT,
     }
     return render(request, 'store/checkout.html', context)
 
+def validate_cart_items(request, cart_items):
+    for item in cart_items:
+        product_variant = item.product_variant
+        
+        if not product_variant.is_available:
+            messages.error(request, f"{product_variant.product.name} - {product_variant.color} is not available. Sorry!")
+            return False
+        
+        if item.quantity > product_variant.stock:
+            messages.error(request, f"Sorry, we only have {product_variant.stock} of {product_variant.product.name} - {product_variant.color} in stock.")
+            return False
+    
+    return True
+
+def create_order(user, cart_total, payment_method):
+    return Order.objects.create(
+        user=user,
+        status='pending',
+        total_price=cart_total,
+        payment_method=payment_method,
+        payment_status='unpaid'
+    )
+
+def handle_order_address(request, order, user):
+    use_new_address = request.POST.get('use_new_address')
+    if use_new_address:
+        OrderAddress.objects.create(
+            order=order,
+            full_name=request.POST.get('full_name'),
+            last_name=request.POST.get('last_name'),
+            phone_number=request.POST.get('phone_number'),
+            email=request.POST.get('email'),
+            address_line_1=request.POST.get('address_line_1'),
+            address_line_2=request.POST.get('address_line_2'),
+            city=request.POST.get('city'),
+            state=request.POST.get('state'),
+            postal_code=request.POST.get('postal_code'),
+            country=request.POST.get('country')
+        )
+    else:
+        selected_address_id = request.POST.get('selected_address')
+        if not selected_address_id:
+            messages.error(request, "Please select an address or enter a new one")
+            return False
+        
+        selected_address = user.addresses.get(id=selected_address_id)
+        OrderAddress.objects.create(
+            order=order,
+            full_name=selected_address.full_name,
+            last_name=selected_address.last_name,
+            phone_number=selected_address.phone_number,
+            email=selected_address.email,
+            address_line_1=selected_address.address_line_1,
+            address_line_2=selected_address.address_line_2,
+            city=selected_address.city,
+            state=selected_address.state,
+            postal_code=selected_address.postal_code,
+            country=selected_address.country
+        )
+    return True
+
+def process_razorpay_payment(request, client, order):
+    params_dict = {
+        'razorpay_order_id': request.POST.get('razorpay_order_id'),
+        'razorpay_payment_id': request.POST.get('razorpay_payment_id'),
+        'razorpay_signature': request.POST.get('razorpay_signature')
+    }
+    
+    try:
+        client.utility.verify_payment_signature(params_dict)
+        order.status = 'processing'
+        order.payment_status = 'paid'
+        order.razorpay_order_id = params_dict['razorpay_order_id']
+        order.razorpay_payment_id = params_dict['razorpay_payment_id']
+        order.save()
+        return True
+    except:
+        messages.error(request, "Razorpay payment verification failed")
+        return False
+
+def process_cod_order(order):
+    order.status = 'pending'
+    order.payment_status = 'unpaid'
+    order.save()
+
+def create_order_items_and_update_stock(order, cart_items, payment_method):
+    for item in cart_items:
+        OrderItem.objects.create(
+            order=order,
+            product_variant=item.product_variant,
+            quantity=item.quantity,
+            price=item.product_variant.price,
+            item_status='processing' if payment_method == 'razorpay' else 'pending',
+            payment_status_item='paid' if payment_method == 'razorpay' else 'unpaid'
+        )
+        
+        item.product_variant.stock -= item.quantity
+        item.product_variant.save()
 
 def order_confirmation(request, order_id):
     
@@ -950,7 +1242,6 @@ def order_confirmation(request, order_id):
         'order': order,
     }
     return render(request, 'store/order_confirmation.html', context)
-
 
 def show_order_details(request,order_id):
     order = get_object_or_404(Order, id=order_id, user=request.user)

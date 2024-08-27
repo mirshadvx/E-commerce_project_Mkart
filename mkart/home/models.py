@@ -68,7 +68,8 @@ class Order(models.Model):
         ('processing', 'Processing'),
         ('shipped', 'Shipped' ),
         ('delivered', 'Delivered'),
-        ('cancelled', 'Cancelled'),   
+        ('completed', 'Completed'),
+
         
     ]
 
@@ -89,7 +90,9 @@ class Order(models.Model):
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
     payment_method = models.CharField(max_length=20, choices=PAYMENT_METHODS, default='cod')
     payment_status = models.CharField(max_length=10,choices=PAYMENT_STATUS_CHOICES,default='unpaid')
-    
+    razorpay_order_id = models.CharField(max_length=100, blank=True, null=True)
+    razorpay_payment_id = models.CharField(max_length=100, blank=True, null=True)
+
     def __str__(self):
         return f"Order {self.id} - {self.user.username}"
 

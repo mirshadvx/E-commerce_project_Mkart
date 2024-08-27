@@ -3,6 +3,7 @@ from . import views
 from django.contrib.auth import views as auth_views
 
 
+
 urlpatterns = [
     path('', views.store, name='store'),
     path('home/',views.home,name='home'),
@@ -10,7 +11,6 @@ urlpatterns = [
     path('check_username/', views.check_username, name='check_username'),
     path('check_email/', views.check_email, name='check_email'),
     path('validate-otp/', views.validate_otp, name='validate_otp'),
-    path('checkout/', views.checkout, name='checkout'),
     path('logout/', views.logoutPage, name='logout'),  
     path('login/', views.loginpage, name='login'), 
     path('resend-otp',views.resend_otp,name='resend_otp'),
@@ -42,6 +42,5 @@ urlpatterns = [
     
     path('cancel-item/', views.cancel_item, name='cancel_item'),
     path('return-item/', views.return_item, name='return_item'),
-    
-    
+
 ]
