@@ -1,9 +1,8 @@
-
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
-
 from products.models import Product, ProductVariant
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -39,7 +38,6 @@ class Wishlist(models.Model):
 
     def __str__(self):
         return f"{self.user.username}'s wishlist item: {self.variant.product.name} - {self.variant.color.name}"
-
 
 class Cart(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -92,6 +90,7 @@ class Order(models.Model):
     payment_status = models.CharField(max_length=10,choices=PAYMENT_STATUS_CHOICES,default='unpaid')
     razorpay_order_id = models.CharField(max_length=100, blank=True, null=True)
     razorpay_payment_id = models.CharField(max_length=100, blank=True, null=True)
+    coupon = models.CharField(max_length=50,null=True)
 
     def __str__(self):
         return f"Order {self.id} - {self.user.username}"
@@ -165,3 +164,4 @@ class OrderAddress(models.Model):
 
     def __str__(self):
         return f"Address for Order {self.order.id} - {self.full_name} {self.last_name}"
+    

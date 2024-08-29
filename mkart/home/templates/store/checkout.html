@@ -129,6 +129,22 @@
     <div class="page-content">
         <div class="checkout">
             <div class="container">
+            			{% comment %} <div class="checkout-discount">
+            				<form action="#">
+        						<input type="text" class="form-control" required id="checkout-discount-input">
+            					<label for="checkout-discount-input" class="text-truncate">Have a coupon? <span>Click here to enter your code</span></label>
+            				</form>
+            			</div><!-- End .checkout-discount --> {% endcomment %}
+<div class="checkout-discount">
+    <form action="#" id="coupon-form">
+        <input type="text" class="form-control" required id="checkout-discount-input" name="coupon_code">
+        <label for="checkout-discount-input" class="text-truncate">Have a coupon? <span>Click here to enter your code</span></label>
+        <button type="submit" class="btn btn-outline-primary-2">Apply Coupon</button>
+    </form>
+    <div id="coupon-message"></div>
+</div>
+
+
                 <form action="{% url 'checkout' %}" method="POST" id="razorpay-form">
                     {% csrf_token %}
                     <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id">
@@ -244,6 +260,10 @@
                                             <td>Subtotal:</td>
                                             <td>{{ cart_total }}</td>
                                         </tr>
+                                            <tr id="discount-row" style="display: none;">
+                                            <td>Discount:</td>
+                                            <td id="discount-amount"></td>
+                                        </tr>
                                         <tr>
                                             <td>Shipping:</td>
                                             <td>Free shipping</td>
@@ -297,7 +317,40 @@
     <!-- Main JS File -->
     <script src="{% static 'store-assets/assets/js/main.js' %}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js"></script>
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script> 
+    
+    <script>
+$(document).ready(function() {
+    $('#coupon-form').on('submit', function(e) {
+        e.preventDefault();
+        var couponCode = $('#checkout-discount-input').val();
+        $.ajax({
+            url: '{% url "apply_coupon" %}',
+            type: 'POST',
+            data: {
+                'coupon_code': couponCode,
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
+            },
+            success: function(response) {
+                if (response.valid) {
+                    $('#coupon-message').html('<div class="alert alert-success">Coupon applied successfully!</div>');
+                    $('#discount-row').show();
+                    $('#discount-amount').text('-$' + response.discount.toFixed(2));
+                    $('#final-total').text('$' + response.new_total.toFixed(2));
+                } else {
+                    $('#coupon-message').html('<div class="alert alert-danger">' + response.message + '</div>');
+                }
+            },
+            error: function() {
+                $('#coupon-message').html('<div class="alert alert-danger">An error occurred. Please try again.</div>');
+            }
+        });
+    });
+});
+
+
+    </script>
+    
     <script>
         var options = {
             "key": "{{ razorpay_key_id }}",
@@ -328,6 +381,7 @@
             e.preventDefault();
         }
     </script>
+
  
     <script>
     $(document).ready(function() {

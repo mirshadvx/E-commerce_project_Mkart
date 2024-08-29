@@ -26,7 +26,14 @@ urlpatterns = [
     path('order_list/', views.show_order_list, name='order_list'),
     path('order_list/order_details/<int:id>/', views.show_order_details, name='order_details'),
     path('update_order_item_status/', views.update_order_item_status, name='update_order_item_status'),
+    #coupon
+    path('addcoupon/', views.add_coupon, name='add_coupon'),
+    path('couponList/',views.show_coupon_list,name='Coupon_list'),
+    path('coupon_exists/',views.coupon_exists,name='coupon_exists'),
+    #offer
+    path('offer/',views.offer_list,name='offer'),
+    path('add_offer/',views.add_offer,name='add_offer'),
     
-
+    path('update-variant-offer/', views.update_variant_offer, name='update_variant_offer'),
 
 ]

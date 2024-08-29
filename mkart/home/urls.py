@@ -42,5 +42,7 @@ urlpatterns = [
     
     path('cancel-item/', views.cancel_item, name='cancel_item'),
     path('return-item/', views.return_item, name='return_item'),
+    
+    path('apply_coupon/',views.apply_coupon,name='apply_coupon'),
 
 ]

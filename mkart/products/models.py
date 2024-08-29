@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
+from Admin.models import *
+from django.utils import timezone as django_timezone
 
 
 class Gender(models.Model):
@@ -58,6 +60,12 @@ class ProductVariant(models.Model):
     image_1 = models.ImageField(upload_to='product_images/', blank=True, null=True)
     image_2 = models.ImageField(upload_to='product_images/', blank=True, null=True)
     image_3 = models.ImageField(upload_to='product_images/', blank=True, null=True)
+    offer = models.ForeignKey(Offer, on_delete=models.SET_NULL, null=True, blank=True)
+
+    def get_discounted_price(self):
+        if self.offer and self.offer.is_active and self.offer.valid_from <= django_timezone.now() <= self.offer.valid_to:
+            return self.price * (1 - self.offer.discount / 100)
+        return self.price
 
     # def save(self, *args, **kwargs):
     #     # Automatically set is_available to False if stock is 0

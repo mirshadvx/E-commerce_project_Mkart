@@ -4,7 +4,7 @@ from django.urls import reverse
 from django.utils.text import slugify
 from products.models import Category , Brand, Color, Gender, Product , ProductVariant
 from django.contrib import messages
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.views.decorators.http import require_POST
 import base64
 from base64 import b64decode
@@ -24,6 +24,10 @@ from django.contrib.auth import logout
 from django.urls import reverse
 from home.models import *
 from django.views.decorators.csrf import csrf_exempt
+from decimal import Decimal
+from django.core.exceptions import ValidationError
+from .models import *
+
 
 # Create your views here.
 
@@ -268,9 +272,13 @@ def superuser_required(view_func):
 
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
+# def products_list(request):
+#     products = Product.objects.prefetch_related('variants', 'variants__color').all() 
+#     return render(request, 'productsList.html', {'products': products})
 def products_list(request):
-    products = Product.objects.prefetch_related('variants', 'variants__color').all() 
-    return render(request, 'productsList.html', {'products': products})
+    products = Product.objects.prefetch_related('variants', 'variants__color', 'variants__offer').all()
+    offers = Offer.objects.filter(is_active=True)
+    return render(request, 'productsList.html', {'products': products, 'offers': offers})
 
 
 @login_required
@@ -462,3 +470,121 @@ def update_order_item_status(request):
 #             return JsonResponse({'success': False, 'error': 'Order item not found.'})
 
 #     return JsonResponse({'success': False, 'error': 'Invalid request method.'})
+
+
+
+
+def add_coupon(request):
+    if request.method == 'POST':
+        try:
+            # Extract data from POST request
+            code = request.POST.get('code')
+            discount = request.POST.get('discount')
+            valid_from = request.POST.get('valid_from')
+            valid_to = request.POST.get('valid_to')
+            active = request.POST.get('active') == 'True'
+            usage_limit = request.POST.get('usage_limit')
+            min_purchase_amount = request.POST.get('min_purchase_amount')
+            description = request.POST.get('description')
+
+            # Create new Coupon instance
+            coupon = Coupon(
+                code=code,
+                discount=Decimal(discount),
+                valid_from=valid_from,
+                valid_to=valid_to,
+                active=active,
+                description=description
+            )
+
+            # Handle optional fields
+            if usage_limit:
+                coupon.usage_limit = int(usage_limit)
+            if min_purchase_amount:
+                coupon.min_purchase_amount = Decimal(min_purchase_amount)
+
+            # Validate the model
+            coupon.full_clean()
+
+            # Save the coupon
+            coupon.save()
+
+            messages.success(request, f'Coupon "{code}" has been successfully added.')
+            return redirect('coupon_list')  # Assuming you have a URL named 'coupon_list'
+
+        except ValidationError as e:
+            # Handle validation errors
+            error_messages = []
+            for field, errors in e.message_dict.items():
+                error_messages.extend(errors)
+            for message in error_messages:
+                messages.error(request, message)
+
+        except Exception as e:
+            # Handle any other unexpected errors
+            messages.error(request, f'An error occurred: {str(e)}')
+
+    # If it's a GET request or if there were errors, render the form again
+    return render(request, 'addCoupon.html')
+
+def show_coupon_list(request):
+    return HttpResponse(request,"done")
+
+
+def coupon_exists(request):
+    coupon_code = request.GET.get('code', None)
+    exists = Coupon.objects.filter(code=coupon_code).exists()
+    return JsonResponse({'exists': exists})
+
+
+def offer_list(request):
+    offers = Offer.objects.all().order_by('-valid_from')  # Fetch all offers, sorted by valid_from date
+    context = {
+        'offers': offers,
+    }
+    return render(request, 'Offer.html', context)
+
+@require_POST
+def add_offer(request):
+    try:
+        name = request.POST.get('name')
+        discount = request.POST.get('discount')
+        valid_from = request.POST.get('valid_from')
+        valid_to = request.POST.get('valid_to')
+        description = request.POST.get('description')
+        is_active = request.POST.get('is_active') == 'on'
+
+        # Validate input
+        if not name or not discount or not valid_from or not valid_to:
+            return JsonResponse({'success': False, 'message': 'All fields are required.'}, status=400)
+
+        # Create the offer
+        Offer.objects.create(
+            name=name,
+            discount=discount,
+            valid_from=valid_from,
+            valid_to=valid_to,
+            description=description,
+            is_active=is_active
+        )
+        return JsonResponse({'success': True, 'message': 'Offer added successfully!'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=400)
+    
+
+@require_POST
+def update_variant_offer(request):
+    variant_id = request.POST.get('variant_id')
+    offer_id = request.POST.get('offer_id')
+    
+    try:
+        variant = ProductVariant.objects.get(id=variant_id)
+        if offer_id:
+            offer = Offer.objects.get(id=offer_id)
+            variant.offer = offer
+        else:
+            variant.offer = None
+        variant.save()
+        return JsonResponse({'success': True})
+    except (ProductVariant.DoesNotExist, Offer.DoesNotExist):
+        return JsonResponse({'success': False})

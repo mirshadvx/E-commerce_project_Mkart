@@ -31,6 +31,9 @@ Product list
                 background-color: #dc3545;
                 color: white;
             }
+            .offer-select {
+                width: 150px;
+            }
         </style>
 {% endblock  %}
 
@@ -164,6 +167,7 @@ Product list
                                             <th>Color</th>
                                             <th>Price</th>
                                             <th>Qty</th>
+                                            <th>Offer</th>
                                             <th>Status</th>
                                             <th>Action</th>
                                         </tr>
@@ -194,7 +198,18 @@ Product list
         <td>{{ product.brand.name }}</td>
         <td>{{ variant.color.name }}</td>
         <td>{{ variant.price }}</td>
-        <td>{{ variant.stock }}</td>                      
+        <td>{{ variant.stock }}</td>
+                    <td>
+                        <select style="height: 2em;" class="offer-select" data-variant-id="{{ variant.id }}">
+                            <option value="">Select offer</option>
+                            {% for offer in offers %}
+                            <option value="{{ offer.id }}" {% if variant.offer_id == offer.id %}selected{% endif %}>
+                                <strong>{{ offer.name }} | {{ offer.discount }}%</strong>
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    
 <td>
     <button class="btn btn-sm status-toggle {% if variant.is_available %}btn-success{% else %}btn-danger{% endif %}" 
             data-variant-id="{{ variant.id }}">
@@ -240,7 +255,54 @@ Product list
         <script src="{% static 'admin-assets/plugins/sweetalert/sweetalert2.all.min.js' %}"></script>
         <script src="{% static 'admin-assets/plugins/sweetalert/sweetalerts.min.js' %}"></script>
 
-        <script src="{% static 'admin-assets/js/script.js' %}"></script>  
+        <script src="{% static 'admin-assets/js/script.js' %}"></script> 
+        
+<script>
+    $(document).ready(function() {
+        $('.offer-select').on('change', function() {
+            var select = $(this);
+            var variantId = select.data('variant-id');
+            var offerId = select.val();
+
+            $.ajax({
+                url: '{% url "update_variant_offer" %}',
+                type: 'POST',
+                data: {
+                    'variant_id': variantId,
+                    'offer_id': offerId,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        const Toast = Swal.mixin({
+                        toast: true,
+                        position: "top-end",
+                        showConfirmButton: false,
+                        timer: 4000,
+                        timerProgressBar: true,
+                        didOpen: (toast) => {
+                            toast.onmouseenter = Swal.stopTimer;
+                            toast.onmouseleave = Swal.resumeTimer;
+                        }
+                        });
+                        Toast.fire({
+                        icon: "success",
+                        title: "Offer updated successfully"
+                        });
+                        
+                    } else {
+                        alert('Failed to update offer');
+                    }
+                },
+                error: function() {
+                    alert('An error occurred while updating the offer');
+                }
+            });
+        });
+    });
+</script>        
+
+
 <script>
 $(document).ready(function() {
     $('.status-toggle').on('click', function() {

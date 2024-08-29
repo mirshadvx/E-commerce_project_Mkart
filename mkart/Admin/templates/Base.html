@@ -26,6 +26,7 @@
     <link rel="stylesheet" href="{% static 'admin-assets/plugins/fontawesome/css/all.min.css' %}">
 
     <link rel="stylesheet" href="{% static 'admin-assets/css/style.css' %}">
+    </style>
     {% endblock  %}
 </head>
 
@@ -327,12 +328,17 @@
                                     Orders</span> <span class="menu-arrow"></span></a>
                             <ul>
                                 <li><a href="{% url "order_list" %}">Orders List</a></li>
-                                {% comment %} <li><a href="pos.html">POS</a></li>
-                                <li><a href="pos.html">New Sales</a></li>
-                                <li><a href="salesreturnlists.html">Sales Return List</a></li>
-                                <li><a href="createsalesreturns.html">New Sales Return</a></li> {% endcomment %}
                             </ul>
                         </li>   
+                        <li class="submenu">
+                            <a><i style="font-size: 19px; color: black;" class="fas fa-ticket-alt coupon-icon"></i><span>
+                                    Coupon</span> <span class="menu-arrow"></span></a>
+                            <ul>
+                                <li><a href="#">Coupon list</a></li>
+                                <li><a href="{% url "add_coupon" %}">Add coupon</a></li>
+                                <li><a href="{% url "offer" %}">Offer</a></li>
+                            </ul>
+                        </li> 
 
                         <li class="submenu">
                             <a href="javascript:void(0);"><img src="{% static 'admin-assets/img/icons/settings.svg' %}" alt="img"><span>

@@ -1,0 +1,341 @@
+{% extends "Base.html" %}
+{% load static %}
+
+{% block title %}Add Coupon{% endblock %}
+
+{% block extra_style %}
+<link rel="shortcut icon" type="image/x-icon" href="admin-assets/img/favicon.jpg" />
+<link rel="stylesheet" href="{% static 'admin-assets/css/bootstrap.min.css' %}" />
+<link rel="stylesheet" href="{% static 'admin-assets/css/animate.css' %}" />
+<link rel="stylesheet" href="{% static 'admin-assets/plugins/select2/css/select2.min.css' %}" />
+<link rel="stylesheet" href="{% static 'admin-assets/css/dataTables.bootstrap4.min.css' %}" />
+<link rel="stylesheet" href="{% static 'admin-assets/plugins/fontawesome/css/fontawesome.min.css' %}" />
+<link rel="stylesheet" href="{% static 'admin-assets/plugins/fontawesome/css/all.min.css' %}" />
+<link rel="stylesheet" href="{% static 'admin-assets/css/style.css' %}" />
+<style>
+    .page-wrapper {
+        background-color: #f8f9fa;
+    }
+    .content {
+        padding: 30px;
+    }
+    .card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    }
+    .card-header {
+        background-color: #4e73df;
+        color: white;
+        border-radius: 15px 15px 0 0;
+        padding: 20px;
+    }
+    .card-body {
+        padding: 30px;
+    }
+    .form-group label {
+        font-weight: 600;
+        color: #333;
+    }
+    .form-control {
+        border-radius: 8px;
+    }
+    .btn-submit {
+        background-color: #4e73df;
+        border: none;
+    }
+    .btn-cancel {
+        background-color: #e74a3b;
+        border: none;
+        color: white;
+    }
+    .coupon-icon {
+        font-size: 48px;
+        color: orange;
+    }
+    .text-danger {
+        display: block;
+        margin-top: 5px;
+        font-size: 0.9em;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-wrapper">
+    <div class="content">
+        <div class="card">
+            <div class="card-header">
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                        <i class="fas fa-ticket-alt coupon-icon"></i>
+                    </div>
+                    <div class="col">
+                        <h4 class="mb-0">Add New Coupon</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data" action="{% url 'add_coupon' %}" id="couponForm">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-lg-6 col-sm-6 col-12">
+                            <div class="form-group">
+                                <label><i class="fas fa-barcode mr-2"></i> Coupon Code</label>
+                                <input type="text" name="code" id="couponCode" class="form-control"  />
+                                <span id="couponError" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-sm-6 col-12">
+                            <div class="form-group">
+                                <label></i>Discount (%)</label>
+                                <input type="number" name="discount" step="0.01" class="form-control" id="discountField"  />
+                                <span id="discountError" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-sm-6 col-12">
+                            <div class="form-group">
+                                <label><i class="far fa-calendar-alt mr-2"></i> Valid From</label>
+                                <input type="datetime-local" name="valid_from" class="form-control"  />
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-sm-6 col-12">
+                            <div class="form-group">
+                                <label><i class="far fa-calendar-alt mr-2"></i> Valid To</label>
+                                <input type="datetime-local" name="valid_to" class="form-control"  />
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-sm-6 col-12">
+                            <div class="form-group">
+                                <label></i>Active</label>
+                                <select name="active" class="form-control" >
+                                    <option value="True">Yes</option>
+                                    <option value="False">No</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-sm-6 col-12">
+                            <div class="form-group">
+                                <label><i class="fas fa-user-clock mr-2"></i> Usage Limit (optional)</label>
+                                <input type="number" name="usage_limit" min="0" class="form-control" />
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-sm-6 col-12">
+                            <div class="form-group">
+                                <label><i class="fas fa-shopping-cart mr-2"></i> Minimum Purchase Amount (optional)</label>
+                                <input type="number" name="min_purchase_amount" min="0" step="0.01" class="form-control" />
+                            </div>
+                        </div>
+                        <div class="col-lg-12">
+                            <div class="form-group">
+                                <label><i class="fas fa-info-circle mr-2"></i> Description</label>
+                                <textarea class="form-control" name="description" rows="4"></textarea>
+                            </div>
+                        </div>
+                        <div class="col-lg-12 mt-4">
+                            <button type="submit" class="btn btn-submit me-2"></i>Submit</button>
+                            <a href="#" class="btn btn-cancel">Cancel</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'admin-assets/js/jquery-3.6.0.min.js' %}"></script>
+<script src="{% static 'admin-assets/js/feather.min.js' %}"></script>
+<script src="{% static 'admin-assets/js/jquery.slimscroll.min.js' %}"></script>
+<script src="{% static 'admin-assets/js/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'admin-assets/js/dataTables.bootstrap4.min.js' %}"></script>
+<script src="{% static 'admin-assets/js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'admin-assets/plugins/select2/js/select2.min.js' %}"></script>
+<script src="{% static 'admin-assets/plugins/sweetalert/sweetalert2.all.min.js' %}"></script>
+<script src="{% static 'admin-assets/plugins/sweetalert/sweetalerts.min.js' %}"></script>
+<script src="{% static 'admin-assets/js/script.js' %}"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    $(document).ready(function() {            
+        let isValid = true;
+
+        $('#couponCode').on('blur', function() {
+            let couponCode = $(this).val();
+            $('#couponError').text(''); // Clear previous error message
+
+            if (couponCode) {
+                $.ajax({
+                    url: '{% url "coupon_exists" %}',
+                    data: {
+                        'code': couponCode
+                    },
+                    dataType: 'json',
+                    success: function(data) {
+                        if (data.exists) {
+                            Swal.fire({
+                                icon: "error",
+                                title: "Oops...",
+                                text: "This coupon code already exists!"
+                            });
+                            isValid = false;
+                            $('#couponError').text('This coupon code already exists.');
+                        } else {
+                            isValid = true;
+                        }
+                    }
+                });
+            }
+        });
+
+        $('#couponForm').on('submit', function(event) {
+            event.preventDefault(); // Prevent form submission by default
+
+            let discount = $('input[name="discount"]').val();
+            let validTo = $('input[name="valid_to"]').val();
+            let couponCode = $('input[name="code"]').val();
+
+            // Clear previous error messages
+            $('.text-danger').text('');
+
+            isValid = true; // Reset isValid for each submission
+
+            // Coupon code validation
+            if (!couponCode) {
+                $('#couponError').text('Please enter a coupon code.');
+                isValid = false;
+            }
+
+            // Discount validation
+            if (!discount) {
+                $('#discountError').text('Please enter a discount percentage.');
+                isValid = false;
+            } else if (parseFloat(discount) > 100) {
+                $('#discountError').text('Discount cannot exceed 100%.');
+                isValid = false;
+            }
+
+            // Valid To validation
+            if (!validTo) {
+                $('input[name="valid_to"]').siblings('.text-danger').text('Please enter a valid end date.');
+                isValid = false;
+            }
+
+            if (isValid) {
+                this.submit(); // Submit the form if all validations pass
+            }
+        });
+    });
+</script>
+{% endblock %}
+
+
+
+
+
+
+
+{% comment %} {% extends "Base.html" %}
+{% load static %}
+
+{% block title %}Add Coupon{% endblock %}
+
+{% block extra_style %}
+<link rel="shortcut icon" type="image/x-icon" href="admin-assets/img/favicon.jpg" />
+<link rel="stylesheet" href="{% static 'admin-assets/css/bootstrap.min.css' %}" />
+<link rel="stylesheet" href="{% static 'admin-assets/css/animate.css' %}" />
+<link rel="stylesheet" href="{% static 'admin-assets/plugins/select2/css/select2.min.css' %}" />
+<link rel="stylesheet" href="{% static 'admin-assets/css/dataTables.bootstrap4.min.css' %}" />
+<link rel="stylesheet" href="{% static 'admin-assets/plugins/fontawesome/css/fontawesome.min.css' %}" />
+<link rel="stylesheet" href="{% static 'admin-assets/plugins/fontawesome/css/all.min.css' %}" />
+<link rel="stylesheet" href="{% static 'admin-assets/css/style.css' %}" />
+{% endblock %}
+
+{% block content %}
+<div class="page-wrapper">
+    <div class="content">
+        <div class="page-header">
+            <div class="page-title">
+                <h4>Add Coupon</h4>
+            </div>
+        </div>
+        
+        <form method="POST" enctype="multipart/form-data" action="{% url 'add_coupon' %}" id="couponForm">
+            {% csrf_token %}
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-lg-6 col-sm-6 col-12">
+                        <div class="form-group">
+                            <label>Coupon Code</label>
+                            <input type="text" name="code" id="couponCode"  />
+                            <span id="couponError" style="color: red"></span>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-sm-6 col-12">
+                        <div class="form-group">
+                            <label>Discount (%)</label>
+                            <input type="number" name="discount" min="0" max="100" step="0.01"  />
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-sm-6 col-12">
+                        <div class="form-group">
+                            <label>Valid From</label>
+                            <input type="datetime-local" name="valid_from"  />
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-sm-6 col-12">
+                        <div class="form-group">
+                            <label>Valid To</label>
+                            <input type="datetime-local" name="valid_to"  />
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-sm-6 col-12">
+                        <div class="form-group">
+                            <label>Active</label>
+                            <select name="active" >
+                                <option value="True">Yes</option>
+                                <option value="False">No</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-sm-6 col-12">
+                        <div class="form-group">
+                            <label>Usage Limit (optional)</label>
+                            <input type="number" name="usage_limit" min="0" />
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-sm-6 col-12">
+                        <div class="form-group">
+                            <label>Minimum Purchase Amount (optional)</label>
+                            <input type="number" name="min_purchase_amount" min="0" step="0.01" />
+                        </div>
+                    </div>
+                    <div class="col-lg-12">
+                        <div class="form-group">
+                            <label>Description</label>
+                            <textarea class="form-control" name="description"></textarea>
+                        </div>
+                    </div>
+                    <div class="col-lg-12">
+                        <button type="submit" class="btn btn-submit me-2">Submit</button>
+                        <a  class="btn btn-cancel">Cancel</a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'admin-assets/js/jquery-3.6.0.min.js' %}"></script>
+<script src="{% static 'admin-assets/js/feather.min.js' %}"></script>
+<script src="{% static 'admin-assets/js/jquery.slimscroll.min.js' %}"></script>
+<script src="{% static 'admin-assets/js/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'admin-assets/js/dataTables.bootstrap4.min.js' %}"></script>
+<script src="{% static 'admin-assets/js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'admin-assets/plugins/select2/js/select2.min.js' %}"></script>
+<script src="{% static 'admin-assets/plugins/sweetalert/sweetalert2.all.min.js' %}"></script>
+<script src="{% static 'admin-assets/plugins/sweetalert/sweetalerts.min.js' %}"></script>
+<script src="{% static 'admin-assets/js/script.js' %}"></script>
+{% endblock %} {% endcomment %}

@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 from django.contrib import messages
 from django.core.mail import send_mail
 from django.conf import settings
-from django.utils import timezone
+# from django.utils import timezone
 import random
 import time
 from django.shortcuts import render, redirect
@@ -25,6 +25,8 @@ from allauth.socialaccount.models import SocialAccount
 import razorpay
 from django.conf import settings
 from decimal import Decimal
+from Admin.models import *
+from django.utils import timezone as django_timezone
 # Create your views here.
 
 import os
@@ -1060,10 +1062,71 @@ def delete_address(request, address_id):
 #         item.product_variant.stock -= item.quantity
 #         item.product_variant.save()
 
+# def checkout(request):
+#     user = request.user
+#     cart = Cart.objects.get(user=user)
+#     cart_items = cart.items.all()
+#     cart_total = cart.get_total_price()
+#     count_of_cart = cart.items.count()
+    
+#     if count_of_cart == 0:
+#         messages.error(request, "There are no items in your cart")
+#         return redirect(request.META.get('HTTP_REFERER', 'home'))
+    
+#     # Initialize Razorpay client
+#     client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+    
+#     if request.method == 'POST':
+#         # Determine payment method
+#         payment_method = request.POST.get('payment_method', 'cod')
+        
+#         # Validate cart items
+#         if not validate_cart_items(request, cart_items):
+#             return redirect('checkout')
+        
+#         # Create order
+#         order = create_order(user, cart_total, payment_method)
+        
+#         # Handle address
+#         if not handle_order_address(request, order, user):
+#             return redirect('checkout')
+        
+#         # Process payment
+#         if payment_method == 'razorpay':
+#             if not process_razorpay_payment(request, client, order):
+#                 return redirect('checkout')
+#         elif payment_method == 'cod':
+#             process_cod_order(order)
+#         elif payment_method == 'wallet':
+#             # Add wallet payment processing logic here
+#             pass
+        
+#         # Create order items and update stock
+#         create_order_items_and_update_stock(order, cart_items, payment_method)
+        
+#         # Clear the cart
+#         cart.items.all().delete()
+        
+#         messages.success(request, "Your order has been placed successfully!")
+#         return redirect('order_confirmation', order_id=order.id)
 
+#     # Create Razorpay Order for GET request
+#     razorpay_order = client.order.create(dict(
+#         amount=int(cart_total * 100),  # Razorpay expects amount in paise
+#         currency='INR',
+#         payment_capture='0'
+#     ))
+    
+#     context = {
+#         'cart_items': cart_items,
+#         'cart_total': cart_total,
+#         'user': user,
+#         'razorpay_key_id': settings.RAZORPAY_KEY_ID,
+#         'razorpay_order_id': razorpay_order['id'],
+#         'cart_total_paise': int(cart_total * 100),
+#     }
+#     return render(request, 'store/checkout.html', context)
 
-# Set a maximum limit for COD orders
-COD_MAX_LIMIT = Decimal('10000.00')
 def checkout(request):
     user = request.user
     cart = Cart.objects.get(user=user)
@@ -1078,21 +1141,36 @@ def checkout(request):
     # Initialize Razorpay client
     client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
     
+    # Check if a coupon has been applied
+    coupon_id = request.session.get('coupon_id')
+    if coupon_id:
+        try:
+            coupon = Coupon.objects.get(id=coupon_id)
+            discounted_total = request.session.get('discounted_total', cart_total)
+        except Coupon.DoesNotExist:
+            discounted_total = cart_total
+            del request.session['coupon_id']
+            del request.session['discounted_total']
+    else:
+        discounted_total = cart_total
+        coupon = None
+    
     if request.method == 'POST':
         # Determine payment method
         payment_method = request.POST.get('payment_method', 'cod')
-        
-        # Check COD limit
-        # if payment_method == 'cod' and cart_total > COD_MAX_LIMIT:
-        #     messages.error(request, f"Cash on Delivery is not available for orders above ₹{COD_MAX_LIMIT}")
-        #     return redirect('checkout')
         
         # Validate cart items
         if not validate_cart_items(request, cart_items):
             return redirect('checkout')
         
-        # Create order
-        order = create_order(user, cart_total, payment_method)
+        # Create order with discounted total if a coupon was applied
+        order = create_order(user, discounted_total, payment_method)
+        
+        # If a coupon was used, associate it with the order
+        if coupon:
+            order.coupon = coupon.code
+            order.save()
+            coupon.increment_usage()
         
         # Handle address
         if not handle_order_address(request, order, user):
@@ -1104,22 +1182,25 @@ def checkout(request):
                 return redirect('checkout')
         elif payment_method == 'cod':
             process_cod_order(order)
-        elif payment_method == 'wallet':
-            # Add wallet payment processing logic here
-            pass
+        # elif payment_method == 'wallet':
+        #     if not process_wallet_payment(request, order):
+        #         return redirect('checkout')
         
         # Create order items and update stock
         create_order_items_and_update_stock(order, cart_items, payment_method)
         
-        # Clear the cart
+        # Clear the cart and coupon data
         cart.items.all().delete()
+        if 'coupon_id' in request.session:
+            del request.session['coupon_id']
+            del request.session['discounted_total']
         
         messages.success(request, "Your order has been placed successfully!")
         return redirect('order_confirmation', order_id=order.id)
 
     # Create Razorpay Order for GET request
     razorpay_order = client.order.create(dict(
-        amount=int(cart_total * 100),  # Razorpay expects amount in paise
+        amount=int(discounted_total * 100),  # Razorpay expects amount in paise
         currency='INR',
         payment_capture='0'
     ))
@@ -1127,14 +1208,15 @@ def checkout(request):
     context = {
         'cart_items': cart_items,
         'cart_total': cart_total,
+        'discounted_total': discounted_total,
         'user': user,
         'razorpay_key_id': settings.RAZORPAY_KEY_ID,
         'razorpay_order_id': razorpay_order['id'],
-        'cart_total_paise': int(cart_total * 100),
-        # 'cod_available': cart_total <= COD_MAX_LIMIT,
-        # 'cod_max_limit': COD_MAX_LIMIT,
+        'cart_total_paise': int(discounted_total * 100),
     }
     return render(request, 'store/checkout.html', context)
+
+
 
 def validate_cart_items(request, cart_items):
     for item in cart_items:
@@ -1234,6 +1316,75 @@ def create_order_items_and_update_stock(order, cart_items, payment_method):
         
         item.product_variant.stock -= item.quantity
         item.product_variant.save()
+       
+@require_POST
+def apply_coupon(request):
+    coupon_code = request.POST.get('coupon_code')
+    try:
+        coupon = Coupon.objects.get(code=coupon_code)
+        cart = Cart.objects.get(user=request.user)
+        cart_total = cart.get_total_price()
+        
+        current_time = django_timezone.now()
+        if coupon.valid_from <= current_time <= coupon.valid_to:
+            discount_amount = coupon.apply_discount(cart_total)
+            new_total = cart_total - discount_amount
+
+            # Store the coupon and discounted total in the session
+            request.session['coupon_id'] = coupon.id
+            request.session['discounted_total'] = float(new_total)
+
+            return JsonResponse({
+                'valid': True,
+                'discount': float(discount_amount),
+                'new_total': float(new_total),
+                'message': 'Coupon applied successfully!'
+            })
+        else:
+            return JsonResponse({
+                'valid': False,
+                'message': 'This coupon is not valid for your order.'
+            })
+    except Coupon.DoesNotExist:
+        return JsonResponse({
+            'valid': False,
+            'message': 'Invalid coupon code.'
+        })
+
+ 
+# def apply_coupon(request):
+#     if request.method == 'POST':
+#         coupon_code = request.POST.get('coupon_code')
+#         try:
+#             coupon = Coupon.objects.get(code=coupon_code, active=True)
+#             cart = Cart.objects.get(user=request.user)
+#             cart_total = cart.get_total_price()
+            
+#             current_time = django_timezone.now()
+#             if coupon.valid_from <= current_time <= coupon.valid_to:
+#                 discount_amount = (cart_total * coupon.discount) / 100
+#                 new_total = cart_total - discount_amount
+                
+#                 # Store the coupon and discounted total in the session
+#                 request.session['coupon_id'] = coupon.id
+#                 request.session['discounted_total'] = new_total
+                
+#                 return JsonResponse({
+#                     'valid': True,
+#                     'discount': discount_amount,
+#                     'new_total': new_total
+#                 })
+#             else:
+#                 return JsonResponse({
+#                     'valid': False,
+#                     'message': 'This coupon has expired.'
+#                 })
+#         except Coupon.DoesNotExist:
+#             return JsonResponse({
+#                 'valid': False,
+#                 'message': 'Invalid coupon code.'
+#             })
+#     return JsonResponse({'valid': False, 'message': 'Invalid request'})
 
 def order_confirmation(request, order_id):
     
