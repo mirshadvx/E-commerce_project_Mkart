@@ -1,0 +1,207 @@
+{% extends "Base.html" %}
+{% load static %}
+
+{% block title %}Sales Report{% endblock %}
+
+{% block extra_style %}
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'admin-assets/img/favicon.jpg' %}" />
+    <link rel="stylesheet" href="{% static 'admin-assets/css/bootstrap.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'admin-assets/css/animate.css' %}" />
+    <link rel="stylesheet" href="{% static 'admin-assets/plugins/select2/css/select2.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'admin-assets/css/dataTables.bootstrap4.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'admin-assets/plugins/fontawesome/css/fontawesome.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'admin-assets/plugins/fontawesome/css/all.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'admin-assets/css/style.css' %}" />
+{% endblock %}
+
+{% block content %}
+<div class="page-wrapper">
+    <div class="content">
+        <div class="page-header">
+            <div class="page-title">
+                <h4>Sales List</h4>
+                <h6>Manage your Sales</h6>
+            </div>
+        </div>
+        
+        <!-- Summary Section -->
+        <div class="card mt-4">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <h6>Overall Sales Count: <span id="sales_count">0</span></h6>
+                    </div>
+                    <div class="col-md-4">
+                        <h6>Overall Order Amount: <span id="order_amount">$0.00</span></h6>
+                    </div>
+                    <div class="col-md-4">
+                        <h6>Overall Discount: <span id="total_discount">$0.00</span></h6>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters Section -->
+        <div class="card mt-4">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <select class="form-control select" id="report_type">
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                            <option value="yearly">Yearly</option>
+                            <option value="custom">Custom Date</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3" id="custom_date_range" style="display:none;">
+                        <input type="date" class="form-control" id="start_date" placeholder="Start Date">
+                        <input type="date" class="form-control mt-2" id="end_date" placeholder="End Date">
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-primary" id="generate_report">Generate Report</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sales Table -->
+        <div class="card mt-4">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table datanew">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Order ID</th>
+                                <th>Payment Method</th>
+                                <th>Customer</th>
+                                <th>Original Price</th>
+                                <th>Coupon</th>
+                                <th>Offer</th>
+                                <th>Final Amount</th>
+                                <th>Refunded</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Sample Data Row -->
+                            <tr>
+                                <td>2024-08-29</td>
+                                <td>ORD001</td>
+                                <td>Credit Card</td>
+                                <td>John Doe</td>
+                                <td>$1500.00</td>
+                                <td>$100.00</td>
+                                <td>10%</td>
+                                <td>$1350.00</td>
+                                <td>No</td>
+                            </tr>
+                            <!-- Additional rows would be dynamically populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'admin-assets/js/jquery-3.6.0.min.js' %}"></script>
+    <script src="{% static 'admin-assets/js/feather.min.js' %}"></script>
+    <script src="{% static 'admin-assets/js/jquery.slimscroll.min.js' %}"></script>
+    <script src="{% static 'admin-assets/js/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static 'admin-assets/js/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'admin-assets/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'admin-assets/plugins/select2/js/select2.min.js' %}"></script>
+    <script src="{% static 'admin-assets/plugins/sweetalert/sweetalert2.all.min.js' %}"></script>
+    <script src="{% static 'admin-assets/plugins/sweetalert/sweetalerts.min.js' %}"></script>
+    <script src="{% static 'admin-assets/js/script.js' %}"></script>
+{% endblock %}
+
+
+{% comment %} 
+
+<!-- Filters Section -->
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <select class="form-control select" id="report_type">
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                            <option value="yearly">Yearly</option>
+                            <option value="custom">Custom Date</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3" id="custom_date_range" style="display:none;">
+                        <input type="date" class="form-control" id="start_date" placeholder="Start Date">
+                        <input type="date" class="form-control mt-2" id="end_date" placeholder="End Date">
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-primary" id="generate_report">Generate Report</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sales Table -->
+        <div class="card mt-4">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table datanew">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Order ID</th>
+                                <th>Payment Method</th>
+                                <th>Customer</th>
+                                <th>Original Price</th>
+                                <th>Coupon</th>
+                                <th>Offer</th>
+                                <th>Final Amount</th>
+                                <th>Refunded</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Data Rows will be populated dynamically -->
+
+                                <!-- Sample Data Row -->
+                                <tr>
+                                    <td>2024-08-29</td>
+                                    <td>ORD001</td>
+                                    <td>Credit Card</td>
+                                    <td>John Doe</td>
+                                    <td>$1500.00</td>
+                                    <td>$100.00</td>
+                                    <td>10%</td>
+                                    <td>$1350.00</td>
+                                    <td>No</td>
+                                </tr>
+                                <!-- Repeat for other rows as necessary -->
+                            </tbody>
+
+
+              
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Section -->
+        <div class="card mt-4">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <h6>Overall Sales Count: <span id="sales_count">0</span></h6>
+                    </div>
+                    <div class="col-md-4">
+                        <h6>Overall Order Amount: <span id="order_amount">$0.00</span></h6>
+                    </div>
+                    <div class="col-md-4">
+                        <h6>Overall Discount: <span id="total_discount">$0.00</span></h6>
+                    </div>
+                </div>
+            </div>
+        </div> {% endcomment %}

@@ -7,7 +7,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="store-assets/assets/images/icons/apple-touch-icon.png" />
 <link rel="icon" type="image/png" sizes="32x32" href="store-assets/assets/images/icons/favicon-32x32.png" />
 <link rel="icon" type="image/png" sizes="16x16" href="store-assets/assets/images/icons/favicon-16x16.png" />
-<link rel="manifest" href="store-assets/assets/images/icons/site.html" />
+
 <link rel="mask-icon" href="store-assets/assets/images/icons/safari-pinned-tab.svg" color="#666666" />
 <link rel="shortcut icon" href="store-assets/assets/images/icons/favicon.ico" />
 <meta name="apple-mobile-web-app-title" content="Molla" />
@@ -74,10 +74,11 @@
 
             <div class="products">
                 <div class="row justify-content-center">
-                    {% for product in products %}
+                    {% comment %} {% for product in products %}
                     <div class="col-6 col-md-4 col-lg-3">
                         <div class="product product-7 text-center">
                             <figure class="product-media">
+                                <span class="product-label label-sale">30% off</span>
                                 {% if not product.variants.first.is_available %}
                                 <span class="product-label label-out">Out of stock</span>
                                 {% endif %}
@@ -104,7 +105,48 @@
                             </div>
                         </div>
                     </div>
-                    {% endfor %}
+                    {% endfor %} {% endcomment %}
+{% for product in products %}
+<div class="col-6 col-md-4 col-lg-3">
+    <div class="product product-7 text-center">
+        <figure class="product-media">
+            {% if product.discount_percentage %}
+            <span class="product-label label-sale">{{ product.discount_percentage }}% off</span>
+            {% endif %}
+            {% if not product.variants.first.is_available %}
+            <span class="product-label label-out">Out of stock</span>
+            {% endif %}
+            <a href="{% url "product_info" product.id %}">
+                <img class="product-image" src="{{ product.variants.first.image_1.url }}" alt="{{ product.name }}" />
+            </a>
+            
+            <div class="product-action-vertical">
+                <a class="btn-product-icon btn-wishlist btn-expandable"><span>add to wishlist</span></a>
+            </div>
+            <div class="product-action">
+                <a href="{% url 'add_wishlist' id=product.id %}" class="btn-product btn-cart"><span>add to cart</span></a>
+            </div>
+        </figure>
+        <div class="product-body">
+            <div class="product-cat">
+                <a>{{ product.category.name }}</a>
+                {% if product.gender %}
+                <a>/ {{ product.gender.name }}</a>
+                {% endif %}
+            </div>
+            <h3 class="product-title"><a>{{ product.name }}</a></h3>
+            <div class="product-price">
+                {% if product.discounted_price %}
+                <span class="new-price">{{ product.discounted_price|floatformat:2 }}</span>
+                <span class="old-price"><s>{{ product.display_price|floatformat:2 }}</s></span>
+                {% else %}
+                {{ product.display_price|floatformat:2 }}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
                 </div>
 
                 <div class="load-more-container text-center">

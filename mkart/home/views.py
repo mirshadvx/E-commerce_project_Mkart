@@ -350,32 +350,35 @@ def social_login_success(request):
     else:
         messages.error(request, 'Social login failed. Please try again.')
         return redirect('login') 
+
 from django.db.models import Min
 
 def show_products(request):
     products = Product.objects.filter(category__status=True)
-
+    
+    # Filter by category, gender, brand, color, and price range as before
     category = request.GET.get('category')
     if category:
         products = products.filter(category__name=category)
-
+    
     gender = request.GET.get('gender')
     if gender:
         products = products.filter(gender__name=gender)
-
+    
     brand = request.GET.get('brand')
     if brand:
         products = products.filter(brand__name=brand)
-
+    
     color = request.GET.get('color')
     if color:
         products = products.filter(variants__color__name=color).distinct()
-
+    
     min_price = request.GET.get('min_price')
     max_price = request.GET.get('max_price')
     if min_price and max_price:
         products = products.filter(variants__price__gte=min_price, variants__price__lte=max_price).distinct()
-
+    
+    # Sort products based on the selected criteria
     sort_by = request.GET.get('sortby')
     if sort_by:
         if sort_by == 'low to high':
@@ -388,12 +391,23 @@ def show_products(request):
             products = products.order_by('name')
         elif sort_by == 'zZ-aA':
             products = products.order_by('-name')
-
+    
+    # Calculate discounted prices and pass to the template
+    for product in products:
+        variant = product.variants.first()  # Assuming you want to use the first variant
+        if variant:
+            product.display_price = variant.price
+            product.discounted_price = product.get_discounted_price()
+            if product.discounted_price < variant.price:
+                product.discount_percentage = 100 * (1 - product.discounted_price / variant.price)
+            else:
+                product.discount_percentage = None
+    
     categories = Category.objects.filter(status=True)
     genders = Gender.objects.all()
     brands = Brand.objects.all()
     colors = Color.objects.all()
-
+    
     context = {
         'products': products,
         'categories': categories,
@@ -402,14 +416,104 @@ def show_products(request):
         'colors': colors,
         'sort_by': sort_by,
     }
-
+    
     return render(request, 'store/products_home.html', context)
+
+
+# def show_products(request):
+#     products = Product.objects.filter(category__status=True)
+
+#     category = request.GET.get('category')
+#     if category:
+#         products = products.filter(category__name=category)
+
+#     gender = request.GET.get('gender')
+#     if gender:
+#         products = products.filter(gender__name=gender)
+
+#     brand = request.GET.get('brand')
+#     if brand:
+#         products = products.filter(brand__name=brand)
+
+#     color = request.GET.get('color')
+#     if color:
+#         products = products.filter(variants__color__name=color).distinct()
+
+#     min_price = request.GET.get('min_price')
+#     max_price = request.GET.get('max_price')
+#     if min_price and max_price:
+#         products = products.filter(variants__price__gte=min_price, variants__price__lte=max_price).distinct()
+
+#     sort_by = request.GET.get('sortby')
+#     if sort_by:
+#         if sort_by == 'low to high':
+#             products = products.annotate(min_price=Min('variants__price')).order_by('min_price')
+#         elif sort_by == 'high to low':
+#             products = products.annotate(min_price=Min('variants__price')).order_by('-min_price')
+#         elif sort_by == 'new arrivals':
+#             products = products.order_by('-created_at')
+#         elif sort_by == 'aA-zZ':
+#             products = products.order_by('name')
+#         elif sort_by == 'zZ-aA':
+#             products = products.order_by('-name')
+
+#     categories = Category.objects.filter(status=True)
+#     genders = Gender.objects.all()
+#     brands = Brand.objects.all()
+#     colors = Color.objects.all()
+    
+#     for product in products:
+#         variant = product.variants.first()  # Assuming you want to use the first variant
+#         if variant:
+#             product.display_price = variant.price
+#             if product.offer and product.offer.is_active and product.offer.valid_from <= django_timezone.now() <= product.offer.valid_to:
+#                 product.discounted_price = variant.price * (1 - product.offer.discount / 100)
+#                 product.discount_percentage = product.offer.discount
+#             else:
+#                 product.discounted_price = None
+#                 product.discount_percentage = None
+                
+#     context = {
+#         'products': products,
+#         'categories': categories,
+#         'genders': genders,
+#         'brands': brands,
+#         'colors': colors,
+#         'sort_by': sort_by,
+#     }
+
+#     return render(request, 'store/products_home.html', context)
+
+
+# def product_info(request, id):
+#     product = get_object_or_404(Product, id=id)
+#     variants = product.variants.all()
+
+#     cart_count = 0
+
+#     # Check if the user is authenticated
+#     if request.user.is_authenticated:
+#         user = request.user
+#         cart_count = CartItem.objects.filter(cart__user=user).count()
+
+#     # Check if the user has selected a specific variant
+#     variant_id = request.GET.get('variant_id')
+#     if variant_id:
+#         selected_variant = get_object_or_404(ProductVariant, id=variant_id)
+#     else:
+#         selected_variant = product.variants.first()
+
+#     return render(request, 'store/product_info.html', {
+#         'product': product,
+#         'variants': variants,
+#         'selected_variant': selected_variant,
+#         'cart_count': cart_count
+#     })
 
 
 def product_info(request, id):
     product = get_object_or_404(Product, id=id)
     variants = product.variants.all()
-
     cart_count = 0
 
     # Check if the user is authenticated
@@ -424,12 +528,28 @@ def product_info(request, id):
     else:
         selected_variant = product.variants.first()
 
-    return render(request, 'store/product_info.html', {
+    # Get the original and discounted prices
+    original_price = selected_variant.price
+    discounted_price = product.get_discounted_price()
+
+    # Determine which offer is active (if any)
+    active_offer = None
+    if product.offer and product.offer.is_active and product.offer.valid_from <= timezone.now() <= product.offer.valid_to:
+        active_offer = product.offer
+    elif product.category.offer and product.category.offer.is_active and product.category.offer.valid_from <= timezone.now() <= product.category.offer.valid_to:
+        active_offer = product.category.offer
+
+    context = {
         'product': product,
         'variants': variants,
         'selected_variant': selected_variant,
-        'cart_count': cart_count
-    })
+        'cart_count': cart_count,
+        'active_offer': active_offer,
+        'original_price': original_price,
+        'discounted_price': discounted_price,
+    }
+
+    return render(request, 'store/product_info.html', context)
 
 # def product_info(request, id):
 #     product = get_object_or_404(Product, id=id)
@@ -1197,7 +1317,7 @@ def checkout(request):
         
         messages.success(request, "Your order has been placed successfully!")
         return redirect('order_confirmation', order_id=order.id)
-
+    print(f"Discounted Total: {discounted_total}")
     # Create Razorpay Order for GET request
     razorpay_order = client.order.create(dict(
         amount=int(discounted_total * 100),  # Razorpay expects amount in paise
@@ -1214,6 +1334,7 @@ def checkout(request):
         'razorpay_order_id': razorpay_order['id'],
         'cart_total_paise': int(discounted_total * 100),
     }
+
     return render(request, 'store/checkout.html', context)
 
 
@@ -1350,42 +1471,6 @@ def apply_coupon(request):
             'valid': False,
             'message': 'Invalid coupon code.'
         })
-
- 
-# def apply_coupon(request):
-#     if request.method == 'POST':
-#         coupon_code = request.POST.get('coupon_code')
-#         try:
-#             coupon = Coupon.objects.get(code=coupon_code, active=True)
-#             cart = Cart.objects.get(user=request.user)
-#             cart_total = cart.get_total_price()
-            
-#             current_time = django_timezone.now()
-#             if coupon.valid_from <= current_time <= coupon.valid_to:
-#                 discount_amount = (cart_total * coupon.discount) / 100
-#                 new_total = cart_total - discount_amount
-                
-#                 # Store the coupon and discounted total in the session
-#                 request.session['coupon_id'] = coupon.id
-#                 request.session['discounted_total'] = new_total
-                
-#                 return JsonResponse({
-#                     'valid': True,
-#                     'discount': discount_amount,
-#                     'new_total': new_total
-#                 })
-#             else:
-#                 return JsonResponse({
-#                     'valid': False,
-#                     'message': 'This coupon has expired.'
-#                 })
-#         except Coupon.DoesNotExist:
-#             return JsonResponse({
-#                 'valid': False,
-#                 'message': 'Invalid coupon code.'
-#             })
-#     return JsonResponse({'valid': False, 'message': 'Invalid request'})
-
 def order_confirmation(request, order_id):
     
     order = Order.objects.get(id=order_id)

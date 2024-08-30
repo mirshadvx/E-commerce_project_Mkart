@@ -34,6 +34,19 @@ Product list
             .offer-select {
                 width: 150px;
             }
+
+    .table .table-sm {
+        margin-bottom: 0;
+    }
+    .table .table-sm th,
+    .table .table-sm td {
+        padding: 0.3rem;
+        font-size: 0.875rem;
+    }
+    .table .table-sm .btn-sm {
+        padding: 0.1rem 0.3rem;
+        font-size: 0.75rem;
+    }
         </style>
 {% endblock  %}
 
@@ -90,147 +103,84 @@ Product list
                                 </div>
                             </div>
 
-                            <div class="card mb-0" id="filter_inputs">
-                                <div class="card-body pb-0">
-                                    <div class="row">
-                                        <div class="col-lg-12 col-sm-12">
-                                            <div class="row">
-                                                <div class="col-lg col-sm-6 col-12">
-                                                    <div class="form-group">
-                                                        <select class="select">
-                                                            <option>Choose Product</option>
-                                                            <option>Macbook pro</option>
-                                                            <option>Orange</option>
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                                <div class="col-lg col-sm-6 col-12">
-                                                    <div class="form-group">
-                                                        <select class="select">
-                                                            <option>Choose Category</option>
-                                                            <option>Computers</option>
-                                                            <option>Fruits</option>
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                                <div class="col-lg col-sm-6 col-12">
-                                                    <div class="form-group">
-                                                        <select class="select">
-                                                            <option>Choose Sub Category</option>
-                                                            <option>Computer</option>
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                                <div class="col-lg col-sm-6 col-12">
-                                                    <div class="form-group">
-                                                        <select class="select">
-                                                            <option>Brand</option>
-                                                            <option>N/D</option>
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                                <div class="col-lg col-sm-6 col-12">
-                                                    <div class="form-group">
-                                                        <select class="select">
-                                                            <option>Price</option>
-                                                            <option>150.00</option>
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                                <div class="col-lg-1 col-sm-6 col-12">
-                                                    <div class="form-group">
-                                                        <a class="btn btn-filters ms-auto"
-                                                            ><img src="{% static 'admin-assets/img/icons/search-whites.svg' %}" alt="img"
-                                                        /></a>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
                             <div class="table-responsive">
-                                <table class="table datanew">
-                                    <thead>
-                                        <tr>
-                                            <th>
-                                                <label class="checkboxs">
-                                                    <input type="checkbox" id="select-all" />
-                                                    <span class="checkmarks"></span>
-                                                </label>
-                                            </th>
-                                            <th>Product Name</th>
-                                            <th>Category</th>
-                                            <th>Gender</th>
-                                            <th>Brand</th>
-                                            <th>Color</th>
-                                            <th>Price</th>
-                                            <th>Qty</th>
-                                            <th>Offer</th>
-                                            <th>Status</th>
-                                            <th>Action</th>
-                                        </tr>
-                                    </thead>
- 
-<tbody>
-    {% for product in products %}
-    {% for variant in product.variants.all %}
-    <tr>
-        <td>
-            <label class="checkboxs">
-                <input type="checkbox" />
-                <span class="checkmarks"></span>
-            </label>
-        </td>
-        <td class="productimgname">
-            <a href="javascript:void(0);" class="product-img">
-                {% if variant.image_1 %}
-                    <img src="{{ variant.image_1.url }}" alt="{{ product.name }}" />
-                {% else %}
-                    <img src="{% static 'path/to/default/image.jpg' %}" alt="{{ product.name }}" />
-                {% endif %}
-            </a>
-            <a href="javascript:void(0);">{{ product.name }}</a>
-        </td>
-        <td>{{ product.category.name }}</td>
-        <td>{{ product.gender.name }}</td>
-        <td>{{ product.brand.name }}</td>
-        <td>{{ variant.color.name }}</td>
-        <td>{{ variant.price }}</td>
-        <td>{{ variant.stock }}</td>
-                    <td>
-                        <select style="height: 2em;" class="offer-select" data-variant-id="{{ variant.id }}">
-                            <option value="">Select offer</option>
-                            {% for offer in offers %}
-                            <option value="{{ offer.id }}" {% if variant.offer_id == offer.id %}selected{% endif %}>
-                                <strong>{{ offer.name }} | {{ offer.discount }}%</strong>
-                            </option>
-                            {% endfor %}
-                        </select>
-                    </td>
-                    
-<td>
-    <button class="btn btn-sm status-toggle {% if variant.is_available %}btn-success{% else %}btn-danger{% endif %}" 
-            data-variant-id="{{ variant.id }}">
-        {% if variant.is_available %}Available{% else %}Not Available{% endif %}
-    </button>
-</td>
-        <td>
-            <a class="me-3">
-                <img src="{% static 'admin-assets/img/icons/eye.svg' %}" alt="img" />
-            </a>
-            <a class="me-3" href="{% url 'edit_product' product.id %}">
-                <img src="{% static 'admin-assets/img/icons/edit.svg' %}" alt="img" />
-            </a>
-            <a href="{% url 'add_variant' product.id %}">
-             <button  class="btn btn-sm btn-primary">add variant</button></a>
-        </td>
-    </tr>
-    {% endfor %}
-    {% endfor %}
-</tbody>
-                                </table>
+            <table class="table datanew">
+    <thead>
+        <tr>
+            <th>Product Name</th>
+            <th>Category</th>
+            <th>Gender</th>
+            <th>Brand</th>
+            <th>Variants</th>
+            <th>Offer</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for product in products %}
+        <tr>
+            <td class="productimgname">
+                <a href="javascript:void(0);" class="product-img">
+                    {% if product.variants.first.image_1 %}
+                        <img src="{{ product.variants.first.image_1.url }}" alt="{{ product.name }}" />
+                    {% else %}
+                        <img src="{% static 'path/to/default/image.jpg' %}" alt="{{ product.name }}" />
+                    {% endif %}
+                </a>
+                <a href="javascript:void(0);">{{ product.name }}</a>
+            </td>
+            <td>{{ product.category.name }}</td>
+            <td>{{ product.gender.name }}</td>
+            <td>{{ product.brand.name }}</td>
+            <td>
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Color</th>
+                            <th>Price</th>
+                            <th>Qty</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for variant in product.variants.all %}
+                        <tr>
+                            <td>{{ variant.color.name }}</td>
+                            <td>{{ variant.price }}</td>
+                            <td>{{ variant.stock }}</td>
+                            <td>
+                                <button class="btn btn-sm status-toggle {% if variant.is_available %}btn-success{% else %}btn-danger{% endif %}" 
+                                        data-variant-id="{{ variant.id }}">
+                                    {% if variant.is_available %}Available{% else %}Not Available{% endif %}
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </td>
+            <td>
+                <select style="height: 2em;" class="offer-select" data-product-id="{{ product.id }}">
+                    <option value="">Select offer</option>
+                    {% for offer in offers %}
+                    <option value="{{ offer.id }}" {% if product.offer_id == offer.id %}selected{% endif %}>
+                        <strong>{{ offer.name }} | {{ offer.discount }}%</strong>
+                    </option>
+                    {% endfor %}
+                </select>
+            </td>
+            <td>
+                <a class="me-3" href="{% url 'edit_product' product.id %}">
+                    <img src="{% static 'admin-assets/img/icons/edit.svg' %}" alt="img" />
+                </a>
+                <a href="{% url 'add_variant' product.id %}">
+                    <button class="btn btn-sm btn-primary">add variant</button>
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
                             </div>
                         </div>
                     </div>
@@ -259,22 +209,22 @@ Product list
         
 <script>
     $(document).ready(function() {
-        $('.offer-select').on('change', function() {
-            var select = $(this);
-            var variantId = select.data('variant-id');
-            var offerId = select.val();
+    $('.offer-select').on('change', function() {
+        var select = $(this);
+        var productId = select.data('product-id');
+        var offerId = select.val();
 
-            $.ajax({
-                url: '{% url "update_variant_offer" %}',
-                type: 'POST',
-                data: {
-                    'variant_id': variantId,
-                    'offer_id': offerId,
-                    'csrfmiddlewaretoken': '{{ csrf_token }}'
-                },
-                success: function(response) {
-                    if (response.success) {
-                        const Toast = Swal.mixin({
+        $.ajax({
+            url: '{% url "update_product_offer" %}',
+            type: 'POST',
+            data: {
+                'product_id': productId,
+                'offer_id': offerId,
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
+            },
+            success: function(response) {
+                if (response.success) {
+                    const Toast = Swal.mixin({
                         toast: true,
                         position: "top-end",
                         showConfirmButton: false,
@@ -284,22 +234,25 @@ Product list
                             toast.onmouseenter = Swal.stopTimer;
                             toast.onmouseleave = Swal.resumeTimer;
                         }
-                        });
-                        Toast.fire({
+                    });
+                    Toast.fire({
                         icon: "success",
                         title: "Offer updated successfully"
-                        });
-                        
-                    } else {
-                        alert('Failed to update offer');
-                    }
-                },
-                error: function() {
-                    alert('An error occurred while updating the offer');
+                    });
+                    
+                    // Update the offer display for all variants of this product
+                    var offerText = offerId ? select.find('option:selected').text() : 'No offer';
+                    $('tr[data-product-id="' + productId + '"] td:nth-child(9)').text(offerText);
+                } else {
+                    alert('Failed to update offer');
                 }
-            });
+            },
+            error: function() {
+                alert('An error occurred while updating the offer');
+            }
         });
     });
+});
 </script>        
 
 

@@ -34,6 +34,12 @@ urlpatterns = [
     path('offer/',views.offer_list,name='offer'),
     path('add_offer/',views.add_offer,name='add_offer'),
     
-    path('update-variant-offer/', views.update_variant_offer, name='update_variant_offer'),
+    path('update-product-offer/', views.update_product_offer, name='update_product_offer'),
+    # path('add_offer_to_category/', views.add_offer_to_category, name='add_offer_to_category'),
+    path('update-category-offer/', views.update_category_offer, name='update_category_offer'),
+    path('sales_report/',views.show_sales_details,name='sales_report'),
+    
+    
+    
 
 ]

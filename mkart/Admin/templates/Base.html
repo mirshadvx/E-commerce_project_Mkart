@@ -13,7 +13,7 @@
     <title> {% block title %} Dreams Pos admin template{% endblock  %}</title>
 
     {% block extra_style %}
-
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     <link rel="shortcut icon" type="image/x-icon" href="admin-assets/img/favicon.jpg">
 
     <link rel="stylesheet" href="{% static 'admin-assets/css/bootstrap.min.css' %}">
@@ -26,6 +26,7 @@
     <link rel="stylesheet" href="{% static 'admin-assets/plugins/fontawesome/css/all.min.css' %}">
 
     <link rel="stylesheet" href="{% static 'admin-assets/css/style.css' %}">
+
     </style>
     {% endblock  %}
 </head>
@@ -339,7 +340,17 @@
                                 <li><a href="{% url "offer" %}">Offer</a></li>
                             </ul>
                         </li> 
-
+                        <li class="submenu">
+                            <a href="#"><i class="fa fa-pie-chart" ></i><span>
+                                    Sales Report</span> <span class="menu-arrow"></span></a>
+                            <ul>
+                                <li><a href="{% url "sales_report" %}">Sales List</a></li>
+                                {% comment %} <li><a href="pos.html">POS</a></li>
+                                <li><a href="pos.html">New Sales</a></li>
+                                <li><a href="salesreturnlists.html">Sales Return List</a></li>
+                                <li><a href="createsalesreturns.html">New Sales Return</a></li> {% endcomment %}
+                            </ul>
+                        </li>
                         <li class="submenu">
                             <a href="javascript:void(0);"><img src="{% static 'admin-assets/img/icons/settings.svg' %}" alt="img"><span>
                                     Settings</span> <span class="menu-arrow"></span></a>

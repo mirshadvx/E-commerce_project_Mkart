@@ -51,6 +51,21 @@
         .button-42:hover {
         box-shadow: rgba(253, 76, 0, 0.5) 0 3px 8px;
         }
+        .offer-select {
+        width: 200px;
+        margin-right: 10px;
+    }
+    .offer-actions {
+        display: flex;
+        align-items: center;
+    }
+    .add-offer-btn {
+        white-space: nowrap;
+    }
+    .offer-status {
+        margin-left: 10px;
+        font-style: italic;
+    }
     </style>
 {% endblock  %}
 
@@ -156,6 +171,7 @@
                                         <th>Category name</th>
                                         <th>Description</th>
                                         <th>Status</th>
+                                        <th>Offer</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
@@ -169,13 +185,6 @@
                                             </label>
                                         </td>
                                         <td>
-                                            {% comment %} <a href="javascript:void(0);" class="product-img">
-                                                {% if category.logo %}
-                                                <img src="{{ category.logo.url }}" alt="{{ category.name }}">
-                                                {% else %}
-                                                <img style='visible: hidden;' src="{% static  %}" alt="product">
-                                                {% endif %}
-                                            </a>  {% endcomment %}
                                             {{ category.name }}
                                         </td>
                                         <td>{{ category.description }}</td>
@@ -184,6 +193,35 @@
                                                 {{ category.status|yesno:"Deactivate,Activate" }}
                                             </button>
                                         </td>
+                        {% comment %} <td>
+                            <select class="offer-select" data-category-id="{{ category.id }}">
+                                <option value="">Select an offer</option>
+                                {% for offer in offers %}
+                                <option value="{{ offer.id }}" {% if category.offer == offer %}selected{% endif %}>
+                                    {{ offer.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <button class="btn btn-primary add-offer-btn" data-category-id="{{ category.id }}">
+                                Add Offer
+                            </button>
+                        </td>                                         {% endcomment %}
+
+                                        <td>
+                    <div class="offer-actions">
+                        <select class="offer-select form-control" data-category-id="{{ category.id }}">
+                            <option value="">No offer</option>
+                            {% for offer in offers %}
+                            <option value="{{ offer.id }}" {% if category.offer == offer %}selected{% endif %}>
+                                {{ offer.name }} ({{ offer.discount }}% off)
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <button class="btn btn-primary update-offer-btn" data-category-id="{{ category.id }}">
+                            Update Offer
+                        </button>
+                    </div>
+                </td>
                                         <td>
                                             <a class="me-3" href="{% url 'edit_category' category.id %}">
                                                 <img src="{% static 'admin-assets/img/icons/edit.svg' %}" alt="img">
@@ -215,6 +253,143 @@
 
 
 {% block extra_js %}
+    <script src="{% static 'admin-assets/js/jquery-3.6.0.min.js' %}"></script>
+
+    <script src="{% static 'admin-assets/js/feather.min.js' %}"></script>
+
+    <script src="{% static 'admin-assets/js/jquery.slimscroll.min.js' %}"></script>
+
+    <script src="{% static 'admin-assets/js/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static 'admin-assets/js/dataTables.bootstrap4.min.js' %}"></script>
+
+    <script src="{% static 'admin-assets/js/bootstrap.bundle.min.js' %}"></script>
+
+    <script src="{% static 'admin-assets/plugins/select2/js/select2.min.js' %}"></script>
+
+    <script src="{% static 'admin-assets/plugins/sweetalert/sweetalert2.all.min.js' %}"></script>
+    <script src="{% static 'admin-assets/plugins/sweetalert/sweetalerts.min.js' %}"></script>
+
+    <script src="{% static 'admin-assets/js/script.js' %}"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+$(document).ready(function() {
+    $('.update-offer-btn').click(function() {
+        var categoryId = $(this).data('category-id');
+        var offerSelect = $(this).siblings('.offer-select');
+        var offerId = offerSelect.val();
+        var offerText = offerSelect.find('option:selected').text();
+        var statusSpan = $('#offer-status-' + categoryId);
+
+        var action = offerId ? 'update' : 'remove';
+        var confirmMessage = action === 'update' 
+            ? 'Are you sure you want to update the offer for this category?' 
+            : 'Are you sure you want to remove the offer from this category?';
+
+        Swal.fire({
+            title: 'Confirm Action',
+            text: confirmMessage,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, proceed!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '{% url "update_category_offer" %}',
+                    method: 'POST',
+                    data: {
+                        category_id: categoryId,
+                        offer_id: offerId,
+                        action: action,
+                        csrfmiddlewaretoken: '{{ csrf_token }}'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Action successful',
+                                text: response.message,
+                                timer: 2000,
+                                timerProgressBar: true,
+                            });
+                            statusSpan.text(action === 'update' ? 'Current: ' + offerText : 'No offer applied');
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Action failed',
+                                text: response.message || 'An error occurred while processing your request.',
+                            });
+                        }
+                    },
+                    error: function() {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Server error',
+                            text: 'An error occurred while communicating with the server.',
+                        });
+                    }
+                });
+            }
+        });
+    });
+});
+</script>
+
+
+{% comment %} <script>
+$(document).ready(function() {
+    $('.add-offer-btn').click(function() {
+        var categoryId = $(this).data('category-id');
+        var offerId = $(this).siblings('.offer-select').val();
+
+        if (!offerId) {
+            alert('Please select an offer first.');
+            return;
+        }
+
+        $.ajax({
+            url: '{% url "add_offer_to_category" %}',
+            method: 'POST',
+            data: {
+                category_id: categoryId,
+                offer_id: offerId,
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            },
+            success: function(response) {
+                if (response.success) {
+                    const Toast = Swal.mixin({
+                        toast: true,
+                        position: "top-end",
+                        showConfirmButton: false,
+                        timer: 4000,
+                        timerProgressBar: true,
+                        didOpen: (toast) => {
+                            toast.onmouseenter = Swal.stopTimer;
+                            toast.onmouseleave = Swal.resumeTimer;
+                        }
+                    });
+                    Toast.fire({
+                        icon: "success",
+                        title: "Offer updated successfully"
+                    });
+                } else {
+                    Swal.fire({
+  icon: "error",
+  title: "Oops...",
+  text: "Something went wrong!"+response.message,
+});
+                  
+                }
+            },
+            error: function() {
+                alert('An error occurred while adding the offer.');
+            }
+        });
+    });
+});
+</script> {% endcomment %}
     <script>
         $(document).ready(function(){
             $('.btn-toggle-status').click(function(){
@@ -239,22 +414,6 @@
     </script>
 
 
-    <script src="{% static 'admin-assets/js/jquery-3.6.0.min.js' %}"></script>
 
-    <script src="{% static 'admin-assets/js/feather.min.js' %}"></script>
-
-    <script src="{% static 'admin-assets/js/jquery.slimscroll.min.js' %}"></script>
-
-    <script src="{% static 'admin-assets/js/jquery.dataTables.min.js' %}"></script>
-    <script src="{% static 'admin-assets/js/dataTables.bootstrap4.min.js' %}"></script>
-
-    <script src="{% static 'admin-assets/js/bootstrap.bundle.min.js' %}"></script>
-
-    <script src="{% static 'admin-assets/plugins/select2/js/select2.min.js' %}"></script>
-
-    <script src="{% static 'admin-assets/plugins/sweetalert/sweetalert2.all.min.js' %}"></script>
-    <script src="{% static 'admin-assets/plugins/sweetalert/sweetalerts.min.js' %}"></script>
-
-    <script src="{% static 'admin-assets/js/script.js' %}"></script>
 {% endblock  %}
 

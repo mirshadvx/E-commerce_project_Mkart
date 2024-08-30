@@ -78,7 +78,8 @@ def check_category(request):
 @user_passes_test(lambda u: u.is_superuser)
 def category_list(request):
     categories = Category.objects.all()
-    return render(request, 'categoryList.html', {'categories': categories})
+    offers = Offer.objects.filter(is_active=True)
+    return render(request, 'categoryList.html', {'categories': categories, 'offers': offers})
 
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
@@ -276,8 +277,18 @@ def superuser_required(view_func):
 #     products = Product.objects.prefetch_related('variants', 'variants__color').all() 
 #     return render(request, 'productsList.html', {'products': products})
 def products_list(request):
-    products = Product.objects.prefetch_related('variants', 'variants__color', 'variants__offer').all()
+    products = Product.objects.prefetch_related(
+        'variants', 
+        'variants__color'
+    ).select_related(
+        'offer', 
+        'category', 
+        'brand', 
+        'gender'
+    ).all()
+    
     offers = Offer.objects.filter(is_active=True)
+    
     return render(request, 'productsList.html', {'products': products, 'offers': offers})
 
 
@@ -573,18 +584,59 @@ def add_offer(request):
     
 
 @require_POST
-def update_variant_offer(request):
-    variant_id = request.POST.get('variant_id')
+def update_product_offer(request):
+    product_id = request.POST.get('product_id')
     offer_id = request.POST.get('offer_id')
     
+    product = get_object_or_404(Product, id=product_id)
+    
+    if offer_id:
+        offer = get_object_or_404(Offer, id=offer_id)
+        product.offer = offer
+    else:
+        product.offer = None
+    
+    product.save()
+    
+    return JsonResponse({
+        'success': True,
+        'message': f"Offer updated successfully for product: {product.name}"
+    })
+
+@require_POST
+def update_category_offer(request):
+    category_id = request.POST.get('category_id')
+    offer_id = request.POST.get('offer_id')
+    action = request.POST.get('action')
+
     try:
-        variant = ProductVariant.objects.get(id=variant_id)
-        if offer_id:
-            offer = Offer.objects.get(id=offer_id)
-            variant.offer = offer
+        category = get_object_or_404(Category, id=category_id)
+
+        if action == 'update':
+            offer = get_object_or_404(Offer, id=offer_id)
+            category.offer = offer
+            category.save()
+            message = f'Offer "{offer.name}" has been successfully applied to category "{category.name}".'
+        elif action == 'remove':
+            old_offer_name = category.offer.name if category.offer else "No offer"
+            category.offer = None
+            category.save()
+            message = f'Offer has been successfully removed from category "{category.name}". Previous offer was "{old_offer_name}".'
         else:
-            variant.offer = None
-        variant.save()
-        return JsonResponse({'success': True})
-    except (ProductVariant.DoesNotExist, Offer.DoesNotExist):
-        return JsonResponse({'success': False})
+            return JsonResponse({
+                'success': False,
+                'message': 'Invalid action specified.'
+            }, status=400)
+
+        return JsonResponse({
+            'success': True,
+            'message': message
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'An error occurred: {str(e)}'
+        }, status=400)
+        
+def show_sales_details(request):
+    return render(request,'sales_report.html')

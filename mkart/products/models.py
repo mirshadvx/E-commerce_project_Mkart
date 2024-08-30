@@ -17,6 +17,7 @@ class Category(models.Model):
     slug = models.SlugField(max_length=50, unique=True)
     description = models.TextField(null=True,blank=True)
     status = models.BooleanField(default=True)
+    offer = models.ForeignKey(Offer, on_delete=models.SET_NULL,null=True)
     class Meta:
         verbose_name_plural = 'Categories'
 
@@ -47,6 +48,25 @@ class Product(models.Model):
     description = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    offer = models.ForeignKey(Offer, on_delete=models.SET_NULL, null=True, blank=True)
+
+    def get_discounted_price(self):
+        # Initialize with product's offer
+        best_discount = 0
+        if self.offer and self.offer.is_active and self.offer.valid_from <= django_timezone.now() <= self.offer.valid_to:
+            best_discount = self.offer.discount
+
+        # Check if category's offer is better
+        if self.category.offer and self.category.offer.is_active and self.category.offer.valid_from <= django_timezone.now() <= self.category.offer.valid_to:
+            if self.category.offer.discount > best_discount:
+                best_discount = self.category.offer.discount
+
+        # If there's a discount, apply it
+        if best_discount > 0:
+            return self.variants.first().price * (1 - best_discount / 100)
+        
+        # Otherwise, return the original price
+        return self.variants.first().price
 
     def __str__(self):
         return self.name
@@ -60,12 +80,10 @@ class ProductVariant(models.Model):
     image_1 = models.ImageField(upload_to='product_images/', blank=True, null=True)
     image_2 = models.ImageField(upload_to='product_images/', blank=True, null=True)
     image_3 = models.ImageField(upload_to='product_images/', blank=True, null=True)
-    offer = models.ForeignKey(Offer, on_delete=models.SET_NULL, null=True, blank=True)
 
-    def get_discounted_price(self):
-        if self.offer and self.offer.is_active and self.offer.valid_from <= django_timezone.now() <= self.offer.valid_to:
-            return self.price * (1 - self.offer.discount / 100)
-        return self.price
+
+    def __str__(self):
+        return f"{self.product.name} - {self.color.name}"
 
     # def save(self, *args, **kwargs):
     #     # Automatically set is_available to False if stock is 0
