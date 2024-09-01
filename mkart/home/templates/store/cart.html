@@ -106,41 +106,104 @@
     </div>
 </div>
 
+<main class="main">
+    <div class="page-header text-center" style="background-image: url('store-assets/assets/images/page-header-bg.jpg')">
+        <div class="container">
+            <h1 class="page-title">Shopping Cart<span>Shop</span></h1>
+        </div>
+    </div>
 
+    <nav aria-label="breadcrumb" class="breadcrumb-nav">
+        <div class="container">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+                <li class="breadcrumb-item"><a href="#">Shop</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Shopping Cart</li>
+            </ol>
+        </div>
+    </nav>
 
-
-
-        <main class="main">
-        	<div class="page-header text-center" style="background-image: url('store-assets/assets/images/page-header-bg.jpg')">
-        		<div class="container">
-        			<h1 class="page-title">Shopping Cart<span>Shop</span></h1>
-                        {% comment %} {% if messages %}
-                            <div class="container">
-                                <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                                    {% for message in messages %}
-                                        <p>{{ message }}</p>
+    {% comment %} <div class="page-content">
+        <div class="cart">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-9">
+                        {% if cart_items %}
+                            <table class="table table-cart table-mobile">
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Price</th>
+                                        <th>Quantity</th>
+                                        <th>Total</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in cart_items %}
+                                        <tr>
+                                            <td class="product-col">
+                                                <div class="product">
+                                                    <figure class="product-media">
+                                                        <a href="{% url 'product_info' id=item.product_variant.product.id %}">
+                                                            <img src="{{ item.product_variant.image_1.url }}" alt="{{ item.product_variant.product.name }}">
+                                                        </a>
+                                                    </figure>
+                                                    <h3 class="product-title">
+                                                        <a href="{% url 'product_info' id=item.product_variant.product.id %}">{{ item.product_variant.product.name }} - {{ item.product_variant.color.name }}</a>
+                                                    </h3>
+                                                </div>
+                                            </td>
+                                            <td class="price-col">{{ item.product_variant.product.get_discounted_price }}</td>
+                                            <td class="quantity-col">
+                                                <div class="cart-product-quantity">
+                                                    <input type="number" class="form-control" value="{{ item.quantity }}" min="1" max="{{ item.product_variant.stock|default:10 }}" step="1" data-decimals="0" required>
+                                                </div>
+                                            </td>
+                                            <td class="total-col">{{ item.get_total_price }}</td>
+                                            <td class="remove-col">
+                                                <button class="btn-remove" data-cart-item-id="{{ item.id }}">
+                                                    <i class="icon-close"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
                                     {% endfor %}
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                </div>
-                            </div>
-                        {% endif %} {% endcomment %}
-        		</div><!-- End .container -->
-        	</div><!-- End .page-header -->
-            <nav aria-label="breadcrumb" class="breadcrumb-nav">
-                <div class="container">
-                    <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="index.html">Home</a></li>
-                        <li class="breadcrumb-item"><a href="#">Shop</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">Shopping Cart</li>
-                    </ol>
-                </div><!-- End .container -->
-            </nav><!-- End .breadcrumb-nav -->
+                                </tbody>
+                            </table>
+                        {% else %}
+                            <p>Your cart is empty.</p>
+                        {% endif %}
+                    </div>
+                    <aside class="col-lg-3">
+                        <div class="summary summary-cart">
+                            <h3 class="summary-title">Cart Total</h3>
+                            <table class="table table-summary">
+                                <tbody>
+                                    <tr class="summary-subtotal">
+                                        <td>Subtotal:</td>
+                                        <td>{{ cart_total }}</td>
+                                    </tr>
+                                    <tr class="summary-total">
+                                        <td>Total:</td>
+                                        <td>{{ cart_total }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <a href="{% url 'checkout' %}" class="btn btn-outline-primary-2 btn-order btn-block">PROCEED TO CHECKOUT</a>
+                        </div>
+                        <a href="{% url 'home' %}" class="btn btn-outline-dark-2 btn-block mb-3"><span>CONTINUE SHOPPING</span><i class="icon-refresh"></i></a>
+                    </aside>
+                </div>
+            </div>
+        </div>
+    </div> {% endcomment %}
 
-        <div class="page-content">
-            <div class="cart">
-                <div class="container">
-                    <div class="row">
-                        <div class="col-lg-9">
+<div class="page-content">
+    <div class="cart">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-9">
+                    {% if cart_items %}
                         <table class="table table-cart table-mobile">
                             <thead>
                                 <tr>
@@ -153,76 +216,281 @@
                             </thead>
                             <tbody>
                                 {% for item in cart_items %}
-                                    {% if item.product_variant.stock > 0 and item.product_variant.is_available %}
-                                        <tr>
-                                            <td class="product-col">
-                                                <div class="product">
-                                                    <figure class="product-media">
-                                                        <a href="{% url 'product_info' id=item.product_variant.product.id %}">
-                                                            <img src="{{ item.product_variant.image_1.url }}" alt="{{ item.product_variant.product.name }}">
-                                                        </a>
-                                                    </figure>
+                                    <tr>
+                                        <td class="product-col">
+                                            <div class="product">
+                                                <figure class="product-media">
+                                                    <a href="{% url 'product_info' id=item.product_variant.product.id %}">
+                                                        <img src="{{ item.product_variant.image_1.url }}" alt="{{ item.product_variant.product.name }}">
+                                                    </a>
+                                                </figure>
+                                                <h3 class="product-title">
+                                                    <a href="{% url 'product_info' id=item.product_variant.product.id %}">{{ item.product_variant.product.name }} - {{ item.product_variant.color.name }}</a>
+                                                </h3>
+                                            </div>
+                                        </td>
+                                        <td class="price-col">{{ item.product_variant.product.get_discounted_price|floatformat:2 }}</td>
+                                        <td class="quantity-col">
+                                            <div class="cart-product-quantity">
+                                                {% if item.product_variant.stock >= 10 %}
+                                                <input type="number" class="form-control quantity-input" 
+                                                       value="{{ item.quantity }}" 
+                                                       min="1" 
+                                                       max="10" 
+                                                       step="1" 
+                                                       data-decimals="0" 
+                                                       data-item-id="{{ item.id }}"
+                                                       data-price="{{ item.product_variant.product.get_discounted_price }}"
+                                                       required>                                                
+                                                {% else %}
+                                                <input type="number" class="form-control quantity-input" 
+                                                       value="{{ item.quantity }}" 
+                                                       min="1" 
+                                                       max="{{ item.product_variant.stock }}" 
+                                                       step="1" 
+                                                       data-decimals="0" 
+                                                       data-item-id="{{ item.id }}"
+                                                       data-price="{{ item.product_variant.product.get_discounted_price }}"
+                                                       required>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                        {% comment %} <td class="total-col" id="total-{{ item.id }}">{{ item.get_total_price }}  </td> {% endcomment %}<td class="total-col" id="total-{{ item.id }}"> 
+    {{ item.get_total_price|floatformat:2 }}
+</td>
 
-                                                    <h3 class="product-title">
-                                                        <a href="{% url 'product_info' id=item.product_variant.product.id %}">{{ item.product_variant.product.name }} - {{ item.product_variant.color.name }}</a>
-                                                    </h3>
-                                                </div>
-                                            </td>
-                                            <td class="price-col">{{ item.product_variant.price }}</td>
-                                            <td class="quantity-col">
-                                                <div class="cart-product-quantity">
-                                                    {% if item.product_variant.stock >= 10 %}
-                                                    <input type="number" class="form-control" value="{{ item.quantity }}" min="1" max="10" step="1" data-decimals="0" required>
-                                                    {% else %}
-                                                    <input type="number" class="form-control" value="{{ item.quantity }}" min="1" max="{{ item.product_variant.stock }}" step="1" data-decimals="0" required>
-                                                    {% endif %}
-                                                </div>
-                                            </td>
-                                            <td class="total-col">{{ item.get_total_price }}</td>
-                                            <td class="remove-col">
-                                                <button class="btn-remove" data-cart-item-id="{{ item.id }}">
-                                                    <i class="icon-close"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    {% endif %}
+                                        <td class="remove-col">
+                                            <button class="btn-remove" data-cart-item-id="{{ item.id }}">
+                                                <i class="icon-close"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
                                 {% endfor %}
                             </tbody>
                         </table>
-                        <!-- ... (rest of the cart content) ... -->
-
-                        </div>
-                        <aside class="col-lg-3">
-                            <div class="summary summary-cart">
-                                <h3 class="summary-title">Cart Total</h3>
-
-                                <table class="table table-summary">
-                                    <tbody>
-                                        <tr class="summary-subtotal">
-                                            <td>Subtotal:</td>
-                                            <td>{{ cart_total }}</td>
-                                        </tr>
-                                        <!-- ... (rest of the summary content) ... -->
-                                        <tr class="summary-total">
-                                            <td>Total:</td>
-                                            <td>{{ cart_total }}</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-
-                                <a href="{% url "checkout" %}" class="btn btn-outline-primary-2 btn-order btn-block">PROCEED TO CHECKOUT</a>
-                            </div>
-
-                            <a href="{% url 'home' %}" class="btn btn-outline-dark-2 btn-block mb-3"><span>CONTINUE SHOPPING</span><i class="icon-refresh"></i></a>
-                        </aside>
-                    </div>
+                    {% else %}
+                        <p>Your cart is empty.</p>
+                    {% endif %}
                 </div>
+                <aside class="col-lg-3">
+                    <div class="summary summary-cart">
+                        <h3 class="summary-title">Cart Total</h3>
+                        <table class="table table-summary">
+                            <tbody>
+                                <tr class="summary-subtotal">
+                                    <td>Subtotal:</td>
+                                    <td id="cart-subtotal">{{ cart_total }}</td>
+                                </tr>
+                                <tr class="summary-total">
+                                    <td>Total:</td>
+                                    <td id="cart-total">{{ cart_total }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <a href="{% url 'checkout' %}" class="btn btn-outline-primary-2 btn-order btn-block">PROCEED TO CHECKOUT</a>
+                    </div>
+                    <a href="{% url 'home' %}" class="btn btn-outline-dark-2 btn-block mb-3"><span>CONTINUE SHOPPING</span><i class="icon-refresh"></i></a>
+                </aside>
             </div>
         </div>
+    </div>
+</div>    
 </main>
+
+<!-- Message Modal -->
+<div class="modal fade" id="messageModal" tabindex="-1" aria-labelledby="messageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0 bg-primary text-white">
+                <h5 class="modal-title" id="messageModalLabel">
+                    <i class="fas fa-info-circle me-2"></i>Cart updates
+                </h5>
+            </div>
+            <div class="modal-body p-4">
+                {% if messages %}
+                    <div id="messageContent">
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} fade show" role="alert">
+                                <i class="fas fa-{{ message.tags }}-circle me-2"></i>
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Got it</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Error Modal -->
+<div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="errorModalLabel">Error</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="errorModalBody">
+                <!-- Error message will be inserted here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+     
 {% endblock  %}
 
 {% block extra_js %}
+    <script src="{% static 'store-assets/assets/js/jquery.min.js' %}"></script>
+    <script src="{% static 'store-assets/assets/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'store-assets/assets/js/jquery.hoverIntent.min.js' %}"></script>
+    <script src="{% static 'store-assets/assets/js/jquery.waypoints.min.js' %}"></script>
+    <script src="{% static 'store-assets/assets/js/superfish.min.js' %}"></script>
+    <script src="{% static 'store-assets/assets/js/owl.carousel.min.js' %}"></script>
+    <script src="{% static 'store-assets/assets/js/bootstrap-input-spinner.js' %}"></script>
+    <!-- Main JS File -->
+    <script src="{% static 'store-assets/assets/js/main.js' %}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    // Show message modal if there are messages
+    if ($("#messageContent").children().length > 0) {
+        $("#messageModal").modal('show');
+    }
+    
+    // Close message modal
+    $('.btn-close, .btn-primary').on('click', function() {
+        $('#messageModal').modal('hide');
+    });
+
+    // Debounce function
+    function debounce(func, wait) {
+        let timeout;
+        return function(...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), wait);
+        };
+    }
+
+    // Loading indicator functions
+    function showLoading() {
+        $('body').append('<div class="loading-overlay"><div class="spinner"></div></div>');
+    }
+
+    function hideLoading() {
+        $('.loading-overlay').remove();
+    }
+
+    // Error modal function
+    function showErrorModal(message) {
+        $('#errorModalBody').text(message);
+        $('#errorModal').modal('show');
+    }
+
+    // Update cart total function
+    function updateCartTotal() {
+        let total = 0;
+        $('.total-col').each(function() {
+            total += parseFloat($(this).text());
+        });
+        $('#cart-subtotal, #cart-total').text(total.toFixed(2));
+    }
+
+    // Handle quantity change
+    $('.quantity-input').on('change', function() {
+        var input = $(this);
+        var cartItemId = input.data('item-id');
+        var quantity = parseInt(input.val());
+        var price = parseFloat(input.data('price'));
+
+        // Update item total
+        var itemTotal = quantity * price;
+        $('#total-' + cartItemId).text(itemTotal.toFixed(2));
+
+        // Update cart total
+        updateCartTotal();
+
+        // Debounced server update
+        debouncedUpdate(cartItemId, quantity);
+    });
+
+    const debouncedUpdate = debounce(function(cartItemId, quantity) {
+        showLoading();
+        $.ajax({
+            url: '/cart/update/' + cartItemId + '/',
+            type: 'POST',
+            data: {
+                'quantity': quantity,
+            },
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            success: function(response) {
+                if (response.success) {
+                    // Update the item's total price (server-side confirmation)
+                    $('#total-' + cartItemId).text(response.item_total.toFixed(2));
+                    updateCartTotal();
+                } else {
+                    showErrorModal(response.error || 'Failed to update cart item.');
+                }
+            },
+            error: function(xhr) {
+                var errorMessage = xhr.responseJSON?.error || 'An error occurred while updating the cart item.';
+                showErrorModal(errorMessage);
+            },
+            complete: function() {
+                hideLoading();
+            }
+        });
+    }, 300);
+
+    // Handle remove item
+    $('.btn-remove').on('click', function() {
+        var cartItemId = $(this).data('cart-item-id');
+        var cartRow = $(this).closest('tr');
+        
+        showLoading();
+        $.ajax({
+            url: '/cart/remove/' + cartItemId + '/',
+            type: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            success: function(response) {
+                if (response.success) {
+                    cartRow.remove();
+                    updateCartTotal();
+                    if ($('.table-cart tbody tr').length === 0) {
+                        $('.table-cart').replaceWith('<p>Your cart is empty.</p>');
+                        $('.summary-cart').hide();
+                    }
+                } else {
+                    showErrorModal(response.error || 'Failed to remove item from cart.');
+                }
+            },
+            error: function(xhr) {
+                var errorMessage = xhr.responseJSON?.error || 'An error occurred while removing the item from cart.';
+                showErrorModal(errorMessage);
+            },
+            complete: function() {
+                hideLoading();
+            }
+        });
+    });
+});
+</script>    
+
+{% endblock %}
+
+{% comment %} {% block extra_js %}
     <script src="{% static 'store-assets/assets/js/jquery.min.js' %}"></script>
     <script src="{% static 'store-assets/assets/js/bootstrap.bundle.min.js' %}"></script>
     <script src="{% static 'store-assets/assets/js/jquery.hoverIntent.min.js' %}"></script>
@@ -238,7 +506,128 @@
     <script src="{% static 'store-assets/assets/js/bootstrap.bundle.min.js' %}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js"></script>
 
+
 <script>
+$(document).ready(function() {
+    // Show message modal if there are messages
+    if ($("#messageContent").children().length > 0) {
+        $("#messageModal").modal('show');
+    }
+    
+    // Close message modal
+    $('.btn-close, .btn-primary').on('click', function() {
+        $('#messageModal').modal('hide');
+    });
+
+    // Debounce function
+    function debounce(func, wait) {
+        let timeout;
+        return function(...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), wait);
+        };
+    }
+
+    // Loading indicator functions
+    function showLoading() {
+        $('body').append('<div class="loading-overlay"><div class="spinner"></div></div>');
+    }
+
+    function hideLoading() {
+        $('.loading-overlay').remove();
+    }
+
+    // Error modal function
+    function showErrorModal(message) {
+        $('#errorModalBody').text(message);
+        $('#errorModal').modal('show');
+    }
+
+    // Update cart total function
+    function updateCartTotal(total) {
+        $('.summary-total td:last, .summary-subtotal td:last, .cart-total-price').text(total.toFixed(2));
+    }
+
+    // Handle quantity change
+    $('.cart-product-quantity input').on('change', function() {
+        var cartRow = $(this).closest('tr');
+        var cartItemId = cartRow.find('.btn-remove').data('cart-item-id');
+        var quantity = parseInt($(this).val());
+
+        // Debounced server update
+        debouncedUpdate(cartItemId, quantity);
+    });
+
+    const debouncedUpdate = debounce(function(cartItemId, quantity) {
+        showLoading();
+        $.ajax({
+            url: '/cart/update/' + cartItemId + '/',
+            type: 'POST',
+            data: {
+                'quantity': quantity,
+            },
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            success: function(response) {
+                if (response.success) {
+                    updateCartTotal(response.cart_total);
+                    // Update the item's total price
+                    $(`[data-cart-item-id="${cartItemId}"]`).closest('tr').find('.total-col').text(response.item_total.toFixed(2));
+                } else {
+                    showErrorModal(response.error || 'Failed to update cart item.');
+                }
+            },
+            error: function(xhr) {
+                var errorMessage = xhr.responseJSON?.error || 'An error occurred while updating the cart item.';
+                showErrorModal(errorMessage);
+            },
+            complete: function() {
+                hideLoading();
+            }
+        });
+    }, 300);
+
+    // Handle remove item
+    $('.btn-remove').on('click', function() {
+        var cartItemId = $(this).data('cart-item-id');
+        var cartRow = $(this).closest('tr');
+        
+        showLoading();
+        $.ajax({
+            url: '/cart/remove/' + cartItemId + '/',
+            type: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            success: function(response) {
+                if (response.success) {
+                    cartRow.remove();
+                    updateCartTotal(response.cart_total);
+                    if ($('.table-cart tbody tr').length === 0) {
+                        $('.table-cart').replaceWith('<p>Your cart is empty.</p>');
+                        $('.summary-cart').hide();
+                    }
+                } else {
+                    showErrorModal(response.error || 'Failed to remove item from cart.');
+                }
+            },
+            error: function(xhr) {
+                var errorMessage = xhr.responseJSON?.error || 'An error occurred while removing the item from cart.';
+                showErrorModal(errorMessage);
+            },
+            complete: function() {
+                hideLoading();
+            }
+        });
+    });
+});
+</script>    
+
+
+{% endblock  %} {% endcomment %}
+
+{% comment %} <script>
 $(document).ready(function() {
     // Show message modal if there are messages
     if ($("#messageContent").children().length > 0) {
@@ -373,6 +762,107 @@ $(document).ready(function() {
         });
     });
 });
-</script>
-{% endblock  %}
+</script> {% endcomment %}
 
+
+
+   {% comment %} <main class="main">
+        	<div class="page-header text-center" style="background-image: url('store-assets/assets/images/page-header-bg.jpg')">
+        		<div class="container">
+        			<h1 class="page-title">Shopping Cart<span>Shop</span></h1>
+        		</div><!-- End .container -->
+        	</div><!-- End .page-header -->
+            <nav aria-label="breadcrumb" class="breadcrumb-nav">
+                <div class="container">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+                        <li class="breadcrumb-item"><a href="#">Shop</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Shopping Cart</li>
+                    </ol>
+                </div><!-- End .container -->
+            </nav><!-- End .breadcrumb-nav -->
+
+        <div class="page-content">
+            <div class="cart">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-lg-9">
+                        <table class="table table-cart table-mobile">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Price</th>
+                                    <th>Quantity</th>
+                                    <th>Total</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in cart_items %}
+                                    {% if item.product_variant.stock > 0 and item.product_variant.is_available %}
+                                        <tr>
+                                            <td class="product-col">
+                                                <div class="product">
+                                                    <figure class="product-media">
+                                                        <a href="{% url 'product_info' id=item.product_variant.product.id %}">
+                                                            <img src="{{ item.product_variant.image_1.url }}" alt="{{ item.product_variant.product.name }}">
+                                                        </a>
+                                                    </figure>
+
+                                                    <h3 class="product-title">
+                                                        <a href="{% url 'product_info' id=item.product_variant.product.id %}">{{ item.product_variant.product.name }} - {{ item.product_variant.color.name }}</a>
+                                                    </h3>
+                                                </div>
+                                            </td>
+                                            <td class="price-col">{{ item.product_variant.price }}</td>
+                                            <td class="quantity-col">
+                                                <div class="cart-product-quantity">
+                                                    {% if item.product_variant.stock >= 10 %}
+                                                    <input type="number" class="form-control" value="{{ item.quantity }}" min="1" max="10" step="1" data-decimals="0" required>
+                                                    {% else %}
+                                                    <input type="number" class="form-control" value="{{ item.quantity }}" min="1" max="{{ item.product_variant.stock }}" step="1" data-decimals="0" required>
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                            <td class="total-col">{{ item.get_total_price }}</td>
+                                            <td class="remove-col">
+                                                <button class="btn-remove" data-cart-item-id="{{ item.id }}">
+                                                    <i class="icon-close"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    {% endif %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        <!-- ... (rest of the cart content) ... -->
+
+                        </div>
+                        <aside class="col-lg-3">
+                            <div class="summary summary-cart">
+                                <h3 class="summary-title">Cart Total</h3>
+
+                                <table class="table table-summary">
+                                    <tbody>
+                                        <tr class="summary-subtotal">
+                                            <td>Subtotal:</td>
+                                            <td>{{ cart_total }}</td>
+                                        </tr>
+                                        <!-- ... (rest of the summary content) ... -->
+                                        <tr class="summary-total">
+                                            <td>Total:</td>
+                                            <td>{{ cart_total }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+
+                                <a href="{% url "checkout" %}" class="btn btn-outline-primary-2 btn-order btn-block">PROCEED TO CHECKOUT</a>
+                            </div>
+
+                            <a href="{% url 'home' %}" class="btn btn-outline-dark-2 btn-block mb-3"><span>CONTINUE SHOPPING</span><i class="icon-refresh"></i></a>
+                        </aside>
+                    </div>
+                </div>
+            </div>
+        </div>
+</main> {% endcomment %}

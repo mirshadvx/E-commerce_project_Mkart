@@ -58,7 +58,12 @@ class CartItem(models.Model):
     added_at = models.DateTimeField(auto_now_add=True)
     
     def get_total_price(self):
-        return self.quantity * self.product_variant.price
+        # Use the discounted price instead of the original price
+        discounted_price = self.product_variant.product.get_discounted_price()
+        return self.quantity * discounted_price
+    
+    # def get_total_price(self):
+    #     return self.quantity * self.product_variant.price
 
 class Order(models.Model):
     STATUS_CHOICES = [
@@ -91,6 +96,7 @@ class Order(models.Model):
     razorpay_order_id = models.CharField(max_length=100, blank=True, null=True)
     razorpay_payment_id = models.CharField(max_length=100, blank=True, null=True)
     coupon = models.CharField(max_length=50,null=True)
+    discount_amount_coupon = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     def __str__(self):
         return f"Order {self.id} - {self.user.username}"

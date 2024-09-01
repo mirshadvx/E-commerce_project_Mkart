@@ -147,8 +147,8 @@
                     </div>
                     <div class="mb-3">
                         <label for="offerDiscount" class="form-label">Discount (%)</label>
-                        <input type="number" class="form-control" id="offerDiscount" name="discount" min="0" max="100" >
-                        <div class="invalid-feedback">Please enter a valid discount between 0 and 100.</div>
+                        <input type="number" class="form-control" id="offerDiscount" name="discount" min="0">
+                        <div class="invalid-feedback">Please enter a valid discount between 0 and 90.</div>
                     </div>
                     <div class="mb-3">
                         <label for="validFrom" class="form-label">Valid From</label>
@@ -206,7 +206,7 @@ $(document).ready(function() {
         
         // Validate Discount
         const discount = $('#offerDiscount').val();
-        if (discount === '' || isNaN(discount) || discount < 0 || discount > 100) {
+        if (discount === '' || isNaN(discount) || discount < 0 || discount > 90) {
             $('#offerDiscount').addClass('is-invalid');
             isValid = false;
         } else {

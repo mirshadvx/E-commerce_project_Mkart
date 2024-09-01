@@ -28,7 +28,7 @@ urlpatterns = [
     path('update_order_item_status/', views.update_order_item_status, name='update_order_item_status'),
     #coupon
     path('addcoupon/', views.add_coupon, name='add_coupon'),
-    path('couponList/',views.show_coupon_list,name='Coupon_list'),
+    path('couponList/',views.show_coupon_list,name='coupon_list'),
     path('coupon_exists/',views.coupon_exists,name='coupon_exists'),
     #offer
     path('offer/',views.offer_list,name='offer'),

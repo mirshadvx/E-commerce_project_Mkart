@@ -1,4 +1,480 @@
 {% extends "store/Base.html" %}
+{% load static %}
+
+{% block title %}Checkout - Your Store{% endblock %}
+
+{% block extra_style %}
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <link rel="apple-touch-icon" sizes="180x180" href="store-assets/assets/images/icons/apple-touch-icon.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="store-assets/assets/images/icons/favicon-32x32.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="store-assets/assets/images/icons/favicon-16x16.png" />
+        <link rel="manifest" href="store-assets/assets/images/icons/site.html" />
+        <link rel="mask-icon" href="store-assets/assets/images/icons/safari-pinned-tab.svg" color="#666666" />
+        <link rel="shortcut icon" href="store-assets/assets/images/icons/favicon.ico" />
+        <meta name="apple-mobile-web-app-title" content="Molla" />
+        <meta name="application-name" content="Molla" />
+        <meta name="msapplication-TileColor" content="#cc9966" />
+        <meta name="msapplication-config" content="store-assets/assets/images/icons/browserconfig.xml" />
+        <meta name="theme-color" content="#ffffff" />
+        <!-- Plugins CSS File -->
+        <link rel="stylesheet" href="{% static 'store-assets/assets/css/bootstrap.min.css' %}" />
+        <link rel="stylesheet" href="{% static 'store-assets/assets/css/plugins/owl-carousel/owl.carousel.css' %}" />
+        <link rel="stylesheet" href="{% static 'store-assets/assets/css/plugins/magnific-popup/magnific-popup.css' %}" />
+        <!-- Main CSS File -->
+        <link rel="stylesheet" href="{% static 'store-assets/assets/css/style.css' %}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .checkout-container {
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-top: 50px;
+            margin-bottom: 50px;
+        }
+        .checkout-steps {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+        .checkout-step {
+            flex: 1;
+            text-align: center;
+            padding: 15px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+            font-weight: bold;
+            color: #495057;
+            position: relative;
+        }
+        .checkout-step.active {
+            background-color: #007bff;
+            color: white;
+        }
+        .checkout-step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            right: -15px;
+            transform: translateY(-50%);
+            width: 30px;
+            height: 2px;
+            background-color: #ced4da;
+        }
+        .form-check-input:checked {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+        .card {
+            border: none;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+        }
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: none;
+            font-weight: bold;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+        }
+        .coupon-form {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        .coupon-form input {
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+        .coupon-form button {
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+        }
+        .order-summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .payment-icons {
+            font-size: 24px;
+            margin-right: 10px;
+        }
+        .error-message {
+            color: red;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="container checkout-container">
+    <h1 class="mb-4 text-center">Checkout</h1>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <form method="post" id="checkout-form">
+                {% csrf_token %}
+                
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3 class="mb-0">Shipping Address</h3>
+                    </div>
+                    <div class="card-body">
+                        {% if user.addresses.all %}
+                            <div class="mb-3">
+                                {% for address in user.addresses.all %}
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input address-select" type="radio" name="selected_address" id="address{{ address.id }}" value="{{ address.id }}" {% if forloop.first %}checked{% endif %}>
+                                        <label class="form-check-label" for="address{{ address.id }}">
+                                            {{ address.full_name }} {{ address.last_name }}, {{ address.address_line_1 }}, {{ address.city }}, {{ address.state }}, {{ address.postal_code }}, {{ address.country }}
+                                        </label>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="use_new_address" name="use_new_address">
+                            <label class="form-check-label" for="use_new_address">
+                                Use a new address
+                            </label>
+                        </div>
+
+                        <div id="new_address_form" style="display: none;">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="full_name" class="form-label">Full Name</label>
+                                    <input type="text" class="form-control" id="full_name" name="full_name">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="last_name" class="form-label">Last Name</label>
+                                    <input type="text" class="form-control" id="last_name" name="last_name">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="phone_number" class="form-label">Phone Number</label>
+                                    <input type="tel" class="form-control" id="phone_number" name="phone_number">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="email" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="email" name="email">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="address_line_1" class="form-label">Address Line 1</label>
+                                <input type="text" class="form-control" id="address_line_1" name="address_line_1">
+                            </div>
+                            <div class="mb-3">
+                                <label for="address_line_2" class="form-label">Address Line 2 (Optional)</label>
+                                <input type="text" class="form-control" id="address_line_2" name="address_line_2">
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="city" class="form-label">City</label>
+                                    <input type="text" class="form-control" id="city" name="city">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="state" class="form-label">State</label>
+                                    <input type="text" class="form-control" id="state" name="state">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="postal_code" class="form-label">Postal Code</label>
+                                    <input type="text" class="form-control" id="postal_code" name="postal_code">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="country" class="form-label">Country</label>
+                                    <input type="text" class="form-control" id="country" name="country">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3 class="mb-0">Payment Method</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="payment_method" id="payment_cod" value="cod" checked>
+                                <label class="form-check-label" for="payment_cod">
+                                    <i class="fas fa-money-bill-wave payment-icons"></i> Cash on Delivery
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="payment_method" id="payment_razorpay" value="razorpay">
+                                <label class="form-check-label" for="payment_razorpay">
+                                    <i class="fas fa-credit-card payment-icons"></i> Razorpay
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-lg w-100" id="place-order-btn">Place Order</button>
+                <button type="button" class="btn btn-primary btn-lg w-100" id="rzp-button1" style="display: none;">Pay with Razorpay</button>
+            </form>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3 class="mb-0">Order Summary</h3>
+                </div>
+                <div class="card-body">
+                    {% for item in cart_items %}
+                        <div class="order-summary-item">
+                            <span>{{ item.product_variant.product.name }} - {{ item.product_variant.color }} (x{{ item.quantity }})</span>
+                            <span>{{ item.get_total_price }}</span>
+                        </div>
+                    {% endfor %}
+                    <hr>
+                    <div class="order-summary-item">
+                        <strong>Subtotal:</strong>
+                        <span>{{ cart_total }}</span>
+                    </div>
+                    {% if coupon %}
+                        <div class="order-summary-item">
+                            <strong>Coupon ({{ coupon.code }}):</strong>
+                            <span>-{{ coupon_discount }}</span>
+                        </div>
+                        <form method="post" class="mb-3">
+                            {% csrf_token %}
+                            <button type="submit" name="remove_coupon" class="btn btn-sm btn-outline-danger w-100">Remove Coupon</button>
+                        </form>
+                    {% endif %}
+                    <div class="order-summary-item">
+                        <strong>Total:</strong>
+                        <strong>{{ final_total }}</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Coupon Application Section -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0">Apply Coupon</h3>
+                </div>
+                <div class="card-body">
+<form method="post" class="coupon-form">
+    {% csrf_token %}
+    <input type="text" name="coupon_code" class="form-control" placeholder="Enter coupon code">
+    <button type="submit" class="btn btn-primary">Apply</button>
+</form>
+
+{% if coupon %}
+    <div class="mt-2">
+        <p>Applied Coupon: {{ coupon }}</p>
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" name="remove_coupon" class="btn btn-sm btn-outline-danger">Remove Coupon</button>
+        </form>
+    </div>
+{% endif %}
+
+{% comment %} {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+{% endif %} {% endcomment %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for displaying messages -->
+<div class="modal fade" id="messageModal" tabindex="-1" aria-labelledby="messageModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="messageModalLabel">Message</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="messageContent">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+    $(document).ready(function() {
+        // Show message modal if there are messages
+        if ($("#messageContent").children().length > 0) {
+            $("#messageModal").modal('show');
+        }
+        
+        // Handle address selection
+        $('#use_new_address').change(function() {
+            if(this.checked) {
+                $('#new_address_form').show();
+                $('input[name="selected_address"]').prop('checked', false);
+            } else {
+                $('#new_address_form').hide();
+                $('input[name="selected_address"]:first').prop('checked', true);
+            }
+        });
+
+        // Handle payment method selection
+        $('input[name="payment_method"]').change(function() {
+            if ($(this).val() === 'razorpay') {
+                $('#rzp-button1').show();
+                $('#place-order-btn').hide();
+            } else {
+                $('#rzp-button1').hide();
+                $('#place-order-btn').show();
+            }
+        });
+
+        // Form validation
+        $('#checkout-form').submit(function(event) {
+            if ($('#use_new_address').is(':checked')) {
+                let isValid = true;
+                
+                // Perform validation for each field
+                isValid = validateField('#full_name', 'Please enter a valid full name') && isValid;
+                isValid = validateField('#last_name', 'Please enter a valid last name') && isValid;
+                isValid = validateField('#phone_number', 'Please enter a valid phone number', /^\d{10}$/) && isValid;
+                isValid = validateField('#email', 'Please enter a valid email address', /^[^\s@]+@[^\s@]+\.[^\s@]+$/) && isValid;
+                isValid = validateField('#address_line_1', 'Address is required') && isValid;
+                isValid = validateField('#city', 'City is required') && isValid;
+                isValid = validateField('#state', 'State is required') && isValid;
+                isValid = validateField('#postal_code', 'Please enter a valid 6-digit postal code', /^\d{6}$/) && isValid;
+                isValid = validateField('#country', 'Country is required') && isValid;
+
+                if (!isValid) {
+                    event.preventDefault();
+                }
+            }
+        });
+
+        function validateField(selector, errorMessage, regex = null) {
+            const $field = $(selector);
+            const value = $field.val().trim();
+            
+            if (value === '' || (regex && !regex.test(value))) {
+                showError($field, errorMessage);
+                return false;
+            } else {
+                removeError($field);
+                return true;
+            }
+        }
+
+        function showError($element, message) {
+            $element.addClass('is-invalid');
+            $element.siblings('.error-message').text(message);
+        }
+
+        function removeError($element) {
+            $element.removeClass('is-invalid');
+            $element.siblings('.error-message').text('');
+        }
+
+        // Remove error messages when user starts typing
+        $('input').on('input', function() {
+            removeError($(this));
+        });
+
+        // Coupon application
+        $('#coupon-form').submit(function(e) {
+            e.preventDefault();
+            $.ajax({
+                url: '/apply_coupon/',  // Update this URL to match your coupon application endpoint
+                method: 'POST',
+                data: $(this).serialize(),
+                success: function(response) {
+                    if (response.success) {
+                        $('#coupon-message').html('<div class="alert alert-success">' + response.message + '</div>');
+                        // Update order summary
+                        updateOrderSummary(response.new_total, response.discount);
+                    } else {
+                        $('#coupon-message').html('<div class="alert alert-danger">' + response.message + '</div>');
+                    }
+                },
+                error: function() {
+                    $('#coupon-message').html('<div class="alert alert-danger">An error occurred. Please try again.</div>');
+                }
+            });
+        });
+
+        function updateOrderSummary(newTotal, discount) {
+            // Update the order summary with new total and discount
+            $('.order-summary-item:last strong:last').text('$' + newTotal);
+            if (discount > 0) {
+                // Add or update discount line
+                if ($('.order-summary-item:contains("Coupon")').length) {
+                    $('.order-summary-item:contains("Coupon") span:last').text('-' + discount);
+                } else {
+                    $('.order-summary-item:last').before('<div class="order-summary-item"><strong>Discount:</strong><span>-' + discount + '</span></div>');
+                }
+            }
+        }
+    });
+
+    // Razorpay integration
+    var options = {
+        "key": "{{ razorpay_key_id }}",
+        "amount": "{{ cart_total_paise }}",
+        "currency": "INR",
+        "name": "Mkart",
+        "description": "Order Payment",
+        "image": "https://example.com/your_logo.png",
+        "order_id": "{{ razorpay_order_id }}",
+        "handler": function (response){
+            document.getElementById('razorpay_payment_id').value = response.razorpay_payment_id;
+            document.getElementById('razorpay_order_id').value = response.razorpay_order_id;
+            document.getElementById('razorpay_signature').value = response.razorpay_signature;
+            document.getElementById('checkout-form').submit();
+        },
+        "prefill": {
+            "name": "{{ user.get_full_name }}",
+            "email": "{{ user.email }}",
+            "contact": "{{ user.phone_number }}"
+        },
+        "theme": {
+            "color": "#3399cc"
+        }
+    };
+    var rzp1 = new Razorpay(options);
+    document.getElementById('rzp-button1').onclick = function(e){
+        rzp1.open();
+        e.preventDefault();
+    }
+</script>
+{% endblock %}
+
+
+
+{% comment %} {% extends "store/Base.html" %}
+{% load custom_filters %}
 
 {% load static %}
 
@@ -129,22 +605,45 @@
     <div class="page-content">
         <div class="checkout">
             <div class="container">
-            			{% comment %} <div class="checkout-discount">
-            				<form action="#">
-        						<input type="text" class="form-control" required id="checkout-discount-input">
-            					<label for="checkout-discount-input" class="text-truncate">Have a coupon? <span>Click here to enter your code</span></label>
-            				</form>
-            			</div><!-- End .checkout-discount --> {% endcomment %}
-<div class="checkout-discount">
+{% comment %} <div class="checkout-discount">
     <form action="#" id="coupon-form">
         <input type="text" class="form-control" required id="checkout-discount-input" name="coupon_code">
         <label for="checkout-discount-input" class="text-truncate">Have a coupon? <span>Click here to enter your code</span></label>
         <button type="submit" class="btn btn-outline-primary-2">Apply Coupon</button>
     </form>
     <div id="coupon-message"></div>
+</div> {% endcomment %}
+<!-- Coupon Form -->
+{% comment %} <div class="checkout-discount">
+    <form action="{% url 'checkout' %}" method="POST" id="coupon-form">
+        {% csrf_token %}
+        <input type="text" class="form-control" required id="checkout-discount-input" name="coupon_code">
+        <label for="checkout-discount-input" class="text-truncate">Have a coupon? <span>Click here to enter your code</span></label>
+        <button type="submit" class="btn btn-outline-primary-2">Apply Coupon</button>
+    </form>
+    <div id="coupon-message">
+        {% if coupon %}
+            <div class="alert alert-success">Coupon "{{ coupon.code }}" applied successfully!</div>
+        {% endif %}
+    </div>
+</div> {% endcomment %}
+{% comment %} <div class="checkout-discount">
+    <form action="{% url 'checkout' %}" method="POST" id="coupon-form">
+        {% csrf_token %}
+        <input type="text" class="form-control" required id="checkout-discount-input" name="coupon_code">
+        <label for="checkout-discount-input" class="text-truncate">Have a coupon? <span>Click here to enter your code</span></label>
+        <button type="submit" name="apply_coupon" class="btn btn-outline-primary-2">Apply Coupon</button>
+    </form>
+    <div id="coupon-message">
+        {% if coupon %}
+            <div class="alert alert-success">Coupon "{{ coupon.code }}" applied successfully!</div>
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" name="remove_coupon" class="btn btn-sm btn-danger">Remove Coupon</button>
+            </form>
+        {% endif %}
+    </div>
 </div>
-
-
                 <form action="{% url 'checkout' %}" method="POST" id="razorpay-form">
                     {% csrf_token %}
                     <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id">
@@ -247,49 +746,62 @@
                                             <th>Total</th>
                                         </tr>
                                     </thead>
+<tbody>
+    {% for item in cart_items %}
+    <tr>
+        <td><a href="{% url 'product_info' item.product_variant.product.id %}">{{ item.product_variant.product.name }}</a></td>
+        <td>
+            {% with original_price=item.product_variant.price discounted_price=item.product_variant.product.get_discounted_price %}
+                {% if original_price != discounted_price %}
+                    <span class="original-price" style="text-decoration: line-through;">{{ original_price }}</span>
+                    <span class="discounted-price">{{ discounted_price }}</span>
+                {% else %}
+                    <span>{{ original_price }}</span>
+                {% endif %}
+            {% endwith %}
+        </td>
+        <td>{{ item.quantity }}</td>
+        <td>{{ item.get_total_price }}</td>
+    </tr>
+    {% endfor %}
 
-                                    <tbody>
-                                        {% for item in cart_items %}
-                                        <tr>
-                                            <td><a href="{% url 'product_info' item.product_variant.product.id %}">{{ item.product_variant.product.name }}</a></td>
-                                            <td>{{ item.get_total_price }}</td>
-                                        </tr>
-                                        {% endfor %}
-
-                                        <tr class="summary-subtotal">
-                                            <td>Subtotal:</td>
-                                            <td>{{ cart_total }}</td>
-                                        </tr>
-                                            <tr id="discount-row" style="display: none;">
-                                            <td>Discount:</td>
-                                            <td id="discount-amount"></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Shipping:</td>
-                                            <td>Free shipping</td>
-                                        </tr>
-                                        <tr class="summary-total">
-                                            <td>Total:</td>
-                                            <td>{{ cart_total }}</td>
-                                        </tr>
-                                    </tbody>
+    <tr class="summary-subtotal">
+        <td colspan="3">Subtotal:</td>
+        <td>{{ cart_total }}</td>
+    </tr>
+    {% if coupon %}
+    <tr id="discount-row">
+        <td colspan="3">Coupon Discount ({{ coupon.code }}):</td>
+        <td>-{{ coupon_discount }}</td>
+        <td>
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" name="remove_coupon" class="btn btn-sm btn-danger">Remove Coupon</button>
+            </form>
+        </td>
+    </tr>
+    {% endif %}
+    <tr>
+        <td colspan="3">Shipping:</td>
+        <td>Free shipping</td>
+    </tr>
+    <tr class="summary-total">
+        <td colspan="3">Total:</td>
+        <td>{{ final_total }}</td>
+    </tr>
+</tbody>                                 
                                 </table>
                                 <!-- Payment Options -->
                                 <div class="form-group">
                                     <label for="payment_method">Payment Method</label>
                                     <select name="payment_method" id="payment_method" class="form-control" required>
                                         {% comment %} {% if cod_available %} {% endcomment %}
-                                            <option value="cod">Cash on Delivery</option>
+                                            {% comment %} <option value="cod">Cash on Delivery</option> {% endcomment %}
                                         {% comment %} {% endif %} {% endcomment %}
-                                        <option value="razorpay">Razorpay</option>
+                                        {% comment %} <option value="razorpay">Razorpay</option>
                                         <option value="wallet">Wallet</option>
                                     </select>
                                 </div>
-
-                                {% comment %} {% if not cod_available %}
-                                    <p class="text-danger">Cash on Delivery is not available for orders above ₹{{ cod_max_limit }}</p>
-                                {% endif %} {% endcomment %}
-
                                 <button id="rzp-button1" type="button" class="btn btn-outline-primary-2 btn-block" style="display: none;">
                                     <span class="btn-text">Pay with Razorpay</span>
                                 </button>
@@ -318,39 +830,24 @@
     <script src="{% static 'store-assets/assets/js/main.js' %}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js"></script>
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script> 
-    
-    <script>
+<script>
 $(document).ready(function() {
-    $('#coupon-form').on('submit', function(e) {
-        e.preventDefault();
-        var couponCode = $('#checkout-discount-input').val();
+    $('#coupon-form').submit(function(event) {
+        event.preventDefault();
         $.ajax({
-            url: '{% url "apply_coupon" %}',
+            url: $(this).attr('action'),
             type: 'POST',
-            data: {
-                'coupon_code': couponCode,
-                'csrfmiddlewaretoken': '{{ csrf_token }}'
-            },
+            data: $(this).serialize(),
             success: function(response) {
-                if (response.valid) {
-                    $('#coupon-message').html('<div class="alert alert-success">Coupon applied successfully!</div>');
-                    $('#discount-row').show();
-                    $('#discount-amount').text('-$' + response.discount.toFixed(2));
-                    $('#final-total').text('$' + response.new_total.toFixed(2));
-                } else {
-                    $('#coupon-message').html('<div class="alert alert-danger">' + response.message + '</div>');
-                }
+                location.reload();
             },
-            error: function() {
-                $('#coupon-message').html('<div class="alert alert-danger">An error occurred. Please try again.</div>');
+            error: function(xhr, status, error) {
+                console.error(error);
             }
         });
     });
 });
-
-
-    </script>
-    
+</script>    
     <script>
         var options = {
             "key": "{{ razorpay_key_id }}",
@@ -381,8 +878,6 @@ $(document).ready(function() {
             e.preventDefault();
         }
     </script>
-
- 
     <script>
     $(document).ready(function() {
         if ($("#messageContent").children().length > 0) {
@@ -518,7 +1013,7 @@ $(document).ready(function() {
         $(this).next('.invalid-feedback').remove();
     });
     </script>
-{% endblock %}
+{% endblock %} {% endcomment %}
 
 
 

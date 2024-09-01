@@ -1,4 +1,5 @@
 # from time import timezone
+from decimal import Decimal
 from django.utils import timezone as django_timezone
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
@@ -35,9 +36,9 @@ class Coupon(models.Model):
         if self.usage_limit:
             return self.times_used < self.usage_limit
         return True
-
     def apply_discount(self, total_amount):
-        return (total_amount * (self.discount / 100))
+        discount_factor = Decimal(self.discount) / Decimal(100)
+        return Decimal(total_amount) * discount_factor
 
     def increment_usage(self):
         self.times_used += 1
@@ -53,8 +54,11 @@ class Offer(models.Model):
 
     def __str__(self):
         return self.name
-
     class Meta:
         ordering = ['-valid_from']
+        
+    def is_valid(self):
+        now = django_timezone.now()
+        return self.is_active and self.valid_from <= now <= self.valid_to
 
 
