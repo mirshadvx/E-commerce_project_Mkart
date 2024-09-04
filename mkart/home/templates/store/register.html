@@ -1,9 +1,7 @@
 {% extends 'store/Base.html' %}
 {% load static %}
 {% load socialaccount %}
-
 {% block title %}sing up{% endblock  %}
-
 {% block extra_style %}
     <link rel="apple-touch-icon" sizes="180x180" href="store-assets/assets/images/icons/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="store-assets/assets/images/icons/favicon-32x32.png">
@@ -21,7 +19,6 @@
     <!-- Main CSS File -->
     <link rel="stylesheet" href="{% static 'store-assets/assets/css/style.css' %}">
 {% endblock %}
-
 {% block content %}
 <main class="main">
     <div class="login-page bg-image pt-8 pb-8 pt-md-12 pb-md-12 pt-lg-17 pb-lg-17" style="background-image: url('{% static '\shop_img\background.jpg' %}')">
@@ -79,7 +76,15 @@
                                             </div>
                                         {% endif %}
                                     </div>
-                                
+<div class="form-group">
+    <label for="register-referral">Referral Code (Optional)</label>
+    <input type="text" class="form-control {% if errors.referral_code %}is-invalid{% endif %}" id="register-referral" name="referral_code" value="{{ referral_code }}">
+    {% if errors.referral_code %}
+        <div class="invalid-feedback" style="display: block;">
+            {{ errors.referral_code }}
+        </div>
+    {% endif %}
+</div>                                    
                                     <div class="form-footer">
                                         <button type="submit" class="btn btn-outline-primary-2 col-12">
                                             <span>SIGN UP</span>
@@ -87,11 +92,6 @@
                                         </button>
                                     </div>
                                      <div class="col-sm-12">
-    {% comment %} <a href="{% provider_login_url 'google' %}" class="btn btn-login btn-g">
-        <i class="icon-google"></i>
-        Sign in With Google
-    </a> {% endcomment %}
-
     <a href="{% provider_login_url 'google' %}?next=/" class="btn btn-login btn-g">
         <i class="icon-google"></i>
         Sign in With Google

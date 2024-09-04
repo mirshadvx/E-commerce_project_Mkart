@@ -27,10 +27,15 @@ from django.views.decorators.csrf import csrf_exempt
 from decimal import Decimal
 from django.core.exceptions import ValidationError
 from .models import *
-
+from django.utils import timezone
+from datetime import timedelta
+from django.db.models import Count, Sum
+from django.utils.dateparse import parse_datetime
+from django.views.decorators.cache import never_cache
 
 # Create your views here.
 
+@never_cache
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
 def dashboard(request):
@@ -63,7 +68,6 @@ def add_Category(request):
 
         messages.success(request, 'Category added successfully.')
     return render(request,'addCategory.html')
-
 
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
@@ -374,12 +378,14 @@ def add_variant(request, id):
     return render(request, 'addVariant.html', context)
 
 
+@never_cache
 def logout_admin(request):
     if request.user.is_authenticated:
         logout(request)
     return redirect(reverse('login'))
 
-
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
 def show_order_list(request):
     orders = Order.objects.all().select_related('user').prefetch_related('ordered_items')
     
@@ -411,6 +417,8 @@ def show_order_list(request):
 #     }
 #     return render(request, 'order_Details.html', context)
 
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
 def show_order_details(request, id):
     order = get_object_or_404(Order.objects.select_related('user', 'order_address').prefetch_related(
         'ordered_items__product_variant__product__brand',
@@ -438,7 +446,8 @@ def show_order_details(request, id):
 #     except Exception as e:
 #         return JsonResponse({'success': False, 'error': str(e)})
 
-
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
 def update_order_item_status(request):
     if request.method == 'POST':
         item_id = request.POST.get('item_id')
@@ -484,7 +493,8 @@ def update_order_item_status(request):
 
 
 
-
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
 def add_coupon(request):
     if request.method == 'POST':
         try:
@@ -538,16 +548,93 @@ def add_coupon(request):
     # If it's a GET request or if there were errors, render the form again
     return render(request, 'addCoupon.html')
 
-def show_coupon_list(request):
-    return HttpResponse(request,"done")
-
-
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
 def coupon_exists(request):
     coupon_code = request.GET.get('code', None)
     exists = Coupon.objects.filter(code=coupon_code).exists()
     return JsonResponse({'exists': exists})
 
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def show_coupon_list(request):
+    coupons = Coupon.objects.all()
+    return render(request, 'couponList.html', {'coupons': coupons})
 
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def get_coupon_details(request):
+    coupon_id = request.GET.get('id')
+    try:
+        coupon = Coupon.objects.get(id=coupon_id)
+        data = {
+            'id': coupon.id,
+            'code': coupon.code,
+            'discount': coupon.discount,
+            'valid_from': coupon.valid_from.isoformat(),
+            'valid_to': coupon.valid_to.isoformat(),
+            'active': coupon.active,
+            'usage_limit': coupon.usage_limit,
+            'description': coupon.description,
+        }
+        return JsonResponse(data)
+    except Coupon.DoesNotExist:
+        return JsonResponse({'error': 'Coupon not found'}, status=404)
+
+@csrf_exempt
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def edit_coupon(request):
+    if request.method == 'POST':
+        coupon_id = request.POST.get('id')
+        try:
+            coupon = Coupon.objects.get(id=coupon_id)
+            coupon.code = request.POST.get('code')
+            coupon.discount = request.POST.get('discount')
+            coupon.valid_from = parse_datetime(request.POST.get('valid_from'))
+            coupon.valid_to = parse_datetime(request.POST.get('valid_to'))
+            coupon.active = request.POST.get('active') == 'true'
+            coupon.usage_limit = request.POST.get('usage_limit') or None
+            coupon.description = request.POST.get('description')
+            coupon.save()
+            return JsonResponse({'success': True})
+        except Coupon.DoesNotExist:
+            return JsonResponse({'success': False})
+
+@csrf_exempt
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def delete_coupon(request):
+    if request.method == 'POST':
+        coupon_id = request.POST.get('id')
+        try:
+            coupon = Coupon.objects.get(id=coupon_id)
+            coupon.delete()
+            return JsonResponse({'success': True})
+        except Coupon.DoesNotExist:
+            return JsonResponse({'success': False})
+        
+@require_POST
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def control_coupon_status(request):
+    coupon_id = request.POST.get('id')
+    is_active = request.POST.get('active') == 'true'
+    
+    try:
+        coupon = Coupon.objects.get(id=coupon_id)
+        coupon.active = is_active
+        coupon.save()
+        return JsonResponse({'success': True})
+    except Coupon.DoesNotExist:
+        return JsonResponse({'success': False}, status=404)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+@login_required
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+@user_passes_test(lambda u: u.is_superuser)
 def offer_list(request):
     offers = Offer.objects.all().order_by('-valid_from')  # Fetch all offers, sorted by valid_from date
     context = {
@@ -556,6 +643,8 @@ def offer_list(request):
     return render(request, 'Offer.html', context)
 
 @require_POST
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
 def add_offer(request):
     try:
         name = request.POST.get('name')
@@ -584,6 +673,8 @@ def add_offer(request):
     
 
 @require_POST
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
 def update_product_offer(request):
     product_id = request.POST.get('product_id')
     offer_id = request.POST.get('offer_id')
@@ -604,6 +695,8 @@ def update_product_offer(request):
     })
 
 @require_POST
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
 def update_category_offer(request):
     category_id = request.POST.get('category_id')
     offer_id = request.POST.get('offer_id')
@@ -638,5 +731,161 @@ def update_category_offer(request):
             'message': f'An error occurred: {str(e)}'
         }, status=400)
         
+
+from django.db.models import F
+
+@never_cache
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
 def show_sales_details(request):
-    return render(request,'sales_report.html')
+    return render(request, 'sales_report.html')
+
+def get_filtered_sales_data(request):
+    report_type = request.GET.get('report_type', 'all')
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+
+    now = timezone.now()
+    if report_type == 'daily':
+        start_date = now.date()
+        end_date = start_date + timedelta(days=1)
+    elif report_type == 'weekly':
+        start_date = now.date() - timedelta(days=now.weekday())
+        end_date = start_date + timedelta(weeks=1)
+    elif report_type == 'monthly':
+        start_date = now.replace(day=1).date()
+        end_date = (start_date + timedelta(days=32)).replace(day=1)
+    elif report_type == 'yearly':
+        start_date = now.replace(day=1, month=1).date()
+        end_date = start_date.replace(year=start_date.year + 1)
+    elif report_type == 'custom' and start_date and end_date:
+        start_date = timezone.datetime.strptime(start_date, '%Y-%m-%d').date()
+        end_date = timezone.datetime.strptime(end_date, '%Y-%m-%d').date() + timedelta(days=1)
+    else:
+        start_date = Order.objects.earliest('created_at').created_at.date()
+        end_date = now.date() + timedelta(days=1)
+
+    orders = Order.objects.filter(created_at__range=[start_date, end_date])
+
+    sales = orders.annotate(
+        total_items=Sum('ordered_items__quantity'),
+        total_discount=Sum('ordered_items__quantity') * F('discount_amount_coupon')
+    ).values(
+        'id', 'created_at', 'payment_method', 'user__username', 
+        'total_price', 'coupon', 'discount_amount_coupon', 'status',
+        'total_items', 'total_discount'
+    )
+
+    for sale in sales:
+        sale['created_at'] = sale['created_at'].strftime('%Y-%m-%d %H:%M:%S')
+        sale['total_price'] = float(sale['total_price'])
+        sale['discount_amount_coupon'] = float(sale['discount_amount_coupon'])
+        sale['total_discount'] = float(sale['total_discount'])
+
+    summary = orders.aggregate(
+        sales_count=Count('id'),
+        order_amount=Sum('total_price'),
+        total_discount=Sum('discount_amount_coupon'),
+    )
+
+    summary['order_amount'] = float(summary['order_amount'] or 0)
+    summary['total_discount'] = float(summary['total_discount'] or 0)
+
+    data = {
+        'sales': list(sales),
+        'summary': summary,
+    }
+    return JsonResponse(data)
+        
+        
+# def show_sales_details(request):
+#     return render(request,'sales_report.html')
+
+
+# def show_sales_details(request):
+#     return render(request, 'sales_report.html')
+
+# def get_filtered_sales_data(request):
+#     report_type = request.GET.get('report_type', 'all')  # Default to 'all' if not provided
+#     start_date = request.GET.get('start_date')
+#     end_date = request.GET.get('end_date')
+
+#     if report_type == 'daily':
+#         start_date = timezone.now().date()
+#         end_date = start_date + timedelta(days=1)
+#     elif report_type == 'weekly':
+#         start_date = timezone.now() - timedelta(days=timezone.now().weekday())
+#         end_date = start_date + timedelta(weeks=1)
+#     elif report_type == 'monthly':
+#         start_date = timezone.now().replace(day=1)
+#         end_date = (start_date + timedelta(days=32)).replace(day=1)
+#     elif report_type == 'yearly':
+#         start_date = timezone.now().replace(day=1, month=1)
+#         end_date = (start_date + timedelta(days=366)).replace(day=1, month=1)
+#     elif report_type == 'custom' and start_date and end_date:
+#         start_date = timezone.datetime.strptime(start_date, '%Y-%m-%d').date()
+#         end_date = timezone.datetime.strptime(end_date, '%Y-%m-%d').date()
+#     else:
+#         # If 'all' is selected, fetch all sales data without filtering by date
+#         orders = Order.objects.all()
+#         print('hi mirshad')
+
+#     # If start_date and end_date are set, filter by date range
+#     if start_date and end_date:
+#         orders = Order.objects.filter(created_at__date__range=[start_date, end_date])
+
+#     sales = orders.values(
+#         'id', 'created_at', 'payment_method', 'user__username', 'original_price', 'coupon', 
+#         'discount_amount_coupon', 'total_price'
+#     )
+
+#     summary = orders.aggregate(
+#         sales_count=Count('id'),
+#         order_amount=Sum('total_price'),
+#         total_discount=Sum('discount_amount_coupon'),
+#     )
+
+#     data = {
+#         'sales': list(sales),
+#         'summary': summary,
+#     }
+#     return JsonResponse(data)
+
+# def get_filtered_sales_data(request):
+#     report_type = request.GET.get('report_type', 'daily')
+#     start_date = request.GET.get('start_date')
+#     end_date = request.GET.get('end_date')
+
+#     if report_type == 'daily':
+#         start_date = timezone.now().date()
+#         end_date = start_date + timedelta(days=1)
+#     elif report_type == 'weekly':
+#         start_date = timezone.now() - timedelta(days=timezone.now().weekday())
+#         end_date = start_date + timedelta(weeks=1)
+#     elif report_type == 'monthly':
+#         start_date = timezone.now().replace(day=1)
+#         end_date = (start_date + timedelta(days=32)).replace(day=1)
+#     elif report_type == 'yearly':
+#         start_date = timezone.now().replace(day=1, month=1)
+#         end_date = (start_date + timedelta(days=366)).replace(day=1, month=1)
+#     elif report_type == 'custom' and start_date and end_date:
+#         start_date = timezone.datetime.strptime(start_date, '%Y-%m-%d').date()
+#         end_date = timezone.datetime.strptime(end_date, '%Y-%m-%d').date()
+
+#     orders = Order.objects.filter(created_at__date__range=[start_date, end_date])
+#     sales = orders.values(
+#         'id', 'created_at', 'payment_method', 'user__username', 'original_price', 'coupon', 
+#         'discount_amount_coupon', 'total_price'
+#     )
+
+#     summary = orders.aggregate(
+#         sales_count=Count('id'),
+#         order_amount=Sum('total_price'),
+#         total_discount=Sum('discount_amount_coupon'),
+#     )
+
+#     data = {
+#         'sales': list(sales),
+#         'summary': summary,
+#     }
+#     return JsonResponse(data)

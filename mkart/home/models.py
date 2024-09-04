@@ -3,13 +3,76 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from products.models import Product, ProductVariant
 from django.core.validators import MinValueValidator, MaxValueValidator
+import uuid
+from django.db import models
+import string
+import random
+from Admin.models import *
+
+# class Profile(models.Model):
+#     user = models.OneToOneField(User, on_delete=models.CASCADE)
+#     phone = models.CharField(max_length=15, blank=True, null=True)
+
+#     def __str__(self):
+#         return self.user.username
+
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     phone = models.CharField(max_length=15, blank=True, null=True)
+    referral_code = models.CharField(max_length=10, unique=True, blank=True,null=True)
+    referred_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='referrals')
 
     def __str__(self):
         return self.user.username
+
+    def generate_referral_code(self):
+        # Use the user's ID (which is unique) and a random 4-character string to create the referral code
+        random_suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
+        self.referral_code = f'{self.user.id}{random_suffix}'
+
+        # Ensure the generated code is unique
+        while Profile.objects.filter(referral_code=self.referral_code).exists():
+            random_suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
+            self.referral_code = f'{self.user.id}{random_suffix}'
+
+    def save(self, *args, **kwargs):
+        if not self.referral_code:
+            self.generate_referral_code()
+        super().save(*args, **kwargs)
+        
+    @classmethod
+    def apply_referral(cls, user, referral_code):
+        try:
+            referred_by_profile = cls.objects.get(referral_code=referral_code)
+            user.profile.referred_by = referred_by_profile.user
+            user.profile.save()
+            return True
+        except cls.DoesNotExist:
+            return False    
+            
+    @classmethod
+    def apply_referral(cls, user, referral_code):
+        try:
+            referred_by_profile = cls.objects.get(referral_code=referral_code)
+            user.profile.referred_by = referred_by_profile.user
+            user.profile.save()
+
+            # Add 50 rupees to the new user's wallet
+            user.wallet.balance += 50
+            user.wallet.save()
+
+            # Add 100 rupees to the referrer's wallet
+            referred_by_profile.user.wallet.balance += 100
+            referred_by_profile.user.wallet.save()
+
+            # Log the wallet transactions
+            WalletTransaction.objects.create(wallet=user.wallet, amount=50, transaction_type='credit')
+            WalletTransaction.objects.create(wallet=referred_by_profile.user.wallet, amount=100, transaction_type='credit')
+
+            return True
+        except cls.DoesNotExist:
+            return False        
     
 class UserAddress(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='addresses')
@@ -61,9 +124,6 @@ class CartItem(models.Model):
         # Use the discounted price instead of the original price
         discounted_price = self.product_variant.product.get_discounted_price()
         return self.quantity * discounted_price
-    
-    # def get_total_price(self):
-    #     return self.quantity * self.product_variant.price
 
 class Order(models.Model):
     STATUS_CHOICES = [
@@ -72,8 +132,6 @@ class Order(models.Model):
         ('shipped', 'Shipped' ),
         ('delivered', 'Delivered'),
         ('completed', 'Completed'),
-
-        
     ]
 
     PAYMENT_METHODS = [
@@ -134,6 +192,8 @@ class OrderItem(models.Model):
     payment_status_item = models.CharField(max_length=10,choices=PAYMENT_STATUS_CHOICES,default='unpaid')
     action_status = models.CharField(max_length=10,choices=Action_status_choice,default='cancel')
     return_request = models.BooleanField(default=False)
+    # discount_amount_coupon = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+       
     
     def get_total_price(self):
         return self.quantity * self.price

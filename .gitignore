@@ -24,9 +24,6 @@ client_secret*
 
 
 
-
-
-
 # Python
 __pycache__/
 *.py[cod]

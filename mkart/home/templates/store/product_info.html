@@ -218,13 +218,29 @@
                                   
                                     </div>
                                 </div>         
-                                                       <div class="product-details-action">
+                                <div class="product-details-action">
                                     {% csrf_token %}
                                     <input type="hidden" name="variant_id" id="selectedVariantId" value="{{ selected_variant.id }}">
                                     <button type="submit" class="btn-product btn-cart"><span>Add to cart</span></button>
                                 </div>
+                                
                                 <!-- ... (rest of the form remains unchanged) ... -->
                             </form>
+                                                            <div class="details-action-wrapper">
+                                    <form action="{% url 'add_wishlist' product.id %}" method="POST" id="wishlistForm">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="variant_id" id="selectedVariantIdWishlist" value="{{ selected_variant.id }}">
+                                        <button style="	background: none;
+	color: inherit;
+	border: none;
+	padding: 0;
+	font: inherit;
+	cursor: pointer;
+	outline: inherit;" type="submit" class="btn-product btn-wishlist" title="Wishlist">
+                                            <span >Add to Wishlist</span>
+                                        </button>
+                                    </form>
+                                </div>
                             {% endif %}                            
 
                             {% comment %} {% if selected_variant.is_available and selected_variant.stock > 0 %}

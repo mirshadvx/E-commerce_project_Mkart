@@ -126,9 +126,10 @@ ACCOUNT_AUTHENTICATION_METHOD = 'email'
 
 
 ROOT_URLCONF = 'mkart.urls'
-LOGIN_URL = '/'
+# LOGIN_URL = '/'
+LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'store'
-# LOGOUT_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
 
 # ACCOUNT_EMAIL_VERIFICATION = 'none'
 
@@ -258,8 +259,7 @@ AUTHENTICATION_BACKENDS = (
     'allauth.account.auth_backends.AuthenticationBackend',
 )
 SITE_ID = 4
-LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = '/'
+
 
 
 RAZORPAY_KEY_ID = os.environ.get('RAZORPAY_KEY_ID') 

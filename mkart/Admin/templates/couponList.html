@@ -1,0 +1,274 @@
+{% extends "Base.html" %}
+{% load static %}
+
+{% block title %}Coupon List{% endblock %}
+
+{% block extra_style %}
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'admin-assets/img/favicon.jpg' %}">
+    <link rel="stylesheet" href="{% static 'admin-assets/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'admin-assets/css/animate.css' %}">
+    <link rel="stylesheet" href="{% static 'admin-assets/plugins/select2/css/select2.min.css' %}">
+    <link rel="stylesheet" href="{% static 'admin-assets/css/dataTables.bootstrap4.min.css' %}">
+    <link rel="stylesheet" href="{% static 'admin-assets/plugins/fontawesome/css/fontawesome.min.css' %}">
+    <link rel="stylesheet" href="{% static 'admin-assets/plugins/fontawesome/css/all.min.css' %}">
+    <link rel="stylesheet" href="{% static 'admin-assets/css/style.css' %}">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <style>
+        .form-check-input {
+    width: 3em;
+    height: 1.5em;
+}
+    </style>
+{% endblock %}
+{% block content %}
+<div class="page-wrapper">
+    <div class="content">
+        <div class="page-header">
+            <div class="page-title">
+                <h4>Coupon list</h4>
+                <h6>View/Search coupons</h6>
+            </div>
+            <div class="page-btn">
+                <a href="{% url 'add_coupon' %}" class="btn btn-added">
+                    <img src="{% static 'admin-assets/img/icons/plus.svg' %}" class="me-1" alt="img">Add Coupon
+                </a>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table datanew">
+                        <thead>
+                            <tr>
+                                <th>Coupon Code</th>
+                                <th>Discount</th>
+                                <th>Valid From</th>
+                                <th>Valid To</th>
+                                <th>Status</th>
+                                <th>Usage Limit</th>
+                                <th>Times Used</th>
+                                <th>min purchase</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for coupon in coupons %}
+                            <tr>
+                                <td>{{ coupon.code }}</td>
+                                <td>{{ coupon.discount }}%</td>
+                                <td>{{ coupon.valid_from }}</td>
+                                <td>{{ coupon.valid_to }}</td>
+<td>
+    <div class="form-check form-switch">
+        <input class="form-check-input status-toggle" type="checkbox" 
+               id="status-{{ coupon.id }}" 
+               {% if coupon.active %}checked{% endif %}
+               data-coupon-id="{{ coupon.id }}">
+        <label class="form-check-label" for="status-{{ coupon.id }}">
+            <span class="status-text">
+                {% if coupon.active %}Active{% else %}Inactive{% endif %}
+            </span>
+        </label>
+    </div>
+</td>
+                                <td>{{ coupon.usage_limit|default_if_none:"-" }}</td>
+                                <td>{{ coupon.times_used }}</td>
+                                <td>{{ coupon.min_purchase_amount|default_if_none:"-" }}</td>
+                                <td>
+                                    <a class="me-3 edit-coupon" href="#" data-id="{{ coupon.id }}" data-toggle="modal" data-target="#editCouponModal">
+    <img src="{% static 'admin-assets/img/icons/edit.svg' %}" alt="img">
+</a>
+
+                                    <a class="me-3 delete-coupon" href="#" data-id="{{ coupon.id }}">
+                                        <img src="{% static 'admin-assets/img/icons/delete.svg' %}" alt="img">
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="9">No coupons found.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Coupon Modal -->
+<div class="modal fade" id="editCouponModal" tabindex="-1" aria-labelledby="editCouponModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editCouponModalLabel">Edit Coupon</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="editCouponForm">
+                    <input type="hidden" name="id" id="couponId">
+                    <div class="form-group">
+                        <label for="code">Coupon Code</label>
+                        <input type="text" class="form-control" id="code" name="code" >
+                    </div>
+                    <div class="form-group">
+                        <label for="discount">Discount (%)</label>
+                        <input type="number" class="form-control" id="discount" name="discount" >
+                    </div>
+                    <div class="form-group">
+                        <label for="valid_from">Valid From</label>
+                        <input type="datetime-local" class="form-control" id="valid_from" name="valid_from" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="valid_to">Valid To</label>
+                        <input type="datetime-local" class="form-control" id="valid_to" name="valid_to" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="active">Status</label>
+                        <select class="form-control" id="active" name="active">
+                            <option value="true">Active</option>
+                            <option value="false">Inactive</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="usage_limit">Usage Limit</label>
+                        <input type="number" class="form-control" id="usage_limit" name="usage_limit">
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Description</label>
+                        <textarea class="form-control" id="description" name="description"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'admin-assets/js/jquery-3.6.0.min.js' %}"></script>
+    <script src="{% static 'admin-assets/js/feather.min.js' %}"></script>
+    <script src="{% static 'admin-assets/js/jquery.slimscroll.min.js' %}"></script>
+    <script src="{% static 'admin-assets/js/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static 'admin-assets/js/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'admin-assets/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'admin-assets/plugins/select2/js/select2.min.js' %}"></script>
+    <script src="{% static 'admin-assets/plugins/sweetalert/sweetalert2.all.min.js' %}"></script>
+    <script src="{% static 'admin-assets/plugins/sweetalert/sweetalerts.min.js' %}"></script>
+    <script src="{% static 'admin-assets/js/script.js' %}"></script>
+    <script>
+$('.status-toggle').on('change', function() {
+    var couponId = $(this).data('coupon-id');
+    var isActive = $(this).prop('checked');
+    var statusText = $(this).siblings('label').find('.status-text');
+
+    $.ajax({
+        url: '{% url "control_c_status" %}',
+        type: 'POST',
+        data: {
+            id: couponId,
+            active: isActive,
+            csrfmiddlewaretoken: '{{ csrf_token }}'
+        },
+        success: function(response) {
+            if (response.success) {
+                statusText.text(isActive ? 'Active' : 'Inactive');
+            } else {
+                alert('Failed to update coupon status. Please try again.');
+                // Revert the checkbox state
+                $(this).prop('checked', !isActive);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error updating coupon status:', error);
+            alert('Failed to update coupon status. Please try again later.');
+            // Revert the checkbox state
+            $(this).prop('checked', !isActive);
+        }
+    });
+});
+    </script>
+<script>
+$(document).ready(function() {
+  // Edit coupon
+  $('.edit-coupon').on('click', function() {
+    var id = $(this).data('id');
+    $.ajax({
+      url: '{% url "get_coupon_details" %}',
+      type: 'GET',
+      data: { id: id },
+      success: function(data) {
+        $('#couponId').val(data.id);
+        $('#code').val(data.code);
+        $('#discount').val(data.discount);
+        $('#valid_from').val(data.valid_from);
+        $('#valid_to').val(data.valid_to);
+        $('#active').val(data.active.toString());
+        $('#usage_limit').val(data.usage_limit);
+        $('#description').val(data.description);
+        $('#editCouponModal').modal('show');
+      },
+      error: function(xhr, status, error) {
+        console.error('Error getting coupon details:', error);
+        alert('Failed to retrieve coupon details. Please try again later.');
+      }
+    });
+  });
+
+  // Save edited coupon
+  $('#editCouponForm').on('submit', function(e) {
+    e.preventDefault();
+    var formData = $(this).serialize();
+    $.ajax({
+      url: '{% url "edit_coupon" %}',
+      type: 'POST',
+      data: formData,
+      success: function(response) {
+        if (response.success) {
+          $('#editCouponModal').modal('hide');
+          location.reload();
+        } else {
+          alert('Failed to update coupon. Please try again.');
+        }
+      },
+      error: function(xhr, status, error) {
+        console.error('Error updating coupon:', error);
+        alert('Failed to update coupon. Please try again later.');
+      }
+    });
+  });
+
+  // Delete coupon
+  $('.delete-coupon').on('click', function() {
+    var id = $(this).data('id');
+    if (confirm('Are you sure you want to delete this coupon?')) {
+      $.ajax({
+        url: '{% url "delete_coupon" %}',
+        type: 'POST',
+        data: {
+          id: id,
+          csrfmiddlewaretoken: '{{ csrf_token }}'
+        },
+        success: function(response) {
+          if (response.success) {
+            // Remove the deleted coupon from the table
+            $(`tr[data-id="${id}"]`).remove();
+          } else {
+            alert('Failed to delete coupon. Please try again.');
+          }
+        },
+        error: function(xhr, status, error) {
+          console.error('Error deleting coupon:', error);
+          alert('Failed to delete coupon. Please try again later.');
+        }
+      });
+    }
+  });
+});
+</script>
+{% endblock %}

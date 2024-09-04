@@ -81,7 +81,6 @@ class ProductVariant(models.Model):
     image_2 = models.ImageField(upload_to='product_images/', blank=True, null=True)
     image_3 = models.ImageField(upload_to='product_images/', blank=True, null=True)
 
-
     def __str__(self):
         return f"{self.product.name} - {self.color.name}"
 
