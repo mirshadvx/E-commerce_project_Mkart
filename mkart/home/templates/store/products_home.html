@@ -74,38 +74,6 @@
 
             <div class="products">
                 <div class="row justify-content-center">
-                    {% comment %} {% for product in products %}
-                    <div class="col-6 col-md-4 col-lg-3">
-                        <div class="product product-7 text-center">
-                            <figure class="product-media">
-                                <span class="product-label label-sale">30% off</span>
-                                {% if not product.variants.first.is_available %}
-                                <span class="product-label label-out">Out of stock</span>
-                                {% endif %}
-                                <a href="{% url "product_info" product.id %}">
-                                    <img class="product-image" src="{{ product.variants.first.image_1.url }}" alt="{{ product.name }}" />
-                                </a>
-                                
-                                <div class="product-action-vertical">
-                                    <a class="btn-product-icon btn-wishlist btn-expandable"><span>add to wishlist</span></a>
-                                </div>
-                                <div class="product-action">
-                                    <a href="{% url 'add_wishlist' id=product.id %}" class="btn-product btn-cart"><span>add to cart</span></a>
-                                </div>
-                            </figure>
-                            <div class="product-body">
-                                <div class="product-cat">
-                                    <a>{{ product.category.name }}</a>
-                                    {% if product.gender %}
-                                    <a>/ {{ product.gender.name }}</a>
-                                    {% endif %}
-                                </div>
-                                <h3 class="product-title"><a>{{ product.name }}</a></h3>
-                                <div class="product-price">{{ product.variants.first.price }}</div>
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %} {% endcomment %}
 {% for product in products %}
 <div class="col-6 col-md-4 col-lg-3">
     <div class="product product-7 text-center">
@@ -117,7 +85,18 @@
             <span class="product-label label-out">Out of stock</span>
             {% endif %}
             <a href="{% url "product_info" product.id %}">
-                <img class="product-image" src="{{ product.variants.first.image_1.url }}" alt="{{ product.name }}" />
+                {% with product.variants.first as variant %}
+                    {% if variant.image_1 %}
+                        <img class="product-image" src="{{ variant.image_1.url }}" alt="{{ product.name }}" />
+                    {% elif variant.image_2 %}
+                        <img class="product-image" src="{{ variant.image_2.url }}" alt="{{ product.name }}" />
+                    {% elif variant.image_3 %}
+                        <img class="product-image" src="{{ variant.image_3.url }}" alt="{{ product.name }}" />
+                    {% else %}
+                        <!-- Placeholder or leave blank if no images are available -->
+                        <img class="product-image" src="{% static 'path/to/placeholder.png' %}" alt="No image available" />
+                    {% endif %}
+                {% endwith %}
             </a>
             
             <div class="product-action-vertical">

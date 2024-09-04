@@ -23,6 +23,41 @@ Add product
         <link rel="stylesheet" href="{% static 'admin-assets/css/style.css' %}" />
 
          <link rel="stylesheet" href="https://unpkg.com/cropperjs/dist/cropper.min.css">
+
+    <style>
+        .image-preview-container {
+            position: relative;
+            width: 100%;
+            max-width: 300px;
+            margin-bottom: 20px;
+        }
+        .image-preview {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .remove-image {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: rgba(255, 255, 255, 0.7);
+            border: none;
+            border-radius: 50%;
+            padding: 5px 8px;
+            cursor: pointer;
+        }
+        .image-upload-label {
+            display: inline-block;
+            padding: 6px 12px;
+            cursor: pointer;
+            background-color: #f8f9fa;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+        }
+    </style>
+
          
 {% endblock  %}
 
@@ -123,13 +158,8 @@ Add product
                                 </select>
                             </div>
                         </div>
-                        {% comment %} <div class="col-md-6">
-                            <div class="form-group">
-                                <label>SKU <span class="text-danger">*</span></label>
-                                <input type="text" name="sku" class="form-control" required />
-                            </div>
-                        </div> {% endcomment %}
-<div class="col-md-12">
+
+{% comment %} <div class="col-md-12">
     <div class="form-group">
         <label>Product Images</label>
         <div class="row">
@@ -153,7 +183,27 @@ Add product
             </div>
         </div>
     </div>
-</div>
+</div> {% endcomment %}
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label>Product Images</label>
+                            <div class="row">
+                                {% for i in '123'|make_list %}
+                                <div class="col-md-4">
+                                    <div class="image-preview-container">
+                                        <img id="imagePreview_{{ i }}" class="image-preview" style="display: none;" />
+                                        <button type="button" class="remove-image" style="display: none;" onclick="removeImage({{ i }})">×</button>
+                                    </div>
+                                    <label for="imageInput_{{ i }}" class="image-upload-label">
+                                        Select Image {{ i }}
+                                    </label>
+                                    <input type="file" name="image_{{ i }}" class="form-control-file" id="imageInput_{{ i }}" style="display: none;" accept="image/*" />
+                                    <input type="hidden" name="cropped_image_{{ i }}" id="croppedImage_{{ i }}" />
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
                     </div>
                     <div class="text-right mt-4">
                         <button type="submit" class="btn btn-primary">Add Product</button>
@@ -228,6 +278,66 @@ Add product
             var imagePreview3 = document.getElementById('imagePreview_3');
             var croppedImage3 = document.getElementById('croppedImage_3');
             handleImageCrop(imageInput3, imagePreview3, croppedImage3);
+        });
+    </script>
+
+    <script>
+        let croppers = {};
+
+        function handleImageCrop(imageInput, imagePreview, croppedImage, removeButton) {
+            imageInput.addEventListener('change', function (e) {
+                var file = e.target.files[0];
+                if (file) {
+                    var reader = new FileReader();
+                    reader.onload = function (event) {
+                        imagePreview.src = event.target.result;
+                        imagePreview.style.display = 'block';
+                        removeButton.style.display = 'block';
+
+                        if (croppers[imageInput.id]) {
+                            croppers[imageInput.id].destroy();
+                        }
+
+                        croppers[imageInput.id] = new Cropper(imagePreview, {
+                            aspectRatio: 1,
+                            viewMode: 1,
+                            crop(event) {
+                                var canvas = this.cropper.getCroppedCanvas();
+                                croppedImage.value = canvas.toDataURL('image/jpeg');
+                            }
+                        });
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        function removeImage(index) {
+            const imageInput = document.getElementById(`imageInput_${index}`);
+            const imagePreview = document.getElementById(`imagePreview_${index}`);
+            const croppedImage = document.getElementById(`croppedImage_${index}`);
+            const removeButton = imagePreview.nextElementSibling;
+
+            imageInput.value = '';
+            imagePreview.src = '';
+            imagePreview.style.display = 'none';
+            croppedImage.value = '';
+            removeButton.style.display = 'none';
+
+            if (croppers[`imageInput_${index}`]) {
+                croppers[`imageInput_${index}`].destroy();
+                delete croppers[`imageInput_${index}`];
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            for (let i = 1; i <= 3; i++) {
+                const imageInput = document.getElementById(`imageInput_${i}`);
+                const imagePreview = document.getElementById(`imagePreview_${i}`);
+                const croppedImage = document.getElementById(`croppedImage_${i}`);
+                const removeButton = imagePreview.nextElementSibling;
+                handleImageCrop(imageInput, imagePreview, croppedImage, removeButton);
+            }
         });
     </script>
     </body>

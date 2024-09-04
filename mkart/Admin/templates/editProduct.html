@@ -16,7 +16,48 @@
         .cropper-container {
             max-width: 100%;
         }
+.image-container {
+            position: relative;
+            display: inline-block;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        .image-preview {
+            max-width: 100px;
+            max-height: 100px;
+            object-fit: cover;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .delete-image {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background-color: red;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .image-upload-label {
+            display: inline-block;
+            padding: 6px 12px;
+            cursor: pointer;
+            background-color: #f8f9fa;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+        }
+        .cropper-container {
+            max-width: 100%;
+        }
     </style>
+
 {% endblock %}
 
 {% block content %}
@@ -117,7 +158,7 @@
                 </select>
             </div>
         </div>
-        <div class="col-md-12">
+        {% comment %} <div class="col-md-12">
             <div class="form-group">
                 <label>Images</label>
                 {% for image in variant.images %}
@@ -131,6 +172,26 @@
                     <input type="hidden" name="cropped_image_{{ variant.id }}_{{ forloop.counter }}" id="croppedImage_{{ variant.id }}_{{ forloop.counter }}" />
                 </div>
                 {% endfor %}
+            </div>
+        </div> {% endcomment %}
+        <div class="col-md-12">
+            <div class="form-group">
+                <label>Images</label>
+                <div class="d-flex flex-wrap align-items-center">
+                    {% for image in variant.images %}
+                    <div class="image-container" id="image-container-{{ variant.id }}-{{ forloop.counter }}">
+                        {% if image %}
+                            <img src="{{ image.url }}" alt="Current Image {{ forloop.counter }}" class="image-preview" />
+                            <button type="button" class="delete-image" onclick="deleteImage({{ variant.id }}, {{ forloop.counter }})">×</button>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                    <label for="variant_image_{{ variant.id }}" class="image-upload-label">
+                        Upload Image
+                    </label>
+                    <input type="file" id="variant_image_{{ variant.id }}" name="variant_image_{{ variant.id }}" class="form-control-file image-input" accept="image/*" data-variant-id="{{ variant.id }}" style="display: none;" multiple />
+                </div>
+                <div id="new-images-{{ variant.id }}" class="d-flex flex-wrap mt-2"></div>
             </div>
         </div>
     </div>
@@ -182,6 +243,84 @@
 document.addEventListener('DOMContentLoaded', function () {
     let cropper;
     let currentImageInput;
+    let currentVariantId;
+    let currentImageCount;
+
+    document.querySelectorAll('.image-input').forEach(input => {
+        input.addEventListener('change', function (e) {
+            const files = e.target.files;
+            currentVariantId = input.dataset.variantId;
+            currentImageCount = document.querySelectorAll(`#new-images-${currentVariantId} .image-container`).length;
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function (event) {
+                        document.getElementById('imageToCrop').src = event.target.result;
+                        $('#cropModal').modal('show');
+                        currentImageInput = input;
+                        currentImageCount++;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+        });
+    });
+
+    document.getElementById('cropImage').addEventListener('click', function () {
+        const canvas = cropper.getCroppedCanvas();
+        const croppedImage = canvas.toDataURL();
+        
+        const newImageContainer = document.createElement('div');
+        newImageContainer.className = 'image-container';
+        newImageContainer.innerHTML = `
+            <img src="${croppedImage}" alt="New Image" class="image-preview" />
+            <button type="button" class="delete-image" onclick="deleteNewImage(this)">×</button>
+            <input type="hidden" name="cropped_image_${currentVariantId}_${currentImageCount}" value="${croppedImage}" />
+        `;
+        
+        document.getElementById(`new-images-${currentVariantId}`).appendChild(newImageContainer);
+        
+        $('#cropModal').modal('hide');
+    });
+
+    $('#cropModal').on('shown.bs.modal', function () {
+        cropper = new Cropper(document.getElementById('imageToCrop'), {
+            aspectRatio: 1,
+            viewMode: 1
+        });
+    }).on('hidden.bs.modal', function () {
+        cropper.destroy();
+        cropper = null;
+    });
+
+    // Initialize Select2
+    $('.select').select2();
+});
+
+function deleteImage(variantId, imageNumber) {
+    const container = document.getElementById(`image-container-${variantId}-${imageNumber}`);
+    container.remove();
+    
+    // Add a hidden input to mark this image for deletion in the backend
+    const hiddenInput = document.createElement('input');
+    hiddenInput.type = 'hidden';
+    hiddenInput.name = `delete_image_${variantId}_${imageNumber}`;
+    hiddenInput.value = 'true';
+    document.querySelector('form').appendChild(hiddenInput);
+}
+
+function deleteNewImage(button) {
+    const container = button.closest('.image-container');
+    container.remove();
+}
+</script>
+{% comment %} <script src="https://unpkg.com/cropperjs/dist/cropper.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    let cropper;
+    let currentImageInput;
 
     document.querySelectorAll('.image-input').forEach(input => {
         input.addEventListener('change', function (e) {
@@ -226,7 +365,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Initialize Select2
     $('.select').select2();
 });
-</script>
+</script> {% endcomment %}
         <script src="{% static 'admin-assets/js/jquery-3.6.0.min.js' %}"></script>
         <script src="{% static 'admin-assets/js/bootstrap.bundle.min.js' %}"></script>
         <script src="{% static 'admin-assets/plugins/select2/js/select2.min.js' %}"></script>

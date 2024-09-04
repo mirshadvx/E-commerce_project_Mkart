@@ -129,8 +129,6 @@ def brand_list(request):
     return render(request, 'brandList.html', {'brands': brands})
 
 
-@login_required
-@user_passes_test(lambda u: u.is_superuser)
 def edit_product(request, product_id):
     product = get_object_or_404(Product, id=product_id)
     variants_data = []
@@ -141,13 +139,10 @@ def edit_product(request, product_id):
             'price': variant.price,
             'stock': variant.stock,
             'is_available': variant.is_available,
-            'images': [
-                getattr(variant, f'image_{i}') for i in range(1, 4)
-            ]
+            'images': [getattr(variant, f'image_{i}') for i in range(1, 4) if getattr(variant, f'image_{i}')]
         }
         variants_data.append(variant_data)
 
-    
     if request.method == 'POST':
         product.name = request.POST.get('name')
         product.gender = get_object_or_404(Gender, id=request.POST.get('gender'))
@@ -162,33 +157,104 @@ def edit_product(request, product_id):
             variant.stock = request.POST.get(f'variant_stock_{variant.id}')
             variant.is_available = request.POST.get(f'variant_is_available_{variant.id}') == 'True'
 
+            # Handle image deletions
             for i in range(1, 4):
-                cropped_image = request.POST.get(f'cropped_image_{variant.id}_{i}')
+                if request.POST.get(f'delete_image_{variant.id}_{i}') == 'true':
+                    image_field = getattr(variant, f'image_{i}')
+                    if image_field:
+                        image_field.delete()
+                        setattr(variant, f'image_{i}', None)
+
+            # Handle new and updated images
+            new_images = [value for key, value in request.POST.items() if key.startswith(f'cropped_image_{variant.id}_')]
+            for i, cropped_image in enumerate(new_images, start=1):
                 if cropped_image:
-                
                     format, imgstr = cropped_image.split(';base64,')
                     ext = format.split('/')[-1]
-                    
-            
                     filename = f'product_{product.id}_variant_{variant.id}_image_{i}.{ext}'
-      
-      
+                    image_field = getattr(variant, f'image_{i}', None)
+                    if image_field:
+                        image_field.delete()
                     image_field = getattr(variant, f'image_{i}')
                     image_field.save(filename, ContentFile(base64.b64decode(imgstr)), save=False)
 
             variant.save()
-        return redirect('productlist') 
+
+        return redirect('productlist')
 
     context = {
         'product': product,
-        'variants_data': variants_data, 
+        'variants_data': variants_data,
         'genders': Gender.objects.all(),
         'categories': Category.objects.all(),
         'brands': Brand.objects.all(),
         'colors': Color.objects.all(),
     }
-    
+
     return render(request, 'editProduct.html', context)
+
+# @login_required
+# @user_passes_test(lambda u: u.is_superuser)
+# def edit_product(request, product_id):
+#     product = get_object_or_404(Product, id=product_id)
+#     variants_data = []
+#     for variant in product.variants.all():
+#         variant_data = {
+#             'id': variant.id,
+#             'color': variant.color,
+#             'price': variant.price,
+#             'stock': variant.stock,
+#             'is_available': variant.is_available,
+#             'images': [
+#                 getattr(variant, f'image_{i}') for i in range(1, 4)
+#             ]
+#         }
+#         variants_data.append(variant_data)
+
+    
+#     if request.method == 'POST':
+#         product.name = request.POST.get('name')
+#         product.gender = get_object_or_404(Gender, id=request.POST.get('gender'))
+#         product.category = get_object_or_404(Category, id=request.POST.get('category'))
+#         product.brand = get_object_or_404(Brand, id=request.POST.get('brand'))
+#         product.description = request.POST.get('description')
+#         product.save()
+
+#         for variant in product.variants.all():
+#             variant.color = get_object_or_404(Color, id=request.POST.get(f'variant_color_{variant.id}'))
+#             variant.price = request.POST.get(f'variant_price_{variant.id}')
+#             variant.stock = request.POST.get(f'variant_stock_{variant.id}')
+#             variant.is_available = request.POST.get(f'variant_is_available_{variant.id}') == 'True'
+
+#             for i in range(1, 4):
+#                 cropped_image = request.POST.get(f'cropped_image_{variant.id}_{i}')
+#                 if cropped_image:
+                
+#                     format, imgstr = cropped_image.split(';base64,')
+#                     ext = format.split('/')[-1]
+                    
+            
+#                     filename = f'product_{product.id}_variant_{variant.id}_image_{i}.{ext}'
+      
+      
+#                     image_field = getattr(variant, f'image_{i}')
+#                     image_field.save(filename, ContentFile(base64.b64decode(imgstr)), save=False)
+
+#             variant.save()
+#         return redirect('productlist') 
+
+#     context = {
+#         'product': product,
+#         'variants_data': variants_data, 
+#         'genders': Gender.objects.all(),
+#         'categories': Category.objects.all(),
+#         'brands': Brand.objects.all(),
+#         'colors': Color.objects.all(),
+#     }
+    
+#     return render(request, 'editProduct.html', context)
+
+
 
 
 @login_required
