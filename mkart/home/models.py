@@ -127,11 +127,8 @@ class CartItem(models.Model):
 
 class Order(models.Model):
     STATUS_CHOICES = [
-        ('pending', 'Pending'),
-        ('processing', 'Processing'),
-        ('shipped', 'Shipped' ),
-        ('delivered', 'Delivered'),
         ('completed', 'Completed'),
+        ('incomplete', 'InComplete')
     ]
 
     PAYMENT_METHODS = [
@@ -145,8 +142,9 @@ class Order(models.Model):
         ('unpaid','Unpaid'),
     ]
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    created_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='incomplete')
+    # created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
     payment_method = models.CharField(max_length=20, choices=PAYMENT_METHODS, default='cod')
@@ -192,14 +190,13 @@ class OrderItem(models.Model):
     payment_status_item = models.CharField(max_length=10,choices=PAYMENT_STATUS_CHOICES,default='unpaid')
     action_status = models.CharField(max_length=10,choices=Action_status_choice,default='cancel')
     return_request = models.BooleanField(default=False)
-    # discount_amount_coupon = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-       
+    orderItem_coupon_discount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     
     def get_total_price(self):
         return self.quantity * self.price
     
     def update_status(self, new_status):
-        # Rules for status changes
+
         valid_transitions = {
             'pending': ['processing', 'shipped', 'delivered'],
             'processing': ['shipped', 'delivered'],

@@ -36,6 +36,9 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
+USE_TZ = True
+TIME_ZONE = 'Asia/Kolkata'
+
 
 # Application definition
 

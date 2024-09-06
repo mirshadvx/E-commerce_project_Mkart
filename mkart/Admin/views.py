@@ -527,6 +527,16 @@ def update_order_item_status(request):
                     order_item.payment_status_item = 'paid'
                     order_item.save()
                 
+                order = order_item.order
+                all_items_status = order.ordered_items.values_list('item_status', flat=True)
+                
+                if all(status in ['delivered', 'cancelled', 'returned'] for status in all_items_status):
+                    order.status = 'completed'
+                else:
+                    order.status = 'incomplete'
+
+                order.save()
+                
                 return JsonResponse({'success': True})
             else:
                 return JsonResponse({'success': False, 'error': 'Invalid status transition.'})
@@ -736,7 +746,46 @@ def add_offer(request):
         return JsonResponse({'success': True, 'message': 'Offer added successfully!'})
     except Exception as e:
         return JsonResponse({'success': False, 'message': str(e)}, status=400)
+
+@require_POST
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def edit_offer(request, offer_id):
+    print("ksdlkfj")
+    try:
+        offer = get_object_or_404(Offer, id=offer_id)
+        offer.name = request.POST.get('name')
+        offer.discount = request.POST.get('discount')
+        offer.valid_from = request.POST.get('valid_from')
+        offer.valid_to = request.POST.get('valid_to')
+        offer.description = request.POST.get('description')
+        offer.is_active = request.POST.get('is_active') == 'on'
+        print('getededededed3')
+        offer.save()
+        return JsonResponse({'success': True, 'message': 'Offer updated successfully!'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=400)
     
+def control_offer_status(request, offer_id):
+    if request.method == 'POST':
+        offer = get_object_or_404(Offer, id=offer_id)
+        offer.is_active = not offer.is_active
+        offer.save()
+        return JsonResponse({'success': True, 'new_status': offer.is_active})
+    return JsonResponse({'success': False}, status=400)
+
+
+@require_POST
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def delete_offer(request, offer_id):
+    print('skldfklsjd')
+    try:
+        offer = get_object_or_404(Offer, id=offer_id)
+        offer.delete()
+        return JsonResponse({'success': True, 'message': 'Offer deleted successfully!'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=400)
 
 @require_POST
 @login_required
@@ -806,11 +855,21 @@ from django.db.models import F
 def show_sales_details(request):
     return render(request, 'sales_report.html')
 
+
+
+from django.db.models import Sum, F, Count, DecimalField, Case, When, Value , Q
+from django.db.models.functions import Coalesce
+from django.utils import timezone
+from datetime import timedelta
+from decimal import Decimal
+
+from django.utils import timezone
+
 def get_filtered_sales_data(request):
     report_type = request.GET.get('report_type', 'all')
     start_date = request.GET.get('start_date')
     end_date = request.GET.get('end_date')
-
+    
     now = timezone.now()
     if report_type == 'daily':
         start_date = now.date()
@@ -828,121 +887,325 @@ def get_filtered_sales_data(request):
         start_date = timezone.datetime.strptime(start_date, '%Y-%m-%d').date()
         end_date = timezone.datetime.strptime(end_date, '%Y-%m-%d').date() + timedelta(days=1)
     else:
-        start_date = Order.objects.earliest('created_at').created_at.date()
+        earliest_order = Order.objects.earliest('created_at')
+        start_date = earliest_order.created_at.date() if earliest_order else now.date()
         end_date = now.date() + timedelta(days=1)
+    
+    start_date = timezone.make_aware(timezone.datetime.combine(start_date, timezone.datetime.min.time()))
+    end_date = timezone.make_aware(timezone.datetime.combine(end_date, timezone.datetime.min.time()))
 
     orders = Order.objects.filter(created_at__range=[start_date, end_date])
 
     sales = orders.annotate(
         total_items=Sum('ordered_items__quantity'),
-        total_discount=Sum('ordered_items__quantity') * F('discount_amount_coupon')
+        total_discount=Sum(
+            F('ordered_items__quantity') * F('ordered_items__orderItem_coupon_discount'),
+            output_field=DecimalField()
+        ),
+        refunded_amount=Sum(
+            Case(
+                When(
+                    ordered_items__item_status='cancelled',
+                    then=F('ordered_items__price') * F('ordered_items__quantity') - F('ordered_items__orderItem_coupon_discount')
+                ),
+                default=Value(0),
+                output_field=DecimalField()
+            )
+        )
     ).values(
         'id', 'created_at', 'payment_method', 'user__username', 
         'total_price', 'coupon', 'discount_amount_coupon', 'status',
-        'total_items', 'total_discount'
+        'total_items', 'total_discount', 'refunded_amount'
     )
 
     for sale in sales:
         sale['created_at'] = sale['created_at'].strftime('%Y-%m-%d %H:%M:%S')
         sale['total_price'] = float(sale['total_price'])
         sale['discount_amount_coupon'] = float(sale['discount_amount_coupon'])
-        sale['total_discount'] = float(sale['total_discount'])
+        sale['total_discount'] = float(sale['total_discount'] or 0)
+        sale['refunded_amount'] = float(sale['refunded_amount'] or 0)
 
     summary = orders.aggregate(
         sales_count=Count('id'),
-        order_amount=Sum('total_price'),
-        total_discount=Sum('discount_amount_coupon'),
+        # order_amount=Coalesce(Sum('total_price'), Value(0), output_field=DecimalField()),
+        order_amount=Coalesce(Sum('total_price', distinct=True), Value(0), output_field=DecimalField()),  # Sum total_price per order only once
+        total_discount=Coalesce(Sum('discount_amount_coupon'), Value(0), output_field=DecimalField()) +
+                       Coalesce(Sum('ordered_items__orderItem_coupon_discount'), Value(0), output_field=DecimalField()),
+        total_refunded=Sum(
+            Case(
+                When(
+                    ordered_items__item_status='cancelled',
+                    payment_status='paid',
+                    then=F('ordered_items__price') * F('ordered_items__quantity') - F('ordered_items__orderItem_coupon_discount')
+                ),
+                default=Value(0),
+                output_field=DecimalField()
+            )
+        )
     )
 
-    summary['order_amount'] = float(summary['order_amount'] or 0)
-    summary['total_discount'] = float(summary['total_discount'] or 0)
+    summary['order_amount'] = float(summary['order_amount'])
+    summary['total_discount'] = float(summary['total_discount'])
+    summary['total_refunded'] = float(summary['total_refunded'] or 0)
+    
+    status_data = orders.aggregate(
+        delivered=Count('ordered_items', filter=Q(ordered_items__item_status='delivered')),
+        cancelled=Count('ordered_items', filter=Q(ordered_items__item_status='cancelled')),
+        returned=Count('ordered_items', filter=Q(ordered_items__item_status='returned'))
+    )
+    
+    # Update these queries
+    top_products = OrderItem.objects.filter(order__created_at__range=[start_date, end_date]) \
+        .values('product_variant__product__name') \
+        .annotate(total_quantity=Sum('quantity')) \
+        .order_by('-total_quantity')[:10]
+
+    top_categories = OrderItem.objects.filter(order__created_at__range=[start_date, end_date]) \
+        .values('product_variant__product__category__name') \
+        .annotate(total_quantity=Sum('quantity')) \
+        .order_by('-total_quantity')[:10]
+
+    top_brands = OrderItem.objects.filter(order__created_at__range=[start_date, end_date]) \
+        .values('product_variant__product__brand__name') \
+        .annotate(total_quantity=Sum('quantity')) \
+        .order_by('-total_quantity')[:10]
 
     data = {
         'sales': list(sales),
         'summary': summary,
+        'status_data': status_data,
+        'top_products': list(top_products),
+        'top_categories': list(top_categories),
+        'top_brands': list(top_brands)
     }
+
     return JsonResponse(data)
-        
-        
-# def show_sales_details(request):
-#     return render(request,'sales_report.html')
-
-
-# def show_sales_details(request):
-#     return render(request, 'sales_report.html')
 
 # def get_filtered_sales_data(request):
-#     report_type = request.GET.get('report_type', 'all')  # Default to 'all' if not provided
+#     report_type = request.GET.get('report_type', 'all')
 #     start_date = request.GET.get('start_date')
 #     end_date = request.GET.get('end_date')
-
+        
+#     now = timezone.now()
 #     if report_type == 'daily':
-#         start_date = timezone.now().date()
+#         start_date = now.date()
 #         end_date = start_date + timedelta(days=1)
 #     elif report_type == 'weekly':
-#         start_date = timezone.now() - timedelta(days=timezone.now().weekday())
+#         start_date = now.date() - timedelta(days=now.weekday())
 #         end_date = start_date + timedelta(weeks=1)
 #     elif report_type == 'monthly':
-#         start_date = timezone.now().replace(day=1)
+#         start_date = now.replace(day=1).date()
 #         end_date = (start_date + timedelta(days=32)).replace(day=1)
 #     elif report_type == 'yearly':
-#         start_date = timezone.now().replace(day=1, month=1)
-#         end_date = (start_date + timedelta(days=366)).replace(day=1, month=1)
+#         start_date = now.replace(day=1, month=1).date()
+#         end_date = start_date.replace(year=start_date.year + 1)
+#     # elif report_type == 'custom' and start_date and end_date:
+#     #     start_date = timezone.datetime.strptime(start_date, '%Y-%m-%d').date()
+#     #     end_date = timezone.datetime.strptime(end_date, '%Y-%m-%d').date() + timedelta(days=1)
+#     # else:
+#     #     start_date = Order.objects.earliest('created_at').created_at.date()
+#     #     end_date = now.date() + timedelta(days=1)
 #     elif report_type == 'custom' and start_date and end_date:
 #         start_date = timezone.datetime.strptime(start_date, '%Y-%m-%d').date()
-#         end_date = timezone.datetime.strptime(end_date, '%Y-%m-%d').date()
+#         end_date = timezone.datetime.strptime(end_date, '%Y-%m-%d').date() + timedelta(days=1)
 #     else:
-#         # If 'all' is selected, fetch all sales data without filtering by date
-#         orders = Order.objects.all()
-#         print('hi mirshad')
+#         earliest_order = Order.objects.earliest('created_at')
+#         start_date = earliest_order.created_at.date() if earliest_order else now.date()
+#         end_date = now.date() + timedelta(days=1)
+        
+#     # Ensure start_date and end_date are timezone-aware
+#     start_date = timezone.make_aware(timezone.datetime.combine(start_date, timezone.datetime.min.time()))
+#     end_date = timezone.make_aware(timezone.datetime.combine(end_date, timezone.datetime.min.time()))
 
-#     # If start_date and end_date are set, filter by date range
-#     if start_date and end_date:
-#         orders = Order.objects.filter(created_at__date__range=[start_date, end_date])
 
-#     sales = orders.values(
-#         'id', 'created_at', 'payment_method', 'user__username', 'original_price', 'coupon', 
-#         'discount_amount_coupon', 'total_price'
+#     orders = Order.objects.filter(created_at__range=[start_date, end_date])
+
+#     sales = orders.annotate(
+#         total_items=Sum('ordered_items__quantity'),
+#         total_discount=Sum(
+#             F('ordered_items__quantity') * F('ordered_items__orderItem_coupon_discount'),
+#             output_field=DecimalField()
+#         ),
+#         refunded_amount=Sum(
+#             Case(
+#                 When(
+#                     ordered_items__item_status='cancelled',
+#                     then=F('ordered_items__price') * F('ordered_items__quantity') - F('ordered_items__orderItem_coupon_discount')
+#                 ),
+#                 default=Value(0),
+#                 output_field=DecimalField()
+#             )
+#         )
+#     ).values(
+#         'id', 'created_at', 'payment_method', 'user__username', 
+#         'total_price', 'coupon', 'discount_amount_coupon', 'status',
+#         'total_items', 'total_discount', 'refunded_amount'
 #     )
+
+#     for sale in sales:
+#         sale['created_at'] = sale['created_at'].strftime('%Y-%m-%d %H:%M:%S')
+#         sale['total_price'] = float(sale['total_price'])
+#         sale['discount_amount_coupon'] = float(sale['discount_amount_coupon'])
+#         sale['total_discount'] = float(sale['total_discount'] or 0)
+#         sale['refunded_amount'] = float(sale['refunded_amount'] or 0)
 
 #     summary = orders.aggregate(
 #         sales_count=Count('id'),
-#         order_amount=Sum('total_price'),
-#         total_discount=Sum('discount_amount_coupon'),
+#         order_amount=Coalesce(Sum('total_price'), Value(0), output_field=DecimalField()),
+#         total_discount=Coalesce(Sum('discount_amount_coupon'), Value(0), output_field=DecimalField()),
+#         total_refunded=Sum(
+#             Case(
+#                 When(
+#                     ordered_items__item_status='cancelled',
+#                     payment_status='paid',
+#                     then=F('ordered_items__price') * F('ordered_items__quantity') - F('ordered_items__orderItem_coupon_discount')
+#                 ),
+#                 default=Value(0),
+#                 output_field=DecimalField()
+#             )
+#         )
+#     )
+
+#     summary['order_amount'] = float(summary['order_amount'])
+#     summary['total_discount'] = float(summary['total_discount'])
+#     summary['total_refunded'] = float(summary['total_refunded'] or 0)
+    
+#     status_data = orders.aggregate(
+#         delivered=Count('ordered_items', filter=Q(ordered_items__item_status='delivered')),
+#         cancelled=Count('ordered_items', filter=Q(ordered_items__item_status='cancelled')),
+#         returned=Count('ordered_items', filter=Q(ordered_items__item_status='returned'))
 #     )
 
 #     data = {
 #         'sales': list(sales),
 #         'summary': summary,
+#         'status_data': status_data 
 #     }
 #     return JsonResponse(data)
 
+# from django.db.models import Sum, F, Count, DecimalField , Case , When 
+# from django.db.models.functions import Coalesce
+# from django.utils import timezone
+# from datetime import timedelta
+# from decimal import Decimal
+
 # def get_filtered_sales_data(request):
-#     report_type = request.GET.get('report_type', 'daily')
+#     report_type = request.GET.get('report_type', 'all')
 #     start_date = request.GET.get('start_date')
 #     end_date = request.GET.get('end_date')
 
+#     now = timezone.now()
 #     if report_type == 'daily':
-#         start_date = timezone.now().date()
+#         start_date = now.date()
 #         end_date = start_date + timedelta(days=1)
 #     elif report_type == 'weekly':
-#         start_date = timezone.now() - timedelta(days=timezone.now().weekday())
+#         start_date = now.date() - timedelta(days=now.weekday())
 #         end_date = start_date + timedelta(weeks=1)
 #     elif report_type == 'monthly':
-#         start_date = timezone.now().replace(day=1)
+#         start_date = now.replace(day=1).date()
 #         end_date = (start_date + timedelta(days=32)).replace(day=1)
 #     elif report_type == 'yearly':
-#         start_date = timezone.now().replace(day=1, month=1)
-#         end_date = (start_date + timedelta(days=366)).replace(day=1, month=1)
+#         start_date = now.replace(day=1, month=1).date()
+#         end_date = start_date.replace(year=start_date.year + 1)
 #     elif report_type == 'custom' and start_date and end_date:
 #         start_date = timezone.datetime.strptime(start_date, '%Y-%m-%d').date()
-#         end_date = timezone.datetime.strptime(end_date, '%Y-%m-%d').date()
+#         end_date = timezone.datetime.strptime(end_date, '%Y-%m-%d').date() + timedelta(days=1)
+#     else:
+#         start_date = Order.objects.earliest('created_at').created_at.date()
+#         end_date = now.date() + timedelta(days=1)
 
-#     orders = Order.objects.filter(created_at__date__range=[start_date, end_date])
-#     sales = orders.values(
-#         'id', 'created_at', 'payment_method', 'user__username', 'original_price', 'coupon', 
-#         'discount_amount_coupon', 'total_price'
+#     orders = Order.objects.filter(created_at__range=[start_date, end_date])
+
+#     sales = orders.annotate(
+#         total_items=Sum('ordered_items__quantity'),
+#         total_discount=Sum(F('ordered_items__quantity') * F('ordered_items__orderItem_coupon_discount')),
+#         refunded_amount=Sum(
+#             Case(
+#                 When(ordered_items__item_status='cancelled', then=F('ordered_items__price') * F('ordered_items__quantity')),
+#                 default=0,
+#                 output_field=DecimalField()
+#             )
+#         )
+#     ).values(
+#         'id', 'created_at', 'payment_method', 'user__username', 
+#         'total_price', 'coupon', 'discount_amount_coupon', 'status',
+#         'total_items', 'total_discount', 'refunded_amount'
 #     )
+
+#     for sale in sales:
+#         sale['created_at'] = sale['created_at'].strftime('%Y-%m-%d %H:%M:%S')
+#         sale['total_price'] = float(sale['total_price'])
+#         sale['discount_amount_coupon'] = float(sale['discount_amount_coupon'])
+#         sale['total_discount'] = float(sale['total_discount'])
+#         sale['refunded_amount'] = float(sale['refunded_amount'])
+
+#     summary = orders.aggregate(
+#         sales_count=Count('id'),
+#         order_amount=Sum('total_price'),
+#         total_discount=Sum('discount_amount_coupon'),
+#         total_refunded=Sum(
+#             Case(
+#                 When(ordered_items__item_status='cancelled', then=F('ordered_items__price') * F('ordered_items__quantity')),
+#                 default=0,
+#                 output_field=DecimalField()
+#             )
+#         )
+#     )
+
+#     summary['order_amount'] = float(summary['order_amount'] or 0)
+#     summary['total_discount'] = float(summary['total_discount'] or 0)
+#     summary['total_refunded'] = float(summary['total_refunded'] or 0)
+
+#     data = {
+#         'sales': list(sales),
+#         'summary': summary,
+#     }
+#     return JsonResponse(data)
+
+
+
+
+# def get_filtered_sales_data(request):
+#     report_type = request.GET.get('report_type', 'all')
+#     start_date = request.GET.get('start_date')
+#     end_date = request.GET.get('end_date')
+
+#     now = timezone.now()
+#     if report_type == 'daily':
+#         start_date = now.date()
+#         end_date = start_date + timedelta(days=1)
+#     elif report_type == 'weekly':
+#         start_date = now.date() - timedelta(days=now.weekday())
+#         end_date = start_date + timedelta(weeks=1)
+#     elif report_type == 'monthly':
+#         start_date = now.replace(day=1).date()
+#         end_date = (start_date + timedelta(days=32)).replace(day=1)
+#     elif report_type == 'yearly':
+#         start_date = now.replace(day=1, month=1).date()
+#         end_date = start_date.replace(year=start_date.year + 1)
+#     elif report_type == 'custom' and start_date and end_date:
+#         start_date = timezone.datetime.strptime(start_date, '%Y-%m-%d').date()
+#         end_date = timezone.datetime.strptime(end_date, '%Y-%m-%d').date() + timedelta(days=1)
+#     else:
+#         start_date = Order.objects.earliest('created_at').created_at.date()
+#         end_date = now.date() + timedelta(days=1)
+
+#     orders = Order.objects.filter(created_at__range=[start_date, end_date])
+
+#     sales = orders.annotate(
+#         total_items=Sum('ordered_items__quantity'),
+#         total_discount=Sum('ordered_items__quantity') * F('discount_amount_coupon')
+#     ).values(
+#         'id', 'created_at', 'payment_method', 'user__username', 
+#         'total_price', 'coupon', 'discount_amount_coupon', 'status',
+#         'total_items', 'total_discount'
+#     )
+
+#     for sale in sales:
+#         sale['created_at'] = sale['created_at'].strftime('%Y-%m-%d %H:%M:%S')
+#         sale['total_price'] = float(sale['total_price'])
+#         sale['discount_amount_coupon'] = float(sale['discount_amount_coupon'])
+#         sale['total_discount'] = float(sale['total_discount'])
 
 #     summary = orders.aggregate(
 #         sales_count=Count('id'),
@@ -950,8 +1213,14 @@ def get_filtered_sales_data(request):
 #         total_discount=Sum('discount_amount_coupon'),
 #     )
 
+#     summary['order_amount'] = float(summary['order_amount'] or 0)
+#     summary['total_discount'] = float(summary['total_discount'] or 0)
+
 #     data = {
 #         'sales': list(sales),
 #         'summary': summary,
 #     }
 #     return JsonResponse(data)
+        
+        
+

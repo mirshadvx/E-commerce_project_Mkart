@@ -133,19 +133,15 @@
         <td>{{ order.created_at|date:"d M Y" }}</td>
         <td>{{ order.user.username }} {{ order.user.last_name }}</td>
         <td>{{ order.ordered_items.count }}</td>
-        <td>
-            {% if order.status == 'pending' %}
-            <span class="badges bg-lightred bg-danger">Pending</span>
-            {% elif order.status == 'processing' %}
-            <span class="badges bg-lightyellow bg-warning">Processing</span>
-            {% elif order.status == 'shipped' %}
-            <span class="badges bg-lightblue bg-info">Shipped</span>
-            {% elif order.status == 'delivered' %}
-            <span class="badges bg-lightgreen bg-success">Delivered</span>
-            {% elif order.status == 'cancelled' %}
-            <span class="badges bg-lightgray bg-secondary">Cancelled</span>
-            {% endif %}
-        </td>
+<td>
+    {% if order.status == 'incomplete' %}
+    <span class="badge bg-lightred bg-danger">Incomplete</span>
+    {% elif order.status == 'completed' %}
+    <span class="badge bg-lightgreen bg-success">Completed</span>
+    {% else %}
+    <span class="badge bg-lightgray bg-secondary">Unknown Status</span>
+    {% endif %}
+</td>
         <td>
             {% if order.payment_status == 'paid'%} 
             <span class="badges bg-lightgreen">Paid</span>

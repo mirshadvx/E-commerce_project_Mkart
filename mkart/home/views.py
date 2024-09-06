@@ -847,7 +847,6 @@ def create_order(request, total, coupon,coupon_discount):
         payment_method = request.POST.get('payment_method'),
         coupon = coupon,
         discount_amount_coupon = coupon_discount,
-        
     )
 
 
@@ -912,7 +911,7 @@ def process_razorpay_payment(request, client, order, payment_id, order_id, signa
         client.utility.verify_payment_signature(params_dict)
         
     
-        order.status = 'processing'
+        order.status = 'incomplete'
         order.payment_status = 'paid'
         order.razorpay_order_id = order_id
         order.razorpay_payment_id = payment_id
@@ -941,24 +940,53 @@ def finalize_order(request, order, cart_items, payment_method):
 
 
 def process_cod_order(order):
-    order.status = 'pending'
+    order.status = 'incomplete'
     order.payment_status = 'unpaid'
     order.save()
 
+# def create_order_items_and_update_stock(order, cart_items, payment_method):
+#     for item in cart_items:
+#         discounted_price = item.product_variant.product.get_discounted_price()
+#         OrderItem.objects.create(
+#             order=order,
+#             product_variant=item.product_variant,
+#             quantity=item.quantity,
+#             price=discounted_price,
+#             item_status='processing' if payment_method == 'razorpay' else 'pending',
+#             payment_status_item='paid' if payment_method == 'razorpay' else 'unpaid'
+#         )
+        
+#         item.product_variant.stock -= item.quantity
+#         item.product_variant.save()
+
 def create_order_items_and_update_stock(order, cart_items, payment_method):
+    total_price = sum(item.quantity * item.product_variant.product.get_discounted_price() for item in cart_items)
+    
     for item in cart_items:
+        # Calculate the discounted price for the item
         discounted_price = item.product_variant.product.get_discounted_price()
+
+        # Calculate the proportion of the coupon discount for this item
+        if total_price > 0:
+            item_coupon_discount = (item.quantity * discounted_price / total_price) * order.discount_amount_coupon
+        else:
+            item_coupon_discount = Decimal('0.00')
+
+        # Create the OrderItem and store the coupon discount
         OrderItem.objects.create(
             order=order,
             product_variant=item.product_variant,
             quantity=item.quantity,
             price=discounted_price,
             item_status='processing' if payment_method == 'razorpay' else 'pending',
-            payment_status_item='paid' if payment_method == 'razorpay' else 'unpaid'
+            payment_status_item='paid' if payment_method == 'razorpay' else 'unpaid',
+            orderItem_coupon_discount=item_coupon_discount  # Store the discount here
         )
         
+        # Update the stock for the product variant
         item.product_variant.stock -= item.quantity
         item.product_variant.save()
+
 
 @require_POST
 def apply_coupon(request):
@@ -967,6 +995,8 @@ def apply_coupon(request):
         coupon = Coupon.objects.get(code=code)
         cart = Cart.objects.get(user=request.user)
         cart_total = cart.get_total_price()
+        
+        print(cart_total)
 
         if coupon.is_valid() and coupon.can_use():
             if cart_total >= coupon.min_purchase_amount:
@@ -1047,59 +1077,103 @@ def edit_details(request):
     
     return redirect(request.META.get('HTTP_REFERER', 'home'))
 
+from django.db import transaction
 
 @require_POST
+@transaction.atomic
 def cancel_item(request):
     item_id = request.POST.get('item_id')
-    variant_id = request.POST.get('variant_id')
-    inc_quantity = request.POST.get('inc_quantity')
-    variant = ProductVariant.objects.get(id=variant_id)
-    print(item_id,'item id ddddddd')
-    print(variant_id)
-    
     
     try:
-        item = OrderItem.objects.get(id=item_id, order__user=request.user)
+        item = OrderItem.objects.select_related('order', 'product_variant').get(id=item_id, order__user=request.user)
         
         if item.item_status in ['pending', 'processing', 'shipped']:
-            item.item_status = 'cancelled'
+            # Calculate refund amount
+            refund_amount = item.get_total_price() - item.orderItem_coupon_discount
             
-            variant.stock = variant.stock + int(inc_quantity)
-            variant.save()
+            # Update item status
+            item.item_status = 'cancelled'
             item.save()
 
+            # Update product variant stock
+            item.product_variant.stock += item.quantity
+            item.product_variant.save()
+
+            # Check if all items in the order are cancelled
             order = item.order
             if all(i.item_status == 'cancelled' for i in order.ordered_items.all()):
                 order.status = 'cancelled'
                 order.save()
 
-            if order.payment_method == 'razorpay':
-                refund_amount = item.get_total_price() 
-                request.user.wallet.balance += refund_amount
-                request.user.wallet.save()
+            # Process refund
+            if order.payment_status == 'paid':
+                user_wallet, _ = Wallet.objects.get_or_create(user=request.user)
+                user_wallet.balance += Decimal(refund_amount)
+                user_wallet.save()
 
                 WalletTransaction.objects.create(
-                    wallet=request.user.wallet,
+                    wallet=user_wallet,
                     amount=refund_amount,
-                    transaction_type='credit'
+                    transaction_type='credit',
                 )
-                
-            # refund_amount = item.total_price
-            # request.user.wallet.balance += refund_amount
-            # request.user.wallet.save()
 
-            # WalletTransaction.objects.create(
-            #     wallet=request.user.wallet,
-            #     amount=refund_amount,
-            #     transaction_type='credit'
-            # )
-
-            return JsonResponse({'success': True, 'message': 'Item cancelled successfully'})
+            return JsonResponse({
+                'success': True, 
+                'message': 'Item cancelled successfully',
+                'refund_amount': float(refund_amount) if order.payment_status == 'paid' else 0
+            })
         else:
             return JsonResponse({'success': False, 'message': 'Item cannot be cancelled in its current status'})
 
     except OrderItem.DoesNotExist:
         return JsonResponse({'success': False, 'message': 'Item not found'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': f'An error occurred: {str(e)}'})
+
+
+# @require_POST
+# def cancel_item(request):
+#     item_id = request.POST.get('item_id')
+#     variant_id = request.POST.get('variant_id')
+#     inc_quantity = request.POST.get('inc_quantity')
+#     variant = ProductVariant.objects.get(id=variant_id)
+#     print(item_id,'item id ddddddd')
+#     print(variant_id)
+    
+    
+#     try:
+#         item = OrderItem.objects.get(id=item_id, order__user=request.user)
+        
+#         if item.item_status in ['pending', 'processing', 'shipped']:
+#             item.item_status = 'cancelled'
+            
+#             variant.stock = variant.stock + int(inc_quantity)
+#             variant.save()
+#             item.save()
+
+#             order = item.order
+#             if all(i.item_status == 'cancelled' for i in order.ordered_items.all()):
+#                 order.status = 'cancelled'
+#                 order.save()
+
+#             if order.payment_method == 'razorpay':
+#                 # refund_amount = item.get_total_price()
+#                 refund_amount = item.orderItem_coupon_discount
+#                 request.user.wallet.balance += refund_amount
+#                 request.user.wallet.save()
+
+#                 WalletTransaction.objects.create(
+#                     wallet=request.user.wallet,
+#                     amount=refund_amount,
+#                     transaction_type='credit'
+#                 )
+
+#             return JsonResponse({'success': True, 'message': 'Item cancelled successfully'})
+#         else:
+#             return JsonResponse({'success': False, 'message': 'Item cannot be cancelled in its current status'})
+
+#     except OrderItem.DoesNotExist:
+#         return JsonResponse({'success': False, 'message': 'Item not found'})
 
 
 @require_POST

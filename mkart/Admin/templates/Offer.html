@@ -57,6 +57,120 @@
         display: block;
     }
 </style>
+
+
+  <style>
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #2196F3;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        .toggle-label {
+            margin-left: 10px;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            vertical-align: middle;
+        }
+    </style>
+
+
+<style>
+/* Toggle Switch Styles */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+}
+
+input:checked + .slider {
+    background-color: #2196F3;
+}
+
+input:focus + .slider {
+    box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+
+.slider.round {
+    border-radius: 34px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+</style>
 {% endblock %}
 
 {% block content %}
@@ -102,15 +216,34 @@
                                 <td>{{ offer.discount }}</td>
                                 <td>{{ offer.valid_from|date:"Y-m-d H:i" }}</td>
                                 <td>{{ offer.valid_to|date:"Y-m-d H:i" }}</td>
-                                <td>
-                                    {% if offer.is_active %}
-                                    <span class="badge bg-success">Active</span>
-                                    {% else %}
-                                    <span class="badge bg-danger">Inactive</span>
-                                    {% endif %}
-                                </td>
+                                {% comment %} <td>
+<button class="btn-toggle-status" data-offer-id="{{ offer.id }}">
+    {% if offer.is_active %}
+    Deactivate
+    {% else %}
+    Activate
+    {% endif %}
+</button>
+                                </td> {% endcomment %}
+<td>
+    <label class="switch">
+        <input type="checkbox" class="status-toggle" data-offer-id="{{ offer.id }}" {% if offer.is_active %}checked{% endif %}>
+        <span class="slider round"></span>
+    </label>
+</td>
                                 <td>{{ offer.description|truncatechars:30 }}</td>
-                                <td class="text-end">
+<td class="text-end">
+    <div class="actions">
+        <button data-offer-id="{{ offer.id }}" class="btn btn-sm bg-success-light mr-2 btn-edit-offer">
+            <i class="fas fa-pen"></i>
+        </button>
+        <button data-offer-id="{{ offer.id }}" class="btn btn-sm bg-danger-light btn-delete-offer">
+            <i class="fas fa-trash"></i>
+        </button>
+    </div>
+</td>
+
+                                {% comment %} <td class="text-end">
                                     <div class="actions">
                                         <a href="#" class="btn btn-sm bg-success-light mr-2">
                                             <i class="fas fa-pen"></i>
@@ -119,7 +252,7 @@
                                             <i class="fas fa-trash"></i>
                                         </a>
                                     </div>
-                                </td>
+                                </td> {% endcomment %}
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -134,7 +267,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="addOfferModalLabel">Add New Offer</h5>
+                <h5 class="modal-title" id="addOfferModalLabel"></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -192,6 +325,25 @@
 
 <script>
 $(document).ready(function() {
+
+
+    function clearModalFields() {
+        $('#offerName').val('');
+        $('#offerDiscount').val('');
+        $('#validFrom').val('');
+        $('#validTo').val('');
+        $('#offerDescription').val('');
+        $('#isActive').prop('checked', false);
+
+        $('.is-invalid').removeClass('is-invalid');
+        $('.invalid-feedback').hide();
+    }
+        function resetForm() {
+        clearModalFields();
+        $('#addOfferForm').off('submit').on('submit', handleAddOffer);
+        $('#addOfferModal').find('.modal-title').text('Add Offer');
+    }
+
     function validateForm() {
         let isValid = true;
         
@@ -241,7 +393,8 @@ $(document).ready(function() {
         return isValid;
     }
 
-    $('#addOfferForm').on('submit', function(e) {
+
+    function handleAddOffer(e) {
         e.preventDefault();
         
         if (validateForm()) {
@@ -254,6 +407,7 @@ $(document).ready(function() {
                 success: function(response) {
                     if (response.success) {
                         Swal.fire('Success', response.message, 'success').then(() => {
+                            $('#addOfferModal').modal('hide');
                             location.reload();
                         });
                     } else {
@@ -265,12 +419,153 @@ $(document).ready(function() {
                 }
             });
         }
+    }
+
+
+        // Initial setup for add offer
+    $('#addOfferForm').on('submit', handleAddOffer);
+
+    // Handle Add New Offer button click
+    $('#addNewOfferBtn').on('click', function() {
+        resetForm();
+        $('#addOfferModal').modal('show');
     });
 
-    // Remove invalid class on input
+
+
+    // Handle Edit Offer
+    $('.btn-edit-offer').on('click', function() {
+        resetForm(); // Reset form before populating with new data
+        const offerId = $(this).data('offer-id');
+        const offerRow = $(this).closest('tr');
+        
+        // Populate form fields with current offer data
+        $('#offerName').val(offerRow.find('td:eq(0)').text().trim());
+        $('#offerDiscount').val(offerRow.find('td:eq(1)').text().trim());
+        $('#validFrom').val(offerRow.find('td:eq(2)').data('datetime'));
+        $('#validTo').val(offerRow.find('td:eq(3)').data('datetime'));
+        $('#offerDescription').val(offerRow.find('td:eq(5)').text().trim());
+        $('#isActive').prop('checked', offerRow.find('td:eq(4)').text().trim() === 'Active');
+
+        // Update modal title
+        $('#addOfferModal').find('.modal-title').text('Edit Offer');
+
+        // Open modal
+        $('#addOfferModal').modal('show');
+        
+        // Update form submission to edit instead of add
+        $('#addOfferForm').off('submit').on('submit', function(e) {
+            e.preventDefault();
+            if (validateForm()) {
+                var formData = $(this).serialize();
+                $.ajax({
+                    url: `/admin_panel/edit_offer/${offerId}/`,
+                    type: 'POST',
+                    data: formData,
+                    success: function(response) {
+                        if (response.success) {
+                            Swal.fire('Success', response.message, 'success').then(() => {
+                                $('#addOfferModal').modal('hide');
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire('Error', response.message, 'error');
+                        }
+                    },
+                    error: function(xhr) {
+                        Swal.fire('Error', 'An error occurred while updating the offer.', 'error');
+                    }
+                });
+            }
+        });
+    });
+
+
+        // Remove invalid class on input
     $('#addOfferForm input, #addOfferForm textarea').on('input', function() {
         $(this).removeClass('is-invalid');
     });
+
+
+
+
+$('.btn-delete-offer').on('click', function() {
+    const offerId = $(this).data('offer-id');
+
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "You won't be able to revert this!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: `/admin_panel/delete_offer/${offerId}/`, // Use the correct URL structure here
+                type: 'POST',
+                data: {
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        Swal.fire('Deleted!', response.message, 'success').then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire('Error', response.message, 'error');
+                    }
+                },
+                error: function(xhr) {
+                    Swal.fire('Error', 'An error occurred while deleting the offer.', 'error');
+                }
+            });
+        }
+    });
+});
+
+$(document).ready(function() {
+    $('.status-toggle').on('change', function() {
+        const offerId = $(this).data('offer-id');
+        const isChecked = $(this).prop('checked');
+
+        $.ajax({
+            url: `/admin_panel/control_offer_status/${offerId}/`,
+            type: 'POST',
+            data: {
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'is_active': isChecked
+            },
+            success: function(response) {
+                if (response.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Status Updated',
+                        text: `Offer status has been ${isChecked ? 'activated' : 'deactivated'}.`,
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+                } else {
+                    Swal.fire('Error', 'Failed to update offer status.', 'error');
+                    // Revert the toggle if the update failed
+                    $(this).prop('checked', !isChecked);
+                }
+            },
+            error: function(xhr) {
+                Swal.fire('Error', 'An error occurred while updating the status.', 'error');
+                // Revert the toggle if there was an error
+                $(this).prop('checked', !isChecked);
+            }
+        });
+    });
+});
+
+    // Handle modal hidden event
+    $('#addOfferModal').on('hidden.bs.modal', function () {
+        resetForm();
+    });
+
 });
 </script>
 {% endblock %}

@@ -200,7 +200,7 @@
                     <th>Image</th>
                     <th>Quantity</th>
                     <th>Price</th>
-                    <th>Total</th>
+                    <th>Total(include all offers)</th>
                     <th>Payment Status</th>
                     <th>Status</th>
                     <th>Actions</th>
@@ -212,10 +212,11 @@
                 {% for item in order_items %}
                 <tr>
                     <td>{{ item.product_variant.product.name }}</td>
-                    <td><img src="{{ item.product_variant.image_1.url }}" alt="{{ item.product_variant.product.name }}" class="product-img"></td>
+                    <td><img src="{{ item.product_variant.image_1.url|default_if_none:'/static/store-assets/default-image.png' }}" alt="{{ item.product_variant.product.name }}" class="product-img"></td>
                     <td>{{ item.quantity }}</td>
                     <td>₹{{ item.price }}</td>
-                    <td>₹{{ item.get_total_price }}</td>
+                    {% comment %} <td>₹{{ item.get_total_price }}</td> {% endcomment %}
+                    <td>₹{{ item.orderItem_coupon_discount }}</td>
                     {% if item.payment_status_item == 'paid' %}
                     <td><span style="color: #4de52d;
     font-weight: bold;">Paid</span></td>

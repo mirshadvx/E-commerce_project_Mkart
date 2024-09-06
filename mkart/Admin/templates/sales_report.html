@@ -88,7 +88,7 @@
                                 <th>Discount</th>
                                 <th>Status</th>
                                 <th>Items</th>
-                                <th>Total Discount</th>
+                                <th>Refunded Amount</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -192,7 +192,7 @@ $(document).ready(function() {
                 '<td>' + sale.discount_amount_coupon.toFixed(2) + '</td>' +
                 '<td>' + sale.status + '</td>' +
                 '<td>' + sale.total_items + '</td>' +
-                '<td>' + sale.total_discount.toFixed(2) + '</td>' +
+                '<td>' + sale.refunded_amount.toFixed(2) + '</td>' +
                 '</tr>';
             tableBody.append(row);
         });
@@ -248,8 +248,8 @@ $(document).ready(function() {
                 4: {cellWidth: 15},
                 5: {cellWidth: 15},
                 6: {cellWidth: 15},
-                7: {cellWidth: 15},
-                8: {cellWidth: 10},
+                7: {cellWidth: 20},
+                8: {cellWidth: 15},
                 9: {cellWidth: 15}
             },
             headStyles: {

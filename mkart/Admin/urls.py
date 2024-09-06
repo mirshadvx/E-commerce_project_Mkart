@@ -37,7 +37,10 @@ urlpatterns = [
     path('control_coupon_status/', views.control_coupon_status,name='control_c_status'),
     #offer
     path('offer/',views.offer_list,name='offer'),
-    path('add_offer/',views.add_offer,name='add_offer'),
+    path('add_offer',views.add_offer,name='add_offer'),
+    path('edit_offer/<int:offer_id>/',views.edit_offer,name='edit_offer'),
+    path('delete_offer/<int:offer_id>/',views.delete_offer,name='delete_offer'),
+    path('control_offer_status/<int:offer_id>/',views.control_offer_status,name='offer_status'),
     
     path('update-product-offer/', views.update_product_offer, name='update_product_offer'),
     # path('add_offer_to_category/', views.add_offer_to_category, name='add_offer_to_category'),

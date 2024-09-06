@@ -36,7 +36,7 @@ local_settings.py
 db.sqlite3
 
 # Media files
-/media/*
+\media
 
 # Environment
 .env
@@ -55,4 +55,4 @@ Thumbs.db
 client_secret*.json
 
 # Static files collection
-/static/
+# /static/
