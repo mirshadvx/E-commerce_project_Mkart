@@ -323,33 +323,19 @@ def loginpage(request):
     return render(request, 'store/login.html')
 # @login_required
 def home(request):
-    if request.user.is_authenticated:  
-        all_products = Product.objects.filter(category__status=True)
-        categories = Category.objects.filter(status=True)
-        genders = Gender.objects.all()
-        brands = Brand.objects.all()
 
-        context = {
-            'products': all_products,
-            'categories': categories,
-            'genders': genders,
-            'brands': brands,
-        }
-        return render(request, 'store/home.html', context)
-        
     all_products = Product.objects.filter(category__status=True)
     categories = Category.objects.filter(status=True)
     genders = Gender.objects.all()
     brands = Brand.objects.all()
-         
+
     context = {
         'products': all_products,
         'categories': categories,
         'genders': genders,
         'brands': brands,
     }
-        
-    return render(request,'store/store.html',context)
+    return render(request, 'store/home.html', context)
    
 
 def logoutPage(request):
@@ -729,7 +715,7 @@ def delete_address(request, address_id):
         return JsonResponse({'status': 'success', 'message': 'Address deleted successfully.'})
     except UserAddress.DoesNotExist:
         return JsonResponse({'status': 'error', 'message': 'Address not found.'}, status=404)
-       
+          
 @login_required
 def checkout(request):
     try:
@@ -790,42 +776,77 @@ def checkout(request):
 
     return render(request, 'store/checkout.html', context)
 
+def process_order(request, cart_items, total, coupon, razorpay_client, coupon_discount):
+    wallet = Wallet.objects.get(user=request.user)
 
-def process_order(request, cart_items, total, coupon, razorpay_client,coupon_discount):
-
+    # Validate the cart items before proceeding
     if not validate_cart_items(request, cart_items):
         return redirect('cart')
 
-    coupon_discount = coupon_discount
-    order = create_order(request, total, coupon,coupon_discount)
-    
+    # Create the order object
+    order = create_order(request, total, coupon, coupon_discount)
+
     if order:
-       
+        # Handle the shipping address for the order
         if not handle_order_address(request, order, request.user):
-            order.delete()
+            order.delete()  # Delete the order if address is not valid
             return redirect('checkout')
 
-
+        # Retrieve the selected payment method
         payment_method = request.POST.get('payment_method')
-        
+
+        # Handle Razorpay payment
         if payment_method == 'razorpay':
             razorpay_payment_id = request.POST.get('razorpay_payment_id')
             razorpay_order_id = request.POST.get('razorpay_order_id')
             razorpay_signature = request.POST.get('razorpay_signature')
-            
+
             if process_razorpay_payment(request, razorpay_client, order, razorpay_payment_id, razorpay_order_id, razorpay_signature):
                 finalize_order(request, order, cart_items, 'razorpay')
                 return redirect('order_confirmation', order_id=order.id)
             else:
-                order.delete()
+                order.delete()  # Delete the order if payment fails
+                messages.error(request, "Razorpay payment failed.")
                 return redirect('checkout')
+
+        # Handle Cash on Delivery payment
         elif payment_method == 'cod':
+            if total < Decimal('1000.00'):
+                messages.error(request, "Cash on Delivery is not available for orders below ₹1000.")
+                order.delete()  # Delete the order if COD is not available
+                return redirect('checkout')
+
             finalize_order(request, order, cart_items, 'cod')
             return redirect('order_confirmation', order_id=order.id)
+
+        # Handle Wallet payment
+        elif payment_method == 'wallet':
+            if total > wallet.balance:
+                messages.error(request, "Insufficient balance in your wallet to complete this purchase.")
+                order.delete()  # Delete the order if wallet balance is insufficient
+                return redirect('checkout')
+
+            # Deduct the total amount from the wallet balance
+            wallet.balance -= total
+            wallet.save()
+
+            # Create a wallet transaction for the debit
+            WalletTransaction.objects.create(
+                wallet=wallet,
+                amount=total,
+                transaction_type='debit'
+            )
+
+            # Finalize the order
+            finalize_order(request, order, cart_items, 'wallet')
+
+            return redirect('order_confirmation', order_id=order.id)
+
     else:
         messages.error(request, "There was an error processing your order. Please try again.")
+        return redirect('checkout')
 
-    return redirect('checkout')
+
 def validate_cart_items(request, cart_items):
     for item in cart_items:
         product_variant = item.product_variant
@@ -944,46 +965,40 @@ def process_cod_order(order):
     order.payment_status = 'unpaid'
     order.save()
 
-# def create_order_items_and_update_stock(order, cart_items, payment_method):
-#     for item in cart_items:
-#         discounted_price = item.product_variant.product.get_discounted_price()
-#         OrderItem.objects.create(
-#             order=order,
-#             product_variant=item.product_variant,
-#             quantity=item.quantity,
-#             price=discounted_price,
-#             item_status='processing' if payment_method == 'razorpay' else 'pending',
-#             payment_status_item='paid' if payment_method == 'razorpay' else 'unpaid'
-#         )
-        
-#         item.product_variant.stock -= item.quantity
-#         item.product_variant.save()
-
 def create_order_items_and_update_stock(order, cart_items, payment_method):
     total_price = sum(item.quantity * item.product_variant.product.get_discounted_price() for item in cart_items)
     
     for item in cart_items:
-        # Calculate the discounted price for the item
+
         discounted_price = item.product_variant.product.get_discounted_price()
 
-        # Calculate the proportion of the coupon discount for this item
+      
         if total_price > 0:
             item_coupon_discount = (item.quantity * discounted_price / total_price) * order.discount_amount_coupon
         else:
             item_coupon_discount = Decimal('0.00')
 
-        # Create the OrderItem and store the coupon discount
+        
+        if payment_method == 'razorpay':
+            item_status = 'processing'
+            payment_status_item = 'paid'
+        elif payment_method == 'wallet':
+            item_status = 'processing' 
+            payment_status_item = 'paid'
+            order.payment_status = 'paid'
+            order.save()
+
+
         OrderItem.objects.create(
             order=order,
             product_variant=item.product_variant,
             quantity=item.quantity,
             price=discounted_price,
-            item_status='processing' if payment_method == 'razorpay' else 'pending',
-            payment_status_item='paid' if payment_method == 'razorpay' else 'unpaid',
-            orderItem_coupon_discount=item_coupon_discount  # Store the discount here
+            item_status=item_status,
+            payment_status_item=payment_status_item,
+            orderItem_coupon_discount=item_coupon_discount 
         )
         
-        # Update the stock for the product variant
         item.product_variant.stock -= item.quantity
         item.product_variant.save()
 

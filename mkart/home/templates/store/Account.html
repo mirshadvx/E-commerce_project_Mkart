@@ -1,4 +1,4 @@
-{% extends "store/Base.html" %}
+{% extends "store/main_Base.html" %}
 {% load static %}
 
 {% block title %}Account{% endblock  %}
@@ -131,26 +131,66 @@
     .order-item img {
         margin-right: 10px;
     }
+
+
+        .wallet-container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .wallet-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .wallet-balance {
+            font-size: 2em;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        .transaction-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        .transaction-item {
+            background-color: #f9f9f9;
+            border-radius: 4px;
+            padding: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .transaction-type {
+            font-weight: bold;
+        }
+        .transaction-amount {
+            font-size: 1.1em;
+        }
+        .transaction-timestamp {
+            color: #777;
+            font-size: 0.9em;
+        }
+        .credit {
+            color: #4CAF50;
+        }
+        .debit {
+            color: #F44336;
+        }
+        .no-transactions {
+            text-align: center;
+            color: #777;
+            font-style: italic;
+        }
 </style>
 {% endblock  %}
 
 {% block content %}
 
 <main class="main">
-{% comment %} 
-                                {% if messages %}
-                                    <div class="messages">
-                                        {% for message in messages %}
-                                            <div class="alert alert-{% if message.tags %}{{ message.tags }}{% else %}danger{% endif %} alert-dismissible fade show" role="alert">
-                                                {{ message }}
-                                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                                    <span aria-hidden="true">&times;</span>
-                                                </button>
-                                            </div>
-                                        {% endfor %}
-                                    </div>
-                                {% endif %} {% endcomment %}
-
 
 {% if messages %}
 <div class="message-container">
@@ -261,7 +301,7 @@
                             </div><!-- .End .tab-pane -->
 
 <div class="tab-pane fade" id="tab-downloads" role="tabpanel" aria-labelledby="tab-downloads-link">
-    <div>    <h3>Your Wallet</h3>
+    {% comment %} <div>    <h3>Your Wallet</h3>
     <p>Balance: {{ wallet.balance }}</p>
 
     <h4>Transaction History</h4>
@@ -277,13 +317,36 @@
         </ul>
     {% else %}
         <p>No transactions yet.</p>
-    {% endif %}</div>
+    {% endif %}</div> {% endcomment %}
 
-    
-    {% comment %} <a class="btn btn-outline-primary-2">
-        <span>ADD MONEY</span>
-        <i class="icon-long-arrow-right"></i>
-    </a> {% endcomment %}
+    <div class="wallet-container">
+        <div class="wallet-header">
+            <h2>Your Wallet</h2>
+            <div class="wallet-balance">Balance: {{ wallet.balance }}</div>
+        </div>
+        <h3>Transaction History</h3>
+        {% if transactions %}
+            <ul class="transaction-list">
+                {% for transaction in transactions %}
+                    <li class="transaction-item">
+                        <div>
+                            <span class="transaction-type {{ transaction.transaction_type }}">
+                                {{ transaction.transaction_type.title }}
+                            </span>
+                            <span class="transaction-amount">
+                                {{ transaction.amount }}
+                            </span>
+                        </div>
+                        <span class="transaction-timestamp">
+                            {{ transaction.timestamp|date:"Y-m-d H:i" }}
+                        </span>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="no-transactions">No transactions yet.</p>
+        {% endif %}
+    </div>
 </div>
 
                             <div class="tab-pane fade" id="tab-address" role="tabpanel" aria-labelledby="tab-address-link">

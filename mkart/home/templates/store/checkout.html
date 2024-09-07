@@ -1,4 +1,4 @@
-{% extends "store/Base.html" %}
+{% extends "store/main_Base.html" %}
 {% load static %}
 
 {% block title %}Checkout - Your Store{% endblock %}
@@ -22,6 +22,8 @@
         <link rel="stylesheet" href="{% static 'store-assets/assets/css/plugins/magnific-popup/magnific-popup.css' %}" />
         <!-- Main CSS File -->
         <link rel="stylesheet" href="{% static 'store-assets/assets/css/style.css' %}" />
+            <link rel="stylesheet" href="{% static 'store-assets/assets/css/skins/skin-demo-6.css' %}">
+    <link rel="stylesheet" href="{% static 'store-assets/assets/css/demos/demo-6.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
@@ -230,7 +232,7 @@
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label for="postal_code" class="form-label">Postal Code</label>
-                                    <input type="text" class="form-control" id="postal_code" name="postal_code">
+                                    <input type="number" class="form-control" id="postal_code" name="postal_code">
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label for="country" class="form-label">Country</label>
@@ -260,6 +262,12 @@
                                     <i class="fas fa-credit-card payment-icons"></i> Razorpay
                                 </label>
                             </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="payment_method" id="payment_wallet" value="wallet">
+                                <label class="form-check-label" for="payment_wallet">
+                                    <i class="fas fa-credit-card payment-icons"></i> wallet
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -269,6 +277,7 @@
 
                 <button type="submit" class="btn btn-primary btn-lg w-100" id="place-order-btn">Place Order</button>
                 <button type="button" class="btn btn-primary btn-lg w-100" id="rzp-button1" style="display: none;">Pay with Razorpay</button>
+                <button type="submit" class="btn btn-primary btn-lg w-100" id="place-order-wallet-btn">Pay with Wallet</button>
             </form>
         </div>
 
@@ -373,6 +382,19 @@
 {% endblock %}
 
 {% block extra_js %}
+    <script src="{% static 'store-assets/assets/js/jquery.min.js' %}"></script>
+    <script src="{% static 'store-assets/assets/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'store-assets/assets/js/jquery.hoverIntent.min.js' %}"></script>
+    <script src="{% static 'store-assets/assets/js/jquery.waypoints.min.js' %}"></script>
+    <script src="{% static 'store-assets/assets/js/superfish.min.js' %}"></script>
+    <script src="{% static 'store-assets/assets/js/owl.carousel.min.js' %}"></script>
+    <script src="{% static 'store-assets/assets/js/bootstrap-input-spinner.js' %}"></script>
+    <script src="{% static 'store-assets/assets/js/jquery.plugin.min.js' %}"></script>
+    <script src="{% static 'store-assets/assets/js/jquery.magnific-popup.min.js' %}"></script>
+    <script src="{% static 'store-assets/assets/js/jquery.countdown.min.js' %}"></script>
+    <!-- Main JS File -->
+    <script src="{% static 'store-assets/assets/js/main.js' %}"></script>
+    <script src="{% static 'store-assets/assets/js/demos/demo-6.js' %}"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
@@ -394,16 +416,39 @@
             }
         });
 
-        // Handle payment method selection
-        $('input[name="payment_method"]').change(function() {
-            if ($(this).val() === 'razorpay') {
-                $('#rzp-button1').show();
-                $('#place-order-btn').hide();
-            } else {
-                $('#rzp-button1').hide();
-                $('#place-order-btn').show();
-            }
-        });
+  
+    $('input[name="payment_method"]').change(function() {
+        const selectedPaymentMethod = $(this).val();
+
+        if (selectedPaymentMethod === 'razorpay') {
+            $('#rzp-button1').show();           
+            $('#place-order-btn').hide();         
+            $('#place-order-wallet-btn').hide();  
+        } else if (selectedPaymentMethod === 'wallet') {
+            $('#place-order-wallet-btn').show();  
+            $('#rzp-button1').hide();      
+            $('#place-order-btn').hide();       
+        } else {
+            $('#place-order-btn').show();      
+            $('#rzp-button1').hide();          
+            $('#place-order-wallet-btn').hide();   
+        }
+    });
+
+    const initialPaymentMethod = $('input[name="payment_method"]:checked').val();
+    if (initialPaymentMethod === 'razorpay') {
+        $('#rzp-button1').show();
+        $('#place-order-btn').hide();
+        $('#place-order-wallet-btn').hide();
+    } else if (initialPaymentMethod === 'wallet') {
+        $('#place-order-wallet-btn').show();
+        $('#rzp-button1').hide();
+        $('#place-order-btn').hide();
+    } else {
+        $('#place-order-btn').show();
+        $('#rzp-button1').hide();
+        $('#place-order-wallet-btn').hide();
+    }
 
         // Form validation
         $('#checkout-form').submit(function(event) {
