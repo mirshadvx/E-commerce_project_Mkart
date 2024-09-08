@@ -31,11 +31,12 @@ class Coupon(models.Model):
     def is_valid(self):
         now = django_timezone.now()
         return self.active and self.valid_from <= now <= self.valid_to
-
-    def can_use(self):
-        if self.usage_limit:
-            return self.times_used < self.usage_limit
-        return True
+    
+    def can_use(self, user):
+        user_coupon_usage = User_Coupon_limit.objects.filter(coupon=self, user=user).first()
+        if user_coupon_usage and user_coupon_usage.count_usage >= 2:
+            return False, "You have already used this coupon 2 times."
+        return True, None  # Coupon is valid, no message
 
     def apply_discount(self, total_amount):
         if self.discount is None:
@@ -43,9 +44,26 @@ class Coupon(models.Model):
         discount_factor = Decimal(self.discount) / Decimal(100)
         return Decimal(total_amount) * discount_factor
 
-    def increment_usage(self):
+    def increment_usage(self, user):
+        user_coupon_usage, created = User_Coupon_limit.objects.get_or_create(user=user, coupon=self)
+        user_coupon_usage.count_usage += 1
+        user_coupon_usage.save()
         self.times_used += 1
         self.save()
+    
+class User_Coupon_limit(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    coupon = models.ForeignKey(Coupon, on_delete=models.CASCADE)
+    count_usage = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['user', 'coupon']),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} - {self.coupon.code} - {self.count_usage} uses"
+
 
 class Offer(models.Model):
     name = models.CharField(max_length=255)

@@ -737,7 +737,7 @@ def checkout(request):
     if coupon:
         try:
             coupon_obj = Coupon.objects.get(code=coupon)
-            if coupon_obj.is_valid() and coupon_obj.can_use():
+            if coupon_obj.is_valid() and coupon_obj.can_use(request.user):
                 coupon_discount = coupon_obj.apply_discount(subtotal)
                 
         except Coupon.DoesNotExist:
@@ -1001,7 +1001,7 @@ def create_order_items_and_update_stock(order, cart_items, payment_method):
         
         item.product_variant.stock -= item.quantity
         item.product_variant.save()
-
+        
 
 @require_POST
 def apply_coupon(request):
@@ -1010,24 +1010,28 @@ def apply_coupon(request):
         coupon = Coupon.objects.get(code=code)
         cart = Cart.objects.get(user=request.user)
         cart_total = cart.get_total_price()
-        
-        print(cart_total)
 
-        if coupon.is_valid() and coupon.can_use():
+        if coupon.is_valid():
             if cart_total >= coupon.min_purchase_amount:
-                request.session['coupon'] = code
-                coupon.increment_usage()
-                messages.success(request, "Coupon applied successfully!")
+                can_use, message = coupon.can_use(request.user)
+                if can_use:
+                    request.session['coupon'] = code
+                    coupon.increment_usage(request.user)
+                    messages.success(request, "Coupon applied successfully!")
+                else:
+                    messages.error(request, message)
             else:
                 messages.error(request, f"This coupon requires a minimum purchase of {coupon.min_purchase_amount}.")
         else:
             messages.error(request, "This coupon is invalid or has expired.")
+    
     except Coupon.DoesNotExist:
         messages.error(request, "Invalid coupon code.")
     except Cart.DoesNotExist:
         messages.error(request, "No active cart found.")
     
     return redirect('checkout')
+
 
 @login_required
 def order_confirmation(request, order_id):
