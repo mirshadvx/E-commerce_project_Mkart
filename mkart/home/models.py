@@ -9,14 +9,6 @@ import string
 import random
 from Admin.models import *
 
-# class Profile(models.Model):
-#     user = models.OneToOneField(User, on_delete=models.CASCADE)
-#     phone = models.CharField(max_length=15, blank=True, null=True)
-
-#     def __str__(self):
-#         return self.user.username
-
-
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     phone = models.CharField(max_length=15, blank=True, null=True)
@@ -108,7 +100,7 @@ class Cart(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.user.username}'s cart"
+        return f"{self.user.username} cart"
     
     def get_total_price(self):
         total = sum(item.get_total_price() for item in self.items.all())
@@ -121,7 +113,6 @@ class CartItem(models.Model):
     added_at = models.DateTimeField(auto_now_add=True)
     
     def get_total_price(self):
-        # Use the discounted price instead of the original price
         discounted_price = self.product_variant.product.get_discounted_price()
         return self.quantity * discounted_price
 

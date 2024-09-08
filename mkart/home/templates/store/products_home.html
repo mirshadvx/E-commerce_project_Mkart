@@ -24,6 +24,25 @@
 <link rel="stylesheet" href="{% static 'store-assets/assets/css/plugins/nouislider/nouislider.css' %}" />
 {% endblock %}
 
+{% block wishlist_cart_data %}
+                    <div class="header-right">
+                        <a href="{% url "wishlist" %}" class="wishlist-link">
+                            <i class="icon-heart-o"></i>
+                            <span class="wishlist-count">{{ wishlist_count }}</span>
+                            <span class="wishlist-txt">My Wishlist</span>
+                        </a>
+
+                        <div class="dropdown cart-dropdown">
+                             <a href="{% url 'cart' %}" class="dropdown-toggle" role="button"  data-display="static">
+                                <i class="icon-shopping-cart"></i>
+                                <span class="cart-count">{{ cart_count }}</span>
+                                <span class="cart-txt">{{ cart_total }}</span>
+                            </a>
+
+                        </div><!-- End .cart-dropdown -->
+                    </div>
+{% endblock  %}
+
 {% block content %}
 <main class="main">
     <div class="page-header text-center" style="background-color: beige;">

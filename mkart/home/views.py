@@ -230,47 +230,6 @@ def validate_otp(request):
     
     return render(request, 'store/validateOTP.html')
 
-# def validate_otp(request):
-#     if request.method == "POST":
-#         user_otp = request.POST.get('otp')
-#         stored_data = request.session.get('registration_data', {})
-#         print(user_otp,stored_data)
-
-#         if not stored_data:
-#             return redirect('register')
-
-#         otp_created_at = timezone.datetime.fromisoformat(stored_data.get('otp_created_at'))
-#         time_elapsed = (timezone.now() - otp_created_at).total_seconds()
-
-#         if time_elapsed > 300:  
-#             del request.session['registration_data']
-#             return render(request, 'store/validateOTP.html', {'error': 'OTP has expired. Please try again.'})
-        
-#         if user_otp == stored_data.get('otp'):
-#             try:
-#                 existing_user = User.objects.filter(email=stored_data['email']).first()
-#                 if existing_user:
-#                     return render(request, 'store/validateOTP.html', {'error': 'An account with this email already exists.'})
-                
-             
-#                 new_user = User.objects.create_user(
-#                     username=stored_data['username'],
-#                     email=stored_data['email'],
-#                     password=stored_data['password']
-#                 )
-#                 new_user.save()
-                
-#                 Profile.objects.create(user=new_user, phone=stored_data['phone_number'])
-
-#                 return redirect('login')
-#             except IntegrityError:
-#                 return render(request, 'store/validateOTP.html', {'error': 'An error occurred while creating your account. Please try again.'})
-#         else:
-#             return render(request, 'store/validateOTP.html', {'error': 'Invalid OTP'})
-        
-    
-#     return render(request, 'store/validateOTP.html')
-
 
 def resend_otp(request):
     stored_data = request.session.get('registration_data', {})
@@ -321,9 +280,31 @@ def loginpage(request):
             messages.error(request, 'Invalid username or password')
     
     return render(request, 'store/login.html')
-# @login_required
-def home(request):
 
+def home(request):
+    user_wishlist_count = 0
+    user_cart_count = 0
+    cart_total = 0
+    cart_items = []
+
+    # Only execute user-specific queries if the user is authenticated
+    if request.user.is_authenticated:
+        try:
+            user_wishlist_count = Wishlist.objects.filter(user=request.user).count()
+        except Wishlist.DoesNotExist:
+            user_wishlist_count = 0
+        
+        try:
+            user_cart_count = CartItem.objects.filter(cart__user=request.user).count()  # Count CartItems, not Cart itself
+        except Cart.DoesNotExist:
+            user_cart_count = 0
+
+        # Get or create the user's cart
+        cart, created = Cart.objects.get_or_create(user=request.user)   
+        cart_items = CartItem.objects.filter(cart=cart)
+        cart_total = cart.get_total_price()
+
+    # Fetch other data that doesn't depend on user authentication
     all_products = Product.objects.filter(category__status=True)
     categories = Category.objects.filter(status=True)
     genders = Gender.objects.all()
@@ -334,8 +315,13 @@ def home(request):
         'categories': categories,
         'genders': genders,
         'brands': brands,
+        'wishlist_count': user_wishlist_count,
+        'cart_count': user_cart_count,
+        'cart_total': cart_total,
+        'cart_items': cart_items,
     }
     return render(request, 'store/home.html', context)
+
    
 
 def logoutPage(request):
@@ -363,6 +349,20 @@ def social_login_success(request):
 from django.db.models import Min
 
 def show_products(request):
+    try:
+        user_wishlist_count = Wishlist.objects.filter(user=request.user).count()
+    except Wishlist.DoesNotExist:
+        user_wishlist_count = None
+    
+    try:
+        user_cart_count = CartItem.objects.filter(cart__user=request.user).count()  # Count CartItems, not Cart itself
+    except Cart.DoesNotExist:
+        user_cart_count = None
+
+    cart, created = Cart.objects.get_or_create(user=request.user)   
+    
+    cart_total = cart.get_total_price()
+    
     products = Product.objects.filter(category__status=True)
     
     # Filter by category, gender, brand, color, and price range as before
@@ -424,20 +424,29 @@ def show_products(request):
         'brands': brands,
         'colors': colors,
         'sort_by': sort_by,
+        'wishlist_count':user_wishlist_count,
+        'cart_count':user_cart_count,
+        'cart_total':cart_total,
     }
     
     return render(request, 'store/products_home.html', context)
 
 
 def product_info(request, id):
+    try:
+        user_wishlist_count = Wishlist.objects.filter(user=request.user).count()
+        cart = Cart.objects.get(user=request.user)
+    except Wishlist.DoesNotExist:
+        user_wishlist_count = None 
+    try:
+        user_cart_count = Cart.objects.filter(user=request.user).count()
+    except Cart.DoesNotExist:
+        user_cart_count = None   
+        
+    cart_total = cart.get_total_price()
     product = get_object_or_404(Product, id=id)
     variants = product.variants.all()
-    cart_count = 0
 
-    # Check if the user is authenticated
-    if request.user.is_authenticated:
-        user = request.user
-        cart_count = CartItem.objects.filter(cart__user=user).count()
 
     # Check if the user has selected a specific variant
     variant_id = request.GET.get('variant_id')
@@ -461,20 +470,37 @@ def product_info(request, id):
         'product': product,
         'variants': variants,
         'selected_variant': selected_variant,
-        'cart_count': cart_count,
         'active_offer': active_offer,
         'original_price': original_price,
         'discounted_price': discounted_price,
+        'wishlist_count':user_wishlist_count,
+        'cart_count':user_cart_count,
+        'cart_total':cart_total,
     }
 
     return render(request, 'store/product_info.html', context)
 
 @login_required
 def wishlist(request):
+    try:
+        user_wishlist_count = Wishlist.objects.filter(user=request.user).count()
+        cart = Cart.objects.get(user=request.user)
+    except Wishlist.DoesNotExist:
+        user_wishlist_count = None 
+    try:
+        user_cart_count = Cart.objects.filter(user=request.user).count()
+    except Cart.DoesNotExist:
+        user_cart_count = None     
+        
+    cart_total = cart.get_total_price()
+    
     wishlist_items = Wishlist.objects.filter(user=request.user).select_related('variant__product', 'variant__color')
     
     context = {
-        'wishlist_items': wishlist_items
+        'wishlist_items': wishlist_items,
+        'wishlist_count':user_wishlist_count,
+        'cart_count':user_cart_count,
+        'cart_total':cart_total,
     }
     return render(request, 'store/wishlist.html', context)
 
@@ -509,13 +535,81 @@ def remove_wishlist(request, id):
             return JsonResponse({'success': False, 'error': 'Item not found in wishlist'}, status=404)
     return JsonResponse({'success': False, 'error': 'Invalid request'}, status=400)
     
+# @login_required
+# def cart(request):
+#     try:
+#         user_wishlist_count = Wishlist.objects.filter(user=request.user).count()
+#     except Wishlist.DoesNotExist:
+#         user_wishlist_count = None 
+#     try:
+#         user_cart_count = Cart.objects.filter(user=request.user).count()
+#     except Cart.DoesNotExist:
+#         user_cart_count = None     
+        
+#     cart = Cart.objects.get_or_create(user=request.user)   
+#     # cart_c = cart.items.count()     
+#     cart_total = cart.get_total_price()
+    
+#     # print(user_wishlist_count,user_cart_count,user_cart_count,cart_c)
+
+#     cart_items = CartItem.objects.filter(cart=cart)
+    
+#     delete_cartitem = []
+    
+#     for item in cart_items:
+#         product_variant = item.product_variant
+        
+#         if not product_variant.is_available:
+#             delete_cartitem.append(item)
+#             messages.warning(request, f"{product_variant.product.name} - {product_variant.color} is out of stock and has been removed from your cart.")
+#             continue
+#         if item.quantity > 10:
+#             item.quantity = 10
+#             item.save()
+#             messages.warning(request, f"Sorry, you can only buy 10 units of {product_variant.product.name}. Quantity has been adjusted to 10.")
+        
+#         if item.quantity > product_variant.stock:
+#             if product_variant.stock > 0:
+#                 item.quantity = product_variant.stock
+#                 item.save()
+#                 messages.warning(request, f"Quantity for {product_variant.product.name} - {product_variant.color} has been adjusted to the available stock of {product_variant.stock}.")
+#             else:
+#                 delete_cartitem.append(item)
+#                 messages.warning(request, f"{product_variant.product.name} - {product_variant.color} is out of stock and has been removed from your cart.")
+    
+#     for item in delete_cartitem:
+#         item.delete()
+    
+#     cart_items = CartItem.objects.filter(cart=cart)
+#     cart_total = sum(item.get_total_price() for item in cart_items)
+    
+#     context = {
+#         'cart_items': cart_items,
+#         'cart_total': cart_total,
+#         'wishlist_count':user_wishlist_count,
+#         'cart_count':user_cart_count,
+#     }
+#     return render(request, 'store/cart.html', context)
+    
 @login_required
 def cart(request):
-    cart = Cart.objects.get(user=request.user)
+    try:
+        user_wishlist_count = Wishlist.objects.filter(user=request.user).count()
+    except Wishlist.DoesNotExist:
+        user_wishlist_count = None
+    
+    try:
+        user_cart_count = CartItem.objects.filter(cart__user=request.user).count()  # Count CartItems, not Cart itself
+    except Cart.DoesNotExist:
+        user_cart_count = None
+
+    cart, created = Cart.objects.get_or_create(user=request.user)   
+    
     cart_items = CartItem.objects.filter(cart=cart)
-    
+    cart_total = cart.get_total_price()
+
     delete_cartitem = []
-    
+
     for item in cart_items:
         product_variant = item.product_variant
         
@@ -523,6 +617,7 @@ def cart(request):
             delete_cartitem.append(item)
             messages.warning(request, f"{product_variant.product.name} - {product_variant.color} is out of stock and has been removed from your cart.")
             continue
+        
         if item.quantity > 10:
             item.quantity = 10
             item.save()
@@ -536,19 +631,23 @@ def cart(request):
             else:
                 delete_cartitem.append(item)
                 messages.warning(request, f"{product_variant.product.name} - {product_variant.color} is out of stock and has been removed from your cart.")
-    
+
     for item in delete_cartitem:
         item.delete()
-    
+
     cart_items = CartItem.objects.filter(cart=cart)
+    
     cart_total = sum(item.get_total_price() for item in cart_items)
     
     context = {
         'cart_items': cart_items,
         'cart_total': cart_total,
+        'wishlist_count': user_wishlist_count,
+        'cart_count': user_cart_count,
     }
-    return render(request, 'store/cart.html', context)
     
+    return render(request, 'store/cart.html', context)
+
 
 @login_required
 def add_to_cart(request, id):
@@ -624,6 +723,21 @@ def remove_cart(request, id):
     return JsonResponse({'success': False, 'error': 'Invalid request'}, status=400)
 
 def account(request):
+    # testttt
+    try:
+        user_wishlist_count = Wishlist.objects.filter(user=request.user).count()
+    except Wishlist.DoesNotExist:
+        user_wishlist_count = None
+    
+    try:
+        user_cart_count = CartItem.objects.filter(cart__user=request.user).count()  # Count CartItems, not Cart itself
+    except Cart.DoesNotExist:
+        user_cart_count = None
+
+    cart, created = Cart.objects.get_or_create(user=request.user)   
+    
+    cart_items = CartItem.objects.filter(cart=cart)
+    cart_total = cart.get_total_price()
     user = request.user
     orders = Order.objects.filter(user=user).order_by('-created_at')
     profile = Profile.objects.get(user=user)
@@ -636,6 +750,9 @@ def account(request):
         'profile': profile,
         'wallet': wallet,
         'transactions': transactions,
+        'wishlist_count':user_wishlist_count,
+        'cart_count':user_cart_count,
+        'cart_total':cart_total,
     }
     return render(request, 'store/Account.html', context)
 
@@ -956,8 +1073,7 @@ def finalize_order(request, order, cart_items, payment_method):
     cart.items.all().delete()
     if 'coupon' in request.session:
         del request.session['coupon']
-    
-    messages.success(request, "Your order has been placed successfully!")
+
 
 
 def process_cod_order(order):
