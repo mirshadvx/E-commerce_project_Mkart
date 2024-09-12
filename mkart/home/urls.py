@@ -45,4 +45,7 @@ urlpatterns = [
     path('return-item/', views.return_item, name='return_item'),
     
     path('apply_coupon/',views.apply_coupon,name='apply_coupon'),
+    # path('razorpay_selected/', views.razorpay_selected, name='razorpay_selected'),
+    path('handle-failed-payment/', views.handle_failed_payment, name='handle_failed_payment'),
+    path('razorpay_payment_success/', views.razorpay_payment_success, name='razorpay_payment_success'),
 ]

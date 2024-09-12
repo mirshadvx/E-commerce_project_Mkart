@@ -382,6 +382,260 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="{% static 'store-assets/assets/js/jquery.min.js' %}"></script>
+<script src="{% static 'store-assets/assets/js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'store-assets/assets/js/jquery.hoverIntent.min.js' %}"></script>
+<script src="{% static 'store-assets/assets/js/jquery.waypoints.min.js' %}"></script>
+<script src="{% static 'store-assets/assets/js/superfish.min.js' %}"></script>
+<script src="{% static 'store-assets/assets/js/owl.carousel.min.js' %}"></script>
+<script src="{% static 'store-assets/assets/js/bootstrap-input-spinner.js' %}"></script>
+<script src="{% static 'store-assets/assets/js/jquery.plugin.min.js' %}"></script>
+<script src="{% static 'store-assets/assets/js/jquery.magnific-popup.min.js' %}"></script>
+<script src="{% static 'store-assets/assets/js/jquery.countdown.min.js' %}"></script>
+<script src="{% static 'store-assets/assets/js/main.js' %}"></script>
+<script src="{% static 'store-assets/assets/js/demos/demo-6.js' %}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+$(document).ready(function() {
+    if ($("#messageContent").children().length > 0) {
+        $("#messageModal").modal('show');
+    }
+    
+    $('#use_new_address').change(function() {
+        if(this.checked) {
+            $('#new_address_form').show();
+            $('input[name="selected_address"]').prop('checked', false);
+        } else {
+            $('#new_address_form').hide();
+            $('input[name="selected_address"]:first').prop('checked', true);
+        }
+    });
+
+    $('input[name="payment_method"]').change(function() {
+        const selectedPaymentMethod = $(this).val();
+
+        if (selectedPaymentMethod === 'razorpay') {
+            $('#rzp-button1').show();
+            $('#place-order-btn').hide();
+            $('#place-order-wallet-btn').hide();
+        } else if (selectedPaymentMethod === 'wallet') {
+            $('#place-order-wallet-btn').show();
+            $('#rzp-button1').hide();
+            $('#place-order-btn').hide();
+        } else {
+            $('#place-order-btn').show();
+            $('#rzp-button1').hide();
+            $('#place-order-wallet-btn').hide();
+        }
+    });
+
+    const initialPaymentMethod = $('input[name="payment_method"]:checked').val();
+    if (initialPaymentMethod === 'razorpay') {
+        $('#rzp-button1').show();
+        $('#place-order-btn').hide();
+        $('#place-order-wallet-btn').hide();
+    } else if (initialPaymentMethod === 'wallet') {
+        $('#place-order-wallet-btn').show();
+        $('#rzp-button1').hide();
+        $('#place-order-btn').hide();
+    } else {
+        $('#place-order-btn').show();
+        $('#rzp-button1').hide();
+        $('#place-order-wallet-btn').hide();
+    }
+
+    $('#checkout-form').submit(function(event) {
+        if ($('#use_new_address').is(':checked')) {
+            let isValid = true;
+            
+            isValid = validateField('#full_name', 'Please enter a valid full name') && isValid;
+            isValid = validateField('#last_name', 'Please enter a valid last name') && isValid;
+            isValid = validateField('#phone_number', 'Please enter a valid phone number', /^\d{10}$/) && isValid;
+            isValid = validateField('#email', 'Please enter a valid email address', /^[^\s@]+@[^\s@]+\.[^\s@]+$/) && isValid;
+            isValid = validateField('#address_line_1', 'Address is required') && isValid;
+            isValid = validateField('#city', 'City is required') && isValid;
+            isValid = validateField('#state', 'State is required') && isValid;
+            isValid = validateField('#postal_code', 'Please enter a valid 6-digit postal code', /^\d{6}$/) && isValid;
+            isValid = validateField('#country', 'Country is required') && isValid;
+
+            if (!isValid) {
+                event.preventDefault();
+            }
+        }
+    });
+
+    function validateField(selector, errorMessage, regex = null) {
+        const $field = $(selector);
+        const value = $field.val().trim();
+        
+        if (value === '' || (regex && !regex.test(value))) {
+            showError($field, errorMessage);
+            return false;
+        } else {
+            removeError($field);
+            return true;
+        }
+    }
+
+    function showError($element, message) {
+        $element.addClass('is-invalid');
+        $element.siblings('.error-message').text(message);
+    }
+
+    function removeError($element) {
+        $element.removeClass('is-invalid');
+        $element.siblings('.error-message').text('');
+    }
+    
+    $('input').on('input', function() {
+        removeError($(this));
+    });
+
+    $('#coupon-form').submit(function(e) {
+        e.preventDefault();
+        $.ajax({
+            url: '/apply_coupon/',  
+            method: 'POST',
+            data: $(this).serialize(),
+            success: function(response) {
+                if (response.success) {
+                    $('#coupon-message').html('<div class="alert alert-success">' + response.message + '</div>');
+                    updateOrderSummary(response.new_total, response.discount);
+                } else {
+                    $('#coupon-message').html('<div class="alert alert-danger">' + response.message + '</div>');
+                }
+            },
+            error: function() {
+                $('#coupon-message').html('<div class="alert alert-danger">An error occurred. Please try again.</div>');
+            }
+        });
+    });
+
+    function updateOrderSummary(newTotal, discount) {
+        $('.order-summary-item:last strong:last').text('$' + newTotal);
+        if (discount > 0) {
+            if ($('.order-summary-item:contains("Coupon")').length) {
+                $('.order-summary-item:contains("Coupon") span:last').text('-' + discount);
+            } else {
+                $('.order-summary-item:last').before('<div class="order-summary-item"><strong>Discount:</strong><span>-' + discount + '</span></div>');
+            }
+        }
+    }
+
+    var options = {
+        "key": "{{ razorpay_key_id }}",
+        "amount": "{{ cart_total_paise }}",
+        "currency": "INR",
+        "name": "Mkart",
+        "description": "Order Payment",
+        "image": "https://example.com/your_logo.png",
+        "order_id": "{{ razorpay_order_id }}",
+        "handler": function (response){
+            if (response.razorpay_payment_id) {
+                // Payment successful
+                document.getElementById('razorpay_payment_id').value = response.razorpay_payment_id;
+                document.getElementById('razorpay_order_id').value = response.razorpay_order_id;
+                document.getElementById('razorpay_signature').value = response.razorpay_signature;
+                document.getElementById('checkout-form').submit();
+            } else {
+                // Payment failed
+                handlePaymentFailure(response.razorpay_order_id);
+            }
+        },
+        "prefill": {
+            "name": "{{ user.get_full_name }}",
+            "email": "{{ user.email }}",
+            "contact": "{{ user.phone_number }}"
+        },
+        "theme": {
+            "color": "#3399cc"
+        },
+        "modal": {
+            "ondismiss": function(){
+                handlePaymentFailure(options.order_id);
+            }
+        }
+    };
+
+    function handlePaymentFailure(orderId) {
+        // Send a request to the server to handle the failed payment
+        fetch('/handle-failed-payment/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                razorpay_order_id: orderId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showPaymentError("Payment failed. Order created with pending status. You can retry payment in Accoung order section !!!");
+                // Optionally, redirect to an order confirmation page
+                // window.location.href = data.redirect_url;
+            } else {
+                showPaymentError("An error occurred while processing your order. Please try again.");
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showPaymentError("An unexpected error occurred. Please try again.");
+        });
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    var rzp1 = new Razorpay(options);
+    document.getElementById('rzp-button1').onclick = function(e){
+        rzp1.open();
+        e.preventDefault();
+    }
+
+    function showPaymentError(message) {
+        $('#messageContent').html('<div class="alert alert-danger">' + message + '</div>');
+        $('#messageModal').modal('show');
+        
+        // Add an event listener for when the modal is hidden
+        $('#messageModal').on('hidden.bs.modal', function () {
+            // Redirect to the home page
+            window.location.href = '/';  // Adjust this URL if your home page has a different path
+        });
+    }
+
+
+    // Add error callback
+    rzp1.on('payment.failed', function (response){
+        showPaymentError(response.error.description);
+    });
+});
+</script>
+{% endblock %}
+
+
+
+
+    {% comment %} function showPaymentError(message) {
+        $('#messageContent').html('<div class="alert alert-danger">' + message + '</div>');
+        $('#messageModal').modal('show');
+    } {% endcomment %}
+{% comment %} {% block extra_js %}
     <script src="{% static 'store-assets/assets/js/jquery.min.js' %}"></script>
     <script src="{% static 'store-assets/assets/js/bootstrap.bundle.min.js' %}"></script>
     <script src="{% static 'store-assets/assets/js/jquery.hoverIntent.min.js' %}"></script>
@@ -404,7 +658,6 @@
         if ($("#messageContent").children().length > 0) {
             $("#messageModal").modal('show');
         }
-        
        
         $('#use_new_address').change(function() {
             if(this.checked) {
@@ -417,21 +670,23 @@
         });
 
   
+
     $('input[name="payment_method"]').change(function() {
         const selectedPaymentMethod = $(this).val();
 
         if (selectedPaymentMethod === 'razorpay') {
-            $('#rzp-button1').show();           
-            $('#place-order-btn').hide();         
-            $('#place-order-wallet-btn').hide();  
+            $('#rzp-button1').show();
+            $('#place-order-btn').hide();
+            $('#place-order-wallet-btn').hide();
+
         } else if (selectedPaymentMethod === 'wallet') {
-            $('#place-order-wallet-btn').show();  
-            $('#rzp-button1').hide();      
-            $('#place-order-btn').hide();       
+            $('#place-order-wallet-btn').show();
+            $('#rzp-button1').hide();
+            $('#place-order-btn').hide();
         } else {
-            $('#place-order-btn').show();      
-            $('#rzp-button1').hide();          
-            $('#place-order-wallet-btn').hide();   
+            $('#place-order-btn').show();
+            $('#rzp-button1').hide();
+            $('#place-order-wallet-btn').hide();
         }
     });
 
@@ -534,10 +789,80 @@
                 }
             }
         }
+
+
+        var options = {
+            "key": "{{ razorpay_key_id }}",
+            "amount": "{{ cart_total_paise }}",
+            "currency": "INR",
+            "name": "Mkart",
+            "description": "Order Payment",
+            "image": "https://example.com/your_logo.png",
+            "order_id": "{{ razorpay_order_id }}",
+            "handler": function (response){
+                document.getElementById('razorpay_payment_id').value = response.razorpay_payment_id;
+                document.getElementById('razorpay_order_id').value = response.razorpay_order_id;
+                document.getElementById('razorpay_signature').value = response.razorpay_signature;
+                document.getElementById('checkout-form').submit();
+            },
+            "prefill": {
+                "name": "{{ user.get_full_name }}",
+                "email": "{{ user.email }}",
+                "contact": "{{ user.phone_number }}"
+            },
+            "theme": {
+                "color": "#3399cc"
+            },
+            "modal": {
+                "ondismiss": function(){
+                    console.log('Checkout form closed');
+                }
+            }
+        };
+
+        options.handler = function(response) {
+            if (response.razorpay_payment_id) {
+                // Payment successful
+                document.getElementById('razorpay_payment_id').value = response.razorpay_payment_id;
+                document.getElementById('razorpay_order_id').value = response.razorpay_order_id;
+                document.getElementById('razorpay_signature').value = response.razorpay_signature;
+                document.getElementById('checkout-form').submit();
+            } else {
+                // Payment failed
+                showPaymentError("Payment failed. Please try again.");
+            }
+        };
+
+        options.modal = {
+            ondismiss: function() {
+                showPaymentError("Payment cancelled. Please try again.");
+            }
+        };
+
+        var rzp1 = new Razorpay(options);
+        document.getElementById('rzp-button1').onclick = function(e){
+            rzp1.open();
+            e.preventDefault();
+        }
+
+        function showPaymentError(message) {
+            $('#messageContent').html('<div class="alert alert-danger">' + message + '</div>');
+            $('#messageModal').modal('show');
+        }
+
+        // Add error callback
+        rzp1.on('payment.failed', function (response){
+
+            showPaymentError(response.error.description);
+        });
     });
 
 
-    var options = {
+</script>
+{% endblock %} {% endcomment %}
+
+
+    {% comment %} var options = {
         "key": "{{ razorpay_key_id }}",
         "amount": "{{ cart_total_paise }}",
         "currency": "INR",
@@ -564,6 +889,26 @@
     document.getElementById('rzp-button1').onclick = function(e){
         rzp1.open();
         e.preventDefault();
-    }
-</script>
-{% endblock %}
+        
+    } {% endcomment %}
+
+            {% comment %} // AJAX request for Razorpay selection
+            $.ajax({
+                url: '/razorpay_selected/',  // Update this to your actual endpoint
+                method: 'POST',
+                data: {
+                    csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Display success message
+                        showMessage(response.message, 'success');
+                    } else {
+                        // Display error message
+                        showMessage(response.message, 'error');
+                    }
+                },
+                error: function() {
+                    showMessage('An error occurred. Please try again.', 'error');
+                }
+            }); {% endcomment %}
