@@ -400,12 +400,12 @@
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
     $(document).ready(function() {
-        // Show message modal if there are messages
+      
         if ($("#messageContent").children().length > 0) {
             $("#messageModal").modal('show');
         }
         
-        // Handle address selection
+       
         $('#use_new_address').change(function() {
             if(this.checked) {
                 $('#new_address_form').show();
@@ -450,12 +450,12 @@
         $('#place-order-wallet-btn').hide();
     }
 
-        // Form validation
+       
         $('#checkout-form').submit(function(event) {
             if ($('#use_new_address').is(':checked')) {
                 let isValid = true;
                 
-                // Perform validation for each field
+        
                 isValid = validateField('#full_name', 'Please enter a valid full name') && isValid;
                 isValid = validateField('#last_name', 'Please enter a valid last name') && isValid;
                 isValid = validateField('#phone_number', 'Please enter a valid phone number', /^\d{10}$/) && isValid;
@@ -495,22 +495,22 @@
             $element.siblings('.error-message').text('');
         }
 
-        // Remove error messages when user starts typing
+       
         $('input').on('input', function() {
             removeError($(this));
         });
 
-        // Coupon application
+
         $('#coupon-form').submit(function(e) {
             e.preventDefault();
             $.ajax({
-                url: '/apply_coupon/',  // Update this URL to match your coupon application endpoint
+                url: '/apply_coupon/',  
                 method: 'POST',
                 data: $(this).serialize(),
                 success: function(response) {
                     if (response.success) {
                         $('#coupon-message').html('<div class="alert alert-success">' + response.message + '</div>');
-                        // Update order summary
+                 
                         updateOrderSummary(response.new_total, response.discount);
                     } else {
                         $('#coupon-message').html('<div class="alert alert-danger">' + response.message + '</div>');
@@ -523,10 +523,10 @@
         });
 
         function updateOrderSummary(newTotal, discount) {
-            // Update the order summary with new total and discount
+          
             $('.order-summary-item:last strong:last').text('$' + newTotal);
             if (discount > 0) {
-                // Add or update discount line
+             
                 if ($('.order-summary-item:contains("Coupon")').length) {
                     $('.order-summary-item:contains("Coupon") span:last').text('-' + discount);
                 } else {
@@ -536,7 +536,7 @@
         }
     });
 
-    // Razorpay integration
+
     var options = {
         "key": "{{ razorpay_key_id }}",
         "amount": "{{ cart_total_paise }}",

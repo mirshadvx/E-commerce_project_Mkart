@@ -27,15 +27,17 @@ from django.conf import settings
 from decimal import Decimal
 from Admin.models import *
 from django.utils import timezone as django_timezone
-# Create your views here.
-
 import os
-
 from django.http import HttpResponse
-from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
 from google.oauth2 import id_token
 from google.auth.transport import requests
+from django.template.loader import get_template
+from xhtml2pdf import pisa
+from io import BytesIO
+from django.shortcuts import get_object_or_404
+
+# Create your views here.
 
 @csrf_exempt
 def auth_receiver(request):
@@ -287,7 +289,6 @@ def home(request):
     cart_total = 0
     cart_items = []
 
-    # Only execute user-specific queries if the user is authenticated
     if request.user.is_authenticated:
         try:
             user_wishlist_count = Wishlist.objects.filter(user=request.user).count()
@@ -299,12 +300,11 @@ def home(request):
         except Cart.DoesNotExist:
             user_cart_count = 0
 
-        # Get or create the user's cart
+
         cart, created = Cart.objects.get_or_create(user=request.user)   
         cart_items = CartItem.objects.filter(cart=cart)
         cart_total = cart.get_total_price()
 
-    # Fetch other data that doesn't depend on user authentication
     all_products = Product.objects.filter(category__status=True)
     categories = Category.objects.filter(status=True)
     genders = Gender.objects.all()
@@ -355,7 +355,7 @@ def show_products(request):
         user_wishlist_count = None
     
     try:
-        user_cart_count = CartItem.objects.filter(cart__user=request.user).count()  # Count CartItems, not Cart itself
+        user_cart_count = CartItem.objects.filter(cart__user=request.user).count()  
     except Cart.DoesNotExist:
         user_cart_count = None
 
@@ -365,7 +365,7 @@ def show_products(request):
     
     products = Product.objects.filter(category__status=True)
     
-    # Filter by category, gender, brand, color, and price range as before
+
     category = request.GET.get('category')
     if category:
         products = products.filter(category__name=category)
@@ -387,7 +387,6 @@ def show_products(request):
     if min_price and max_price:
         products = products.filter(variants__price__gte=min_price, variants__price__lte=max_price).distinct()
     
-    # Sort products based on the selected criteria
     sort_by = request.GET.get('sortby')
     if sort_by:
         if sort_by == 'low to high':
@@ -401,9 +400,9 @@ def show_products(request):
         elif sort_by == 'zZ-aA':
             products = products.order_by('-name')
     
-    # Calculate discounted prices and pass to the template
+    
     for product in products:
-        variant = product.variants.first()  # Assuming you want to use the first variant
+        variant = product.variants.first()
         if variant:
             product.display_price = variant.price
             product.discounted_price = product.get_discounted_price()
@@ -435,31 +434,32 @@ def show_products(request):
 def product_info(request, id):
     try:
         user_wishlist_count = Wishlist.objects.filter(user=request.user).count()
-        cart = Cart.objects.get(user=request.user)
     except Wishlist.DoesNotExist:
-        user_wishlist_count = None 
+        user_wishlist_count = None
+    
     try:
-        user_cart_count = Cart.objects.filter(user=request.user).count()
+        user_cart_count = CartItem.objects.filter(cart__user=request.user).count() 
     except Cart.DoesNotExist:
-        user_cart_count = None   
-        
+        user_cart_count = None
+
+    cart, created = Cart.objects.get_or_create(user=request.user)   
+    
     cart_total = cart.get_total_price()
+    
+    
     product = get_object_or_404(Product, id=id)
     variants = product.variants.all()
 
-
-    # Check if the user has selected a specific variant
     variant_id = request.GET.get('variant_id')
     if variant_id:
         selected_variant = get_object_or_404(ProductVariant, id=variant_id)
     else:
         selected_variant = product.variants.first()
-
-    # Get the original and discounted prices
+   
+   
     original_price = selected_variant.price
     discounted_price = product.get_discounted_price()
 
-    # Determine which offer is active (if any)
     active_offer = None
     if product.offer and product.offer.is_active and product.offer.valid_from <= timezone.now() <= product.offer.valid_to:
         active_offer = product.offer
@@ -507,7 +507,6 @@ def wishlist(request):
 
 @login_required
 def add_wishlist(request, id):
-    print('geted wishlit sdfsdfsfsf')
     if request.method == 'POST':
         variant_id = request.POST.get('variant_id')
         
@@ -515,14 +514,12 @@ def add_wishlist(request, id):
         
         try:
             Wishlist.objects.create(user=request.user, variant=variant)
-            print('geted wishlit sdfsdfsfsf')
-            # messages.success(request, f"{variant.product.name} ({variant.color.name}) added to your wishlist.")
+            messages.success(request, f"{variant.product.name} ({variant.color.name}) added to your wishlist.")
         except IntegrityError:
-            messages.info()
-        # request, f"{variant.product.name} ({variant.color.name}) is already in your wishlist."
-        return redirect('product_info',   id=id)
+            None
+        return redirect(request.META.get('HTTP_REFERER', 'home'))
     
-    return redirect('home')
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})
 
 
 def remove_wishlist(request, id):
@@ -535,62 +532,6 @@ def remove_wishlist(request, id):
             return JsonResponse({'success': False, 'error': 'Item not found in wishlist'}, status=404)
     return JsonResponse({'success': False, 'error': 'Invalid request'}, status=400)
     
-# @login_required
-# def cart(request):
-#     try:
-#         user_wishlist_count = Wishlist.objects.filter(user=request.user).count()
-#     except Wishlist.DoesNotExist:
-#         user_wishlist_count = None 
-#     try:
-#         user_cart_count = Cart.objects.filter(user=request.user).count()
-#     except Cart.DoesNotExist:
-#         user_cart_count = None     
-        
-#     cart = Cart.objects.get_or_create(user=request.user)   
-#     # cart_c = cart.items.count()     
-#     cart_total = cart.get_total_price()
-    
-#     # print(user_wishlist_count,user_cart_count,user_cart_count,cart_c)
-
-#     cart_items = CartItem.objects.filter(cart=cart)
-    
-#     delete_cartitem = []
-    
-#     for item in cart_items:
-#         product_variant = item.product_variant
-        
-#         if not product_variant.is_available:
-#             delete_cartitem.append(item)
-#             messages.warning(request, f"{product_variant.product.name} - {product_variant.color} is out of stock and has been removed from your cart.")
-#             continue
-#         if item.quantity > 10:
-#             item.quantity = 10
-#             item.save()
-#             messages.warning(request, f"Sorry, you can only buy 10 units of {product_variant.product.name}. Quantity has been adjusted to 10.")
-        
-#         if item.quantity > product_variant.stock:
-#             if product_variant.stock > 0:
-#                 item.quantity = product_variant.stock
-#                 item.save()
-#                 messages.warning(request, f"Quantity for {product_variant.product.name} - {product_variant.color} has been adjusted to the available stock of {product_variant.stock}.")
-#             else:
-#                 delete_cartitem.append(item)
-#                 messages.warning(request, f"{product_variant.product.name} - {product_variant.color} is out of stock and has been removed from your cart.")
-    
-#     for item in delete_cartitem:
-#         item.delete()
-    
-#     cart_items = CartItem.objects.filter(cart=cart)
-#     cart_total = sum(item.get_total_price() for item in cart_items)
-    
-#     context = {
-#         'cart_items': cart_items,
-#         'cart_total': cart_total,
-#         'wishlist_count':user_wishlist_count,
-#         'cart_count':user_cart_count,
-#     }
-#     return render(request, 'store/cart.html', context)
-    
 @login_required
 def cart(request):
     try:
@@ -599,7 +540,7 @@ def cart(request):
         user_wishlist_count = None
     
     try:
-        user_cart_count = CartItem.objects.filter(cart__user=request.user).count()  # Count CartItems, not Cart itself
+        user_cart_count = CartItem.objects.filter(cart__user=request.user).count() 
     except Cart.DoesNotExist:
         user_cart_count = None
 
@@ -658,10 +599,8 @@ def add_to_cart(request, id):
         variant = get_object_or_404(ProductVariant, id=variant_id)
         
         if not variant.is_available or variant.stock < quantity:
-            return JsonResponse({
-                'success': False,
-                'error': "Sorry, this product is out of stock or the requested quantity exceeds available stock."
-            })
+            messages.error(request, "Sorry, this product is out of stock or the requested quantity exceeds available stock.")
+            return redirect(request.META.get('HTTP_REFERER', 'home'))
         
         cart, created = Cart.objects.get_or_create(user=request.user)
         
@@ -674,13 +613,12 @@ def add_to_cart(request, id):
         if not item_created:
             cart_item.quantity += quantity
             cart_item.save()
+        
+        messages.success(request, f"{variant.product.name} has been added to your cart.")
         return redirect(request.META.get('HTTP_REFERER', 'home'))
-        return JsonResponse({
-            'success': True,
-            'message': f"{variant.product.name} has been added to your cart."
-        })
     
     return JsonResponse({'success': False, 'error': 'Invalid request method'})
+
 
 def update_cart(request, cart_item_id):
     if request.method == 'POST':
@@ -723,14 +661,14 @@ def remove_cart(request, id):
     return JsonResponse({'success': False, 'error': 'Invalid request'}, status=400)
 
 def account(request):
-    # testttt
+ 
     try:
         user_wishlist_count = Wishlist.objects.filter(user=request.user).count()
     except Wishlist.DoesNotExist:
         user_wishlist_count = None
     
     try:
-        user_cart_count = CartItem.objects.filter(cart__user=request.user).count()  # Count CartItems, not Cart itself
+        user_cart_count = CartItem.objects.filter(cart__user=request.user).count() 
     except Cart.DoesNotExist:
         user_cart_count = None
 
@@ -896,23 +834,23 @@ def checkout(request):
 def process_order(request, cart_items, total, coupon, razorpay_client, coupon_discount):
     wallet = Wallet.objects.get(user=request.user)
 
-    # Validate the cart items before proceeding
+  
     if not validate_cart_items(request, cart_items):
         return redirect('cart')
 
-    # Create the order object
+ 
     order = create_order(request, total, coupon, coupon_discount)
 
     if order:
-        # Handle the shipping address for the order
+       
         if not handle_order_address(request, order, request.user):
-            order.delete()  # Delete the order if address is not valid
+            order.delete()  
             return redirect('checkout')
 
-        # Retrieve the selected payment method
+    
         payment_method = request.POST.get('payment_method')
 
-        # Handle Razorpay payment
+     
         if payment_method == 'razorpay':
             razorpay_payment_id = request.POST.get('razorpay_payment_id')
             razorpay_order_id = request.POST.get('razorpay_order_id')
@@ -922,39 +860,38 @@ def process_order(request, cart_items, total, coupon, razorpay_client, coupon_di
                 finalize_order(request, order, cart_items, 'razorpay')
                 return redirect('order_confirmation', order_id=order.id)
             else:
-                order.delete()  # Delete the order if payment fails
+                order.delete() 
                 messages.error(request, "Razorpay payment failed.")
                 return redirect('checkout')
 
-        # Handle Cash on Delivery payment
+       
         elif payment_method == 'cod':
             if total < Decimal('1000.00'):
                 messages.error(request, "Cash on Delivery is not available for orders below ₹1000.")
-                order.delete()  # Delete the order if COD is not available
+                order.delete()  
                 return redirect('checkout')
 
             finalize_order(request, order, cart_items, 'cod')
             return redirect('order_confirmation', order_id=order.id)
 
-        # Handle Wallet payment
+
         elif payment_method == 'wallet':
             if total > wallet.balance:
                 messages.error(request, "Insufficient balance in your wallet to complete this purchase.")
-                order.delete()  # Delete the order if wallet balance is insufficient
+                order.delete()  
                 return redirect('checkout')
 
-            # Deduct the total amount from the wallet balance
+       
             wallet.balance -= total
             wallet.save()
 
-            # Create a wallet transaction for the debit
+      
             WalletTransaction.objects.create(
                 wallet=wallet,
                 amount=total,
                 transaction_type='debit'
             )
 
-            # Finalize the order
             finalize_order(request, order, cart_items, 'wallet')
 
             return redirect('order_confirmation', order_id=order.id)
@@ -1103,6 +1040,9 @@ def create_order_items_and_update_stock(order, cart_items, payment_method):
             payment_status_item = 'paid'
             order.payment_status = 'paid'
             order.save()
+        elif payment_method == 'cod':
+            item_status = 'pending'
+            payment_status_item = 'unpaid'
 
 
         OrderItem.objects.create(
@@ -1128,7 +1068,7 @@ def apply_coupon(request):
         cart_total = cart.get_total_price()
 
         if coupon.is_valid():
-            if cart_total >= coupon.min_purchase_amount:
+            if cart_total > coupon.min_purchase_amount:
                 can_use, message = coupon.can_use(request.user)
                 if can_use:
                     request.session['coupon'] = code
@@ -1166,13 +1106,54 @@ def show_order_details(request,order_id):
     order = get_object_or_404(Order, id=order_id, user=request.user)
     order_items = OrderItem.objects.filter(order=order)
     order_address = order.order_address
+    
+    try:
+        user_wishlist_count = Wishlist.objects.filter(user=request.user).count()
+    except Wishlist.DoesNotExist:
+        user_wishlist_count = 0
+    
+    try:
+        user_cart_count = CartItem.objects.filter(cart__user=request.user).count() 
+    except Cart.DoesNotExist:
+        user_cart_count = 0
+
+    cart, created = Cart.objects.get_or_create(user=request.user)   
+    cart_total = cart.get_total_price()
 
     context = {
         'order': order,
         'order_items': order_items,
         'order_address': order_address,
+        'wishlist_count': user_wishlist_count,
+        'cart_count': user_cart_count,
+        'cart_total': cart_total,
     }
     return render(request,'store/ordered_product_info.html',context)
+
+
+
+def download_invoice(request, item_id):
+    order_item = get_object_or_404(OrderItem, id=item_id, order__user=request.user)
+
+    if order_item.item_status != 'delivered':
+        return HttpResponse("Invoice is only available for delivered items.")
+
+    template = get_template('store/invoice.html')
+    context = {
+        'order_item': order_item,
+        'user': request.user,
+    }
+    html = template.render(context)
+
+    result = BytesIO()
+    pdf = pisa.pisaDocument(BytesIO(html.encode("UTF-8")), result)
+
+    if not pdf.err:
+        response = HttpResponse(result.getvalue(), content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="invoice_{order_item.order.id}_{order_item.id}.pdf"'
+        return response
+ 
+    return HttpResponse("Error generating PDF", status=400)
 
 @require_POST
 def edit_details(request):
@@ -1223,24 +1204,23 @@ def cancel_item(request):
         item = OrderItem.objects.select_related('order', 'product_variant').get(id=item_id, order__user=request.user)
         
         if item.item_status in ['pending', 'processing', 'shipped']:
-            # Calculate refund amount
+           
             refund_amount = item.get_total_price() - item.orderItem_coupon_discount
             
-            # Update item status
+    
             item.item_status = 'cancelled'
             item.save()
 
-            # Update product variant stock
             item.product_variant.stock += item.quantity
             item.product_variant.save()
 
-            # Check if all items in the order are cancelled
+     
             order = item.order
             if all(i.item_status == 'cancelled' for i in order.ordered_items.all()):
                 order.status = 'cancelled'
                 order.save()
 
-            # Process refund
+      
             if order.payment_status == 'paid':
                 user_wallet, _ = Wallet.objects.get_or_create(user=request.user)
                 user_wallet.balance += Decimal(refund_amount)

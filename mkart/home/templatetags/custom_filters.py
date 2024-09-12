@@ -9,3 +9,8 @@ def sub(value, arg):
         return Decimal(value) - Decimal(arg)
     except:
         return value
+    
+    
+@register.filter
+def subtract(first, second):
+    return first - second

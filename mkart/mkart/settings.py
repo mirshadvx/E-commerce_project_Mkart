@@ -65,17 +65,6 @@ INSTALLED_APPS = [
     # 'django_razorpay',
 ]
 
-# SOCIALACCOUNT_PROVIDERS = {
-#     'google': {
-#         'SCOPE': [
-#             'profile',
-#             'email',
-#         ],
-#         'AUTH_PARAMS': {
-#             'access_type': 'online',
-#         }
-#     }
-# }
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.db' 
 
@@ -97,27 +86,14 @@ MIDDLEWARE = [
 ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'http'  # Change to 'https' if you're using HTTPS
 SOCIALACCOUNT_STORE_TOKENS = True
 
-# SOCIALACCOUNT_PROVIDERS = {
-#     'google': {
-#         'SCOPE': [
-#             'profile',
-#             'email',
-#         ],
-#         'AUTH_PARAMS': {
-#             'access_type': 'online',
-#         }
-#     }
-# } 
-
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
-        'SCOPE': [
-            'profile',
-            'email',
-            # 'openid',
-        ],
-        'AUTH_PARAMS': {
-            'access_type': 'online',
+        'SCOPE': ['profile', 'email'],
+        'AUTH_PARAMS': {'access_type': 'online'},
+        'APP': {
+            'client_id': os.environ.get('GOOGLE_OAUTH_CLIENT_ID'),
+            'secret': os.environ.get('SECRET_KEY'),
+            'key': ''
         }
     }
 }
@@ -129,7 +105,6 @@ ACCOUNT_AUTHENTICATION_METHOD = 'email'
 
 
 ROOT_URLCONF = 'mkart.urls'
-# LOGIN_URL = '/'
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'store'
 LOGOUT_REDIRECT_URL = '/'
@@ -146,7 +121,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            BASE_DIR / 'Admin' / 'templates',  # Path to store app templates
+            BASE_DIR / 'Admin' / 'templates',  
             'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -263,7 +238,5 @@ AUTHENTICATION_BACKENDS = (
 )
 SITE_ID = 4
 
-
-
 RAZORPAY_KEY_ID = os.environ.get('RAZORPAY_KEY_ID') 
-RAZORPAY_KEY_SECRET = os.environ.get('RAZORPAY_KEY_SECRET') 
+RAZORPAY_KEY_SECRET = os.environ.get('RAZORPAY_KEY_SECRET')  

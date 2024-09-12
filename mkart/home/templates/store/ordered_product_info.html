@@ -27,7 +27,7 @@
         color: #333;
     }
     .order-details-container {
-        max-width: 1000px;
+        max-width: 1000px; 
         margin: 40px auto;
         padding: 30px;
         background-color: #fff;
@@ -237,6 +237,10 @@
                 {% if not item.return_request %}
                     <button class="btn btn-sm btn-outline-warning return-item" data-item-id="{{ item.id }}">Return</button>
                 {% endif %}
+                {% if item.item_status == 'delivered' %}
+                    <a href="{% url 'download_invoice' item.id %}" class="btn btn-sm btn-outline-primary">Download Invoice</a>
+                {% endif %}
+                {% comment %} <a href="{% url 'download_invoice' item.id %}" class="btn btn-sm btn-outline-primary">Download Invoice</a> {% endcomment %}
             {% endif %}
         </div>
     {% else %}
@@ -312,7 +316,7 @@
         </div>
     </div>
 </div>
-</main>
+</main>                                       
 {% endblock %}
 
 {% block extra_js %}
@@ -322,6 +326,13 @@
     <script src="{% static 'store-assets/assets/js/jquery.waypoints.min.js' %}"></script>
     <script src="{% static 'store-assets/assets/js/superfish.min.js' %}"></script>
     <script src="{% static 'store-assets/assets/js/owl.carousel.min.js' %}"></script>
+    <script src="{% static 'store-assets/assets/js/bootstrap-input-spinner.js' %}"></script>
+    <script src="{% static 'store-assets/assets/js/jquery.plugin.min.js' %}"></script>
+    <script src="{% static 'store-assets/assets/js/jquery.magnific-popup.min.js' %}"></script>
+    <script src="{% static 'store-assets/assets/js/jquery.countdown.min.js' %}"></script>
+    <!-- Main JS File -->
+    <script src="{% static 'store-assets/assets/js/main.js' %}"></script>
+    <script src="{% static 'store-assets/assets/js/demos/demo-6.js' %}"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>

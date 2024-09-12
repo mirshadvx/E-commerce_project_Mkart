@@ -87,7 +87,7 @@ class Wallet(models.Model):
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
 
     def __str__(self):
-        return f"{self.user.username}'s Wallet - Balance: {self.balance}"
+        return f"{self.user.username} wallet - Balance: {self.balance}"
 
 class WalletTransaction(models.Model):
     wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name='transactions')

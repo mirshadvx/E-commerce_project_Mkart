@@ -32,6 +32,7 @@ urlpatterns = [
     path('checkout/',views.checkout,name='checkout'),
     path('order-confirmation/<int:order_id>/', views.order_confirmation, name='order_confirmation'),
     path('order_info/<int:order_id> ',views.show_order_details,name='order_info'),
+    path('download_invoice/<int:item_id>/', views.download_invoice, name='download_invoice'),
     path('edit_details',views.edit_details,name='edit_details'),
     #for reset password 
     path('password_reset/',auth_views.PasswordResetView.as_view(template_name='store/password_reset.html'),name='password_reset'),
@@ -44,5 +45,4 @@ urlpatterns = [
     path('return-item/', views.return_item, name='return_item'),
     
     path('apply_coupon/',views.apply_coupon,name='apply_coupon'),
-
 ]

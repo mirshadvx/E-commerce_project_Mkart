@@ -32,6 +32,10 @@ from datetime import timedelta
 from django.db.models import Count, Sum
 from django.utils.dateparse import parse_datetime
 from django.views.decorators.cache import never_cache
+from django.db.models import Sum, F, Count, DecimalField, Case, When, Value , Q
+from django.db.models.functions import Coalesce
+
+
 
 # Create your views here.
 
@@ -157,7 +161,7 @@ def edit_product(request, product_id):
             variant.stock = request.POST.get(f'variant_stock_{variant.id}')
             variant.is_available = request.POST.get(f'variant_is_available_{variant.id}') == 'True'
 
-            # Handle image deletions
+    
             for i in range(1, 4):
                 if request.POST.get(f'delete_image_{variant.id}_{i}') == 'true':
                     image_field = getattr(variant, f'image_{i}')
@@ -165,7 +169,7 @@ def edit_product(request, product_id):
                         image_field.delete()
                         setattr(variant, f'image_{i}', None)
 
-            # Handle new and updated images
+         
             new_images = [value for key, value in request.POST.items() if key.startswith(f'cropped_image_{variant.id}_')]
             for i, cropped_image in enumerate(new_images, start=1):
                 if cropped_image:
@@ -343,9 +347,6 @@ def superuser_required(view_func):
 
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
-# def products_list(request):
-#     products = Product.objects.prefetch_related('variants', 'variants__color').all() 
-#     return render(request, 'productsList.html', {'products': products})
 def products_list(request):
     products = Product.objects.prefetch_related(
         'variants', 
@@ -431,7 +432,7 @@ def add_variant(request, id):
                 setattr(variant, f'image_{i}', data)
 
         variant.save()
-        # return redirect('product_list')  
+   
         return render(request,'addVariant.html')
 
     context = {
@@ -574,7 +575,7 @@ def update_order_item_status(request):
 def add_coupon(request):
     if request.method == 'POST':
         try:
-            # Extract data from POST request
+          
             code = request.POST.get('code')
             discount = request.POST.get('discount')
             valid_from = request.POST.get('valid_from')
@@ -584,7 +585,7 @@ def add_coupon(request):
             min_purchase_amount = request.POST.get('min_purchase_amount')
             description = request.POST.get('description')
 
-            # Create new Coupon instance
+       
             coupon = Coupon(
                 code=code,
                 discount=Decimal(discount),
@@ -594,23 +595,23 @@ def add_coupon(request):
                 description=description
             )
 
-            # Handle optional fields
+     
             if usage_limit:
                 coupon.usage_limit = int(usage_limit)
             if min_purchase_amount:
                 coupon.min_purchase_amount = Decimal(min_purchase_amount)
 
-            # Validate the model
+           
             coupon.full_clean()
 
-            # Save the coupon
+         
             coupon.save()
 
             messages.success(request, f'Coupon "{code}" has been successfully added.')
-            return redirect('coupon_list')  # Assuming you have a URL named 'coupon_list'
+            return redirect('coupon_list')  
 
         except ValidationError as e:
-            # Handle validation errors
+          
             error_messages = []
             for field, errors in e.message_dict.items():
                 error_messages.extend(errors)
@@ -618,18 +619,30 @@ def add_coupon(request):
                 messages.error(request, message)
 
         except Exception as e:
-            # Handle any other unexpected errors
+      
             messages.error(request, f'An error occurred: {str(e)}')
 
-    # If it's a GET request or if there were errors, render the form again
+ 
     return render(request, 'addCoupon.html')
 
-@login_required
-@user_passes_test(lambda u: u.is_superuser)
+
 def coupon_exists(request):
-    coupon_code = request.GET.get('code', None)
-    exists = Coupon.objects.filter(code=coupon_code).exists()
+    code = request.GET.get('code', None)
+    
+    if code:
+        code = code.lower()
+        exists = Coupon.objects.filter(code__iexact=code).exists()
+    else:
+        exists = False
+
     return JsonResponse({'exists': exists})
+
+# @login_required
+# @user_passes_test(lambda u: u.is_superuser)
+# def coupon_exists(request):
+#     coupon_code = request.GET.get('code', None)
+#     exists = Coupon.objects.filter(code=coupon_code).exists()
+#     return JsonResponse({'exists': exists})
 
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
@@ -710,9 +723,8 @@ def control_coupon_status(request):
 @login_required
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
-@user_passes_test(lambda u: u.is_superuser)
 def offer_list(request):
-    offers = Offer.objects.all().order_by('-valid_from')  # Fetch all offers, sorted by valid_from date
+    offers = Offer.objects.all().order_by('-valid_from') 
     context = {
         'offers': offers,
     }
@@ -730,11 +742,10 @@ def add_offer(request):
         description = request.POST.get('description')
         is_active = request.POST.get('is_active') == 'on'
 
-        # Validate input
+    
         if not name or not discount or not valid_from or not valid_to:
             return JsonResponse({'success': False, 'message': 'All fields are required.'}, status=400)
 
-        # Create the offer
         Offer.objects.create(
             name=name,
             discount=discount,
@@ -847,23 +858,12 @@ def update_category_offer(request):
         }, status=400)
         
 
-from django.db.models import F
-
 @never_cache
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
 def show_sales_details(request):
     return render(request, 'sales_report.html')
 
-
-
-from django.db.models import Sum, F, Count, DecimalField, Case, When, Value , Q
-from django.db.models.functions import Coalesce
-from django.utils import timezone
-from datetime import timedelta
-from decimal import Decimal
-
-from django.utils import timezone
 
 def get_filtered_sales_data(request):
     report_type = request.GET.get('report_type', 'all')
@@ -954,7 +954,7 @@ def get_filtered_sales_data(request):
         returned=Count('ordered_items', filter=Q(ordered_items__item_status='returned'))
     )
     
-    # Update these queries
+  
     top_products = OrderItem.objects.filter(order__created_at__range=[start_date, end_date]) \
         .values('product_variant__product__name') \
         .annotate(total_quantity=Sum('quantity')) \

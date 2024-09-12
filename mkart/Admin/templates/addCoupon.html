@@ -162,7 +162,7 @@
 
         $('#couponCode').on('blur', function() {
             let couponCode = $(this).val();
-            $('#couponError').text(''); // Clear previous error message
+            $('#couponError').text(''); 
 
             if (couponCode) {
                 $.ajax({
@@ -189,40 +189,40 @@
         });
 
         $('#couponForm').on('submit', function(event) {
-            event.preventDefault(); // Prevent form submission by default
+            event.preventDefault(); 
 
             let discount = $('input[name="discount"]').val();
             let validTo = $('input[name="valid_to"]').val();
             let couponCode = $('input[name="code"]').val();
 
-            // Clear previous error messages
+      
             $('.text-danger').text('');
 
-            isValid = true; // Reset isValid for each submission
+            isValid = true; 
 
-            // Coupon code validation
+   
             if (!couponCode) {
                 $('#couponError').text('Please enter a coupon code.');
                 isValid = false;
             }
 
-            // Discount validation
+         
             if (!discount) {
                 $('#discountError').text('Please enter a discount percentage.');
                 isValid = false;
-            } else if (parseFloat(discount) > 100) {
-                $('#discountError').text('Discount cannot exceed 100%.');
+            } else if (parseFloat(discount) > 70) {
+                $('#discountError').text('Discount cannot exceed 70%.');
                 isValid = false;
             }
 
-            // Valid To validation
+         
             if (!validTo) {
                 $('input[name="valid_to"]').siblings('.text-danger').text('Please enter a valid end date.');
                 isValid = false;
             }
 
             if (isValid) {
-                this.submit(); // Submit the form if all validations pass
+                this.submit(); 
             }
         });
     });

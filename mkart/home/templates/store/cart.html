@@ -395,7 +395,7 @@ $(document).ready(function() {
         $('#errorModal').modal('show');
     }
 
-    // Update cart total function
+
     function updateCartTotal() {
         let total = 0;
         $('.total-col').each(function() {
@@ -404,21 +404,19 @@ $(document).ready(function() {
         $('#cart-subtotal, #cart-total').text(total.toFixed(2));
     }
 
-    // Handle quantity change
     $('.quantity-input').on('change', function() {
         var input = $(this);
         var cartItemId = input.data('item-id');
         var quantity = parseInt(input.val());
         var price = parseFloat(input.data('price'));
 
-        // Update item total
         var itemTotal = quantity * price;
         $('#total-' + cartItemId).text(itemTotal.toFixed(2));
 
-        // Update cart total
+
         updateCartTotal();
 
-        // Debounced server update
+ 
         debouncedUpdate(cartItemId, quantity);
     });
 
@@ -435,7 +433,6 @@ $(document).ready(function() {
             },
             success: function(response) {
                 if (response.success) {
-                    // Update the item's total price (server-side confirmation)
                     $('#total-' + cartItemId).text(response.item_total.toFixed(2));
                     updateCartTotal();
                 } else {
@@ -452,7 +449,7 @@ $(document).ready(function() {
         });
     }, 300);
 
-    // Handle remove item
+
     $('.btn-remove').on('click', function() {
         var cartItemId = $(this).data('cart-item-id');
         var cartRow = $(this).closest('tr');

@@ -143,10 +143,11 @@
                                     <p class="text-center">or sign in with</p>
                                     <div class="row">
                                         <div class="col-sm-12">
-                                            <a href="{% provider_login_url 'google' %}?next=/" class="btn btn-login btn-g" >
+                                            <a class="btn btn-login btn-g" >
                                                 <i class="icon-google"></i>
                                                 Login With Google
                                             </a>
+                                            {% comment %} href="{% provider_login_url 'google' %}?next=/"  {% endcomment %}
                                         </div>
                                     </div>
                                 </div>

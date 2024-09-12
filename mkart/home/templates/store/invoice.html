@@ -1,0 +1,169 @@
+{% load custom_filters %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Invoice - {{ order_item.order.id }}-{{ order_item.id }}</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .invoice-box {
+            max-width: 800px;
+            margin: auto;
+            padding: 30px;
+            border: 1px solid #eee;
+            box-shadow: 0 0 10px rgba(0, 0, 0, .15);
+            font-size: 16px;
+            line-height: 24px;
+            color: #555;
+        }
+        .invoice-box table {
+            width: 100%;
+            line-height: inherit;
+            text-align: left;
+            border-collapse: collapse;
+        }
+        .invoice-box table td {
+            padding: 10px;
+            vertical-align: top;
+        }
+        .invoice-box table tr.top table td {
+            padding-bottom: 20px;
+        }
+        .invoice-box table tr.information table td {
+            padding-bottom: 40px;
+        }
+        .invoice-box table tr.heading td {
+            background: #f5f5f5;
+            border-bottom: 1px solid #ddd;
+            font-weight: bold;
+        }
+        .invoice-box table tr.details td {
+            padding-bottom: 20px;
+        }
+        .invoice-box table tr.item td {
+            border-bottom: 1px solid #eee;
+        }
+        .invoice-box table tr.item.last td {
+            border-bottom: none;
+        }
+        .invoice-box table tr.total td:nth-child(2) {
+            border-top: 2px solid #eee;
+            font-weight: bold;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+        .invoice-title {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .text-right {
+            text-align: right;
+        }
+        .w-50 {
+            width: 50%;
+        }
+        .w-70 {
+            width: 70%;
+        }
+        .w-30 {
+            width: 30%;
+        }
+    </style>
+</head>
+<body>
+    <div class="invoice-box">
+        <table cellpadding="0" cellspacing="0">
+            <tr class="top">
+                <td colspan="2">
+                    <table>
+                        <tr>
+                            <td class="logo w-50">
+                                Mkart
+                            </td>
+                            <td class="text-right w-50">
+                                <div class="invoice-title">INVOICE</div>
+                                Invoice #: {{ order_item.order.id }}-{{ order_item.id }}<br>
+                                Order Date: {{ order_item.order.created_at|date:"F d, Y" }}<br>
+                                Invoice Date: {{ order_item.updated_at|date:"F d, Y" }}
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            
+            <tr class="information">
+                <td colspan="2">
+                    <table>
+                        <tr>
+                            <td class="text-right w-50 ">
+                                <strong>Shipped To:</strong><br>
+                                {{ order_item.order.order_address.full_name }} {{ order_item.order_address.last_name }}<br>
+                                {{ order_item.order.order_address.address_line_1 }}<br>
+                                {% if order_item.order.order_address.address_line_2 %}{{ order_item.order.order_address.address_line_2 }}<br>{% endif %}
+                                {{ order_item.order.order_address.city }}, {{ order_item.order.order_address.state }} {{ order_item.order.order_address.postal_code }}<br>
+                                {{ order_item.order.order_address.country }}<br>
+                                Phone: {{ order_item.order.order_address.phone_number }}
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            
+            <tr class="heading">
+                <td class="w-70">Payment Method</td>
+                <td class="text-right w-30">Payment Status</td>
+            </tr>
+            
+            <tr class="details">
+                <td class="w-70">{{ order_item.order.get_payment_method_display }}</td>
+                <td class="text-right w-30">{{ order_item.get_payment_status_item_display }}</td>
+            </tr>
+            
+            <tr class="heading">
+                <td class="w-70">Item</td>
+                <td class="text-right w-30">Price</td>
+            </tr>
+            
+            <tr class="item">
+                <td class="w-70">
+                    {{ order_item.product_variant.product.name }}<br>
+                    <small>Variant: {{ order_item.product_variant.variant_name }}</small><br>
+                    <small>Quantity: {{ order_item.quantity }}</small>
+                </td>
+                <td class="text-right w-30">
+                    {{ order_item.price|subtract:order_item.orderItem_coupon_discount|floatformat:2 }}
+                </td>
+
+            </tr>
+            
+            <tr class="item">
+                <td class="w-70">Actual Price</td>
+                <td class="text-right w-30">{{ order_item.get_total_price }}</td>
+            </tr>
+            
+            {% if order_item.coupon_discount %}
+            <tr class="item">
+                <td class="w-70">Coupon Discount</td>
+                <td class="text-right w-30">-{{ order_item.coupon_discount }}</td>
+            </tr>
+            {% endif %}
+            
+            <tr class="total">
+                <td class="w-70"></td>
+                <td class="text-right w-30">Total(included discount): {{ order_item.price|subtract:order_item.orderItem_coupon_discount|floatformat:2 }}</td>
+            </tr>
+        </table>
+    </div>
+</body>
+</html>
