@@ -248,12 +248,12 @@ a:hover {
     padding-bottom: 8rem
 }
 
-img.molla-lz {
+img.timexo-lz {
     height: 0;
     background: #fff
 }
 
-img.molla-lz[data-oi*=".png"] {
+img.timexo-lz[data-oi*=".png"] {
     background: 0 0
 }
 

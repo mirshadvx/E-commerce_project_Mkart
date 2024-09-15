@@ -1,51 +1,97 @@
+# # Python
+# __pycache__/
+# *.py[cod]
+
+# # Django
+# *.log
+# local_settings.py
+# db.sqlite3
+
+# # Environment
+# .env
+# mvenv/
+
+# # IDE
+# .vscode/
+# .idea/
+
+# # OS generated files
+# .DS_Store
+# Thumbs.db
+
+# # Project-specific
+# client_secret*
+
+
+
+# # Python
+# __pycache__/
+# *.py[cod]
+# **/__pycache__/
+# **/*.pyc
+
+# # Django
+# *.log
+# local_settings.py
+# db.sqlite3
+
+# # Media files
+# \media
+
+# # Environment
+# .env
+# /mvenv/
+
+
+# # IDE
+# .vscode/
+# .idea/
+
+# # OS generated files
+# .DS_Store
+# Thumbs.db
+
+# # Project-specific
+# client_secret*.json
+
+# # Static files collection
+# # /static/
+
+
+
+##################################################################################################
+
+
+
 # Python
 __pycache__/
 *.py[cod]
+*$py.class
+*.pyc
 
 # Django
 *.log
 local_settings.py
 db.sqlite3
+db.sqlite3-journal
 
-# Environment
-.env
-mvenv/
-
-# IDE
-.vscode/
-.idea/
-
-# OS generated files
-.DS_Store
-Thumbs.db
-
-# Project-specific
-client_secret*
-
-
-
-# Python
-__pycache__/
-*.py[cod]
-**/__pycache__/
-**/*.pyc
-
-# Django
-*.log
-local_settings.py
-db.sqlite3
-
-# Media files
-\media
+# Media and static files
+/media/
+# */static/  # Avoid ignoring the static folder if you manage static files in production
 
 # Environment
 .env
 /mvenv/
-
+/.venv/
+.env/
+.env.local
+/env/
 
 # IDE
 .vscode/
 .idea/
+*.swp
+*.swo
 
 # OS generated files
 .DS_Store
@@ -54,5 +100,35 @@ Thumbs.db
 # Project-specific
 client_secret*.json
 
-# Static files collection
-# /static/
+# Temporary files
+*.bak
+*.tmp
+
+# Database backups
+*.sql
+*.sqlite3-backup
+
+# Coverage reports
+.coverage
+htmlcov/
+
+# Pytest cache
+.pytest_cache/
+
+# mypy cache
+.mypy_cache/
+
+# Package files
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+parts/
+var/
+sdist/
+develop-eggs/
+.installed.cfg
+
+# Node.js (if applicable)
+node_modules/

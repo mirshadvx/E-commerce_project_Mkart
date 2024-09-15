@@ -792,7 +792,7 @@ blockquote.text-white cite span {
 
 .header-dropdown>a::after,
 .header-dropdown>span::after {
-    font-family: "molla";
+    font-family: "timexo";
     content: '\f110';
     position: absolute;
     right: 0;
@@ -1755,7 +1755,7 @@ blockquote.text-white cite span {
     }
 
     .top-menu:not(.top-link-menu)>li::after {
-        font-family: "molla";
+        font-family: "timexo";
         content: '\f110';
         position: absolute;
         right: 0;
@@ -2061,7 +2061,7 @@ blockquote.text-white cite span {
 }
 
 .menu.sf-arrows .sf-with-ul::after {
-    font-family: 'molla';
+    font-family: 'timexo';
     content: '\f110';
     position: absolute;
     right: 0;
@@ -2348,7 +2348,7 @@ blockquote.text-white cite span {
 
 .category-dropdown .dropdown-toggle:after {
     content: '\f131';
-    font-family: 'molla';
+    font-family: 'timexo';
     border: none;
     font-size: 2.3rem;
     line-height: 1;
@@ -2564,7 +2564,7 @@ blockquote.text-white cite span {
 
 .menu-vertical.sf-arrows .sf-with-ul::after {
     display: block;
-    font-family: 'molla';
+    font-family: 'timexo';
     content: '\f112';
     position: absolute;
     right: 1.8rem;
@@ -2913,7 +2913,7 @@ blockquote.text-white cite span {
 }
 
 .mmenu-btn::after {
-    font-family: "molla";
+    font-family: "timexo";
     content: '\f110';
     display: inline-block
 }
@@ -4811,7 +4811,7 @@ p {
     display: block;
     height: auto;
     content: '';
-    font-family: 'molla';
+    font-family: 'timexo';
     content: '\f110';
     position: absolute;
     left: auto;
@@ -6197,7 +6197,7 @@ p {
 .breadcrumb-item+.breadcrumb-item:before {
     color: #999999;
     content: '\f112';
-    font-family: "molla";
+    font-family: "timexo";
     padding-right: .7rem;
     font-size: 1.1rem;
     vertical-align: middle;
@@ -6518,7 +6518,7 @@ p {
     right: 1.2rem;
     top: 50%;
     color: #c96;
-    font-family: "molla";
+    font-family: "timexo";
     line-height: 1;
     transform: translateY(-50%);
     -ms-transform: translateY(-50%);
@@ -7927,7 +7927,7 @@ p {
     font-size: 1.4rem;
     letter-spacing: 0.1em;
     line-height: 1;
-    font-family: "molla"
+    font-family: "timexo"
 }
 
 .ratings:before,
@@ -8024,7 +8024,7 @@ p {
 }
 
 .btn-product:before {
-    font-family: "molla";
+    font-family: "timexo";
     margin-right: .9rem
 }
 
@@ -8097,7 +8097,7 @@ p {
 }
 
 .btn-product-icon:before {
-    font-family: "molla"
+    font-family: "timexo"
 }
 
 .btn-product-icon span {
@@ -10091,7 +10091,7 @@ p {
 }
 
 .testimonial-icon:before {
-    font-family: 'molla';
+    font-family: 'timexo';
     content: '\f10d';
     display: inline-block;
     font-style: normal;
@@ -10239,7 +10239,7 @@ small.form-text {
 }
 
 .select-custom::after {
-    font-family: "molla";
+    font-family: "timexo";
     content: '\f110';
     position: absolute;
     display: inline-block;
@@ -10322,7 +10322,7 @@ small.form-text {
     color: #fff;
     background-image: none;
     font-size: 1rem;
-    font-family: 'molla';
+    font-family: 'timexo';
     content: '\ec2d';
     line-height: 1;
     text-align: center;
@@ -11271,7 +11271,7 @@ small.form-text {
     height: 5rem;
     margin-top: -2.5rem;
     margin-left: -2.5rem;
-    font-family: "molla";
+    font-family: "timexo";
     position: absolute;
     left: 50%;
     top: 50%;
@@ -12328,7 +12328,7 @@ button:focus {
     color: #333;
     content: '\f110';
     display: block;
-    font-family: 'molla';
+    font-family: 'timexo';
     font-size: 1.4rem;
     line-height: 1;
     position: absolute;
@@ -12424,7 +12424,7 @@ button:focus {
 
 .filter-colors a:after {
     color: #fff;
-    font-family: 'molla';
+    font-family: 'timexo';
     content: '\ec2d';
     font-size: 1rem;
     line-height: 1;
@@ -13656,7 +13656,7 @@ button:focus {
 
 .entry-video a:after {
     content: '\ec2c';
-    font-family: "molla";
+    font-family: "timexo";
     display: -ms-inline-flexbox;
     display: inline-flex;
     align-items: center;
@@ -13765,7 +13765,7 @@ button:focus {
 }
 
 .read-more:after {
-    font-family: 'molla';
+    font-family: 'timexo';
     content: '\f274';
     font-size: 1.5rem;
     line-height: 1;
@@ -13926,7 +13926,7 @@ button:focus {
     color: #fff;
     position: absolute;
     content: '\f24d';
-    font-family: "molla";
+    font-family: "timexo";
     top: 2.6rem
 }
 
@@ -14335,7 +14335,7 @@ button:focus {
     font-weight: normal;
     font-size: 3rem;
     line-height: 1;
-    font-family: 'molla';
+    font-family: 'timexo';
     position: absolute;
     left: 3rem;
     top: 4rem;
@@ -14497,7 +14497,7 @@ button:focus {
 .pager-link:after {
     color: #333;
     display: block;
-    font-family: 'molla';
+    font-family: 'timexo';
     font-size: 1.5rem;
     line-height: 1;
     position: absolute;
@@ -14661,7 +14661,7 @@ button:focus {
 }
 
 .comment-reply:after {
-    font-family: 'molla';
+    font-family: 'timexo';
     content: '\f279';
     font-size: 1.5rem;
     margin-left: .7rem
@@ -16524,7 +16524,7 @@ button:focus {
 }
 
 .nav-dashboard .nav-link:before {
-    font-family: "molla";
+    font-family: "timexo";
     content: '\f274';
     display: block;
     font-size: 1.5rem;
@@ -17786,16 +17786,16 @@ button:focus {
 }
 
 @font-face {
-    font-family: 'molla';
-    src: url("../fonts/molla0ab2.eot?74273691");
-    src: url("../fonts/molla0ab2.eot?74273691#iefix") format("embedded-opentype"), url("../fonts/molla0ab2.woff2?74273691") format("woff2"), url("../fonts/molla0ab2.woff?74273691") format("woff"), url("../fonts/molla0ab2.ttf?74273691") format("truetype"), url("../fonts/molla0ab2.svg?74273691#molla") format("svg");
+    font-family: 'timexo';
+    src: url("../fonts/timexo0ab2.eot?74273691");
+    src: url("../fonts/timexo0ab2.eot?74273691#iefix") format("embedded-opentype"), url("../fonts/timexo0ab2.woff2?74273691") format("woff2"), url("../fonts/timexo0ab2.woff?74273691") format("woff"), url("../fonts/timexo0ab2.ttf?74273691") format("truetype"), url("../fonts/timexo0ab2.svg?74273691#timexo") format("svg");
     font-weight: normal;
     font-style: normal
 }
 
 [class^="icon-"]:before,
 [class*=" icon-"]:before {
-    font-family: "molla";
+    font-family: "timexo";
     font-style: normal;
     font-weight: normal;
     speak: none;

@@ -209,7 +209,7 @@ $(document).ready(function () {
 
             // Split and created again for ie and edge 
             if ( !$this.data('relative') ) {
-                var untilDateArr = untilDate.split(", "), // data-until 2019, 10, 8 - yy,mm,dd
+                var untilDateArr = untilDate.split(", "), // data-until 2024, 10, 8 - yy,mm,dd
                     newDate = new Date(untilDateArr[0], untilDateArr[1] - 1, untilDateArr[2]);
             } else {
                 newDate = untilDate;

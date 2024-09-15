@@ -8,7 +8,7 @@ jQuery(document).ready(function($) {
 		$(this).addClass('active').siblings().removeClass('active');
 	});
 
-	$('.molla-lz').lazyload({
+	$('.timexo-lz').lazyload({
 		effect: 'fadeIn',
 		effect_speed: 400,
 		appearEffect: '',
@@ -16,7 +16,7 @@ jQuery(document).ready(function($) {
 			
 		},
 		load: function(elements_left, settings) {
-			$(this).removeClass('molla-lz').css('padding-top', '');
+			$(this).removeClass('timexo-lz').css('padding-top', '');
 		}
 	});
 

@@ -40,7 +40,7 @@
 
             <div class="header-left active">
                 <a href="{% url "dashboard" %}" class="logo">
-                    <img src="{% static 'shop_img/mkart_logo.jpg' %}" alt="">
+                    <img src="{% static 'my_shop_images/shop_logo.jpg' %}" alt="">
                 </a>
                 <a href="index.html" class="logo-small">
                     <img src="{% static 'admin-assets/img/logo-small.png' %}" alt="">
@@ -141,7 +141,7 @@
                             </ul>
                         </li> 
                         <li class="submenu">
-                            <a href="#"><i class="fa fa-pie-chart" ></i><span>
+                            <a><img src="{% static "my_shop_images/report_og.png" %}" style="width: 23px;" alt=""><span>
                                     Sales Report</span> <span class="menu-arrow"></span></a>
                             <ul>
                                 <li><a href="{% url "sales_report" %}">Sales List</a></li>
@@ -151,12 +151,6 @@
                             <a href="javascript:void(0);"><img src="{% static 'admin-assets/img/icons/settings.svg' %}" alt="img"><span>
                                     Settings</span> <span class="menu-arrow"></span></a>
                             <ul>
-                                <li><a href="generalsettings.html">General Settings</a></li>
-                                <li><a href="emailsettings.html">Email Settings</a></li>
-                                <li><a href="paymentsettings.html">Payment Settings</a></li>
-                                <li><a href="currencysettings.html">Currency Settings</a></li>
-                                <li><a href="grouppermissions.html">Group Permissions</a></li>
-                                <li><a href="taxrates.html">Tax Rates</a></li>
                             </ul>
                         </li>
                     </ul>

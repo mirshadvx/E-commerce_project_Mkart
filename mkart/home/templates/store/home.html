@@ -5,14 +5,13 @@
 <html lang="en">
 
 
-<!-- molla/index-6.html  22 Nov 2019 09:56:18 GMT -->
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>{% block title %}Home{% endblock %}</title>
     <meta name="keywords" content="HTML5 Template">
-    <meta name="description" content="Molla - Bootstrap eCommerce Template">
     <meta name="author" content="p-themes">
     <!-- Favicon -->
     {% block extra_style %}
@@ -22,8 +21,8 @@
     {% comment %} <link rel="manifest" href="store-assets/assets/images/icons/site.html"> {% endcomment %}
     <link rel="mask-icon" href="store-assets/assets/images/icons/safari-pinned-tab.svg" color="#666666">
     <link rel="shortcut icon" href="store-assets/assets/images/icons/favicon.ico">
-    <meta name="apple-mobile-web-app-title" content="Molla">
-    <meta name="application-name" content="Molla">
+    <meta name="apple-mobile-web-app-title" content="timexo">
+    <meta name="application-name" content="timexo">
     <meta name="msapplication-TileColor" content="#cc9966">
     <meta name="msapplication-config" content="store-assets/assets/images/icons/browserconfig.xml">
     <meta name="theme-color" content="#ffffff">
@@ -105,7 +104,7 @@
                             <a href="#" class="search-toggle" role="button"><i class="icon-search"></i></a>
                             <form action="#" method="get">
                                 <div class="header-search-wrapper search-wrapper-wide">
-                                    <label for="q" class="sr-only">Search</label>
+                                    <label for="q" class="sr-only"></label>
                                     <button class="btn btn-primary" type="submit"><i class="icon-search"></i></button>
                                     <input type="search" class="form-control" name="q" id="q" placeholder="Search product ..." required>
                                 </div><!-- End .header-search-wrapper -->
@@ -114,10 +113,9 @@
                     </div>
                     <div class="header-center">
                         <a href="{% url "home" %}" class="logo">
-                            {% comment %} <img src="{% static 'store-assets/assets/images/demos/demo-6/logo.png' %}" alt="Molla Logo" width="82" height="20"> {% endcomment %}
                                 <img
-                                    src="{% static 'shop_img/mkart_logo.jpg' %}"
-                                    alt="Molla Logo"
+                                    src="{% static 'my_shop_images/shop_logo.jpg' %}"
+                                    alt="timexo Logo"
                                     width="105"
                                     height="25"
                                 />
@@ -202,13 +200,13 @@
                         <div class="col-sm-6">
                             <div class="banner banner-overlay">
                                 <a href="#">
-                                    <img src="{% static 'store-assets/assets/images/demos/demo-6/banners/banner-1.jpg' %}" alt="Banner">
+                                    <img src="{% static 'my_shop_images/women_banner_og.jpg' %}" style="width: 100%;" alt="Banner">
                                 </a>
 
                                 <div class="banner-content banner-content-center">
-                                    <h4 class="banner-subtitle text-white"><a href="#">New in</a></h4><!-- End .banner-subtitle -->
-                                    <h3 class="banner-title text-white"><a href="#"><strong>Women’s</strong></h3><!-- End .banner-title -->
-                                    <a href="#" class="btn btn-outline-white banner-link underline">Shop Now</a>
+                                    <h4 class="banner-subtitle text-white"><a href="{% url "womens_items" %}">New in</a></h4><!-- End .banner-subtitle -->
+                                    <h3 class="banner-title text-white"><a href="{% url "womens_items" %}"><strong>Women’s</strong></h3><!-- End .banner-title -->
+                                    <a href="{% url "womens_items" %}" class="btn btn-outline-white banner-link underline">Shop Now</a>
                                 </div><!-- End .banner-content -->
                             </div><!-- End .banner -->
                         </div><!-- End .col-sm-6 -->
@@ -216,13 +214,13 @@
                         <div class="col-sm-6">
                             <div class="banner banner-overlay">
                                 <a href="#">
-                                    <img src="{% static 'store-assets/assets/images/demos/demo-6/banners/banner-2.jpg' %}" alt="Banner">
+                                    <img src="{% static 'my_shop_images/men_banner.jpg' %}" alt="Banner">
                                 </a>
 
                                 <div class="banner-content banner-content-center">
-                                    <h4 class="banner-subtitle text-white"><a href="#">New in</a></h4><!-- End .banner-subtitle -->
-                                    <h3 class="banner-title text-white"><a href="#"><strong>Men’s</strong></a></h3><!-- End .banner-title -->
-                                    <a href="#" class="btn btn-outline-white banner-link underline">Shop Now</a>
+                                    <h4 class="banner-subtitle text-white"><a href="{% url "mens_items" %}">New in</a></h4><!-- End .banner-subtitle -->
+                                    <h3 class="banner-title text-white"><a href="{% url "mens_items" %}"><strong>Men’s</strong></a></h3><!-- End .banner-title -->
+                                    <a href="{% url "mens_items" %}" class="btn btn-outline-white banner-link underline">Shop Now</a>
                                 </div><!-- End .banner-content -->
                             </div><!-- End .banner -->
                         </div><!-- End .col-sm-6 -->
@@ -770,7 +768,7 @@
                     <div class="row">
                         <div class="col-sm-6 col-lg-3">
                             <div class="widget widget-about">
-                                <h4 class="widget-title">about molla</h4><!-- End .widget-title -->
+                                <h4 class="widget-title">about timexo</h4><!-- End .widget-title -->
                                 <p>Praesent dapibus, neque id cursus ucibus, tortor neque egestas augue, eu vulputate magna eros eu erat. </p>
 
                                 <div class="social-icons">
@@ -787,8 +785,8 @@
                                 <h4 class="widget-title">Useful Links</h4><!-- End .widget-title -->
 
                                 <ul class="widget-list">
-                                    <li><a href="about.html">About Molla</a></li>
-                                    <li><a href="#">How to shop on Molla</a></li>
+                                    <li><a href="about.html">About timexo</a></li>
+                                    <li><a href="#">How to shop on timexo</a></li>
                                     <li><a href="#">FAQ</a></li>
                                     <li><a href="contact.html">Contact us</a></li>
                                     <li><a href="login.html">Log in</a></li>
@@ -833,7 +831,7 @@
                     <figure class="footer-payments">
                         <img src="{% static 'store-assets/assets/images/payments.png' %}" alt="Payment methods" width="272" height="20">
                     </figure><!-- End .footer-payments -->
-                    <img src="{% static 'store-assets/assets/images/demos/demo-6/logo-footer.png' %}" alt="Molla Logo" width="82" height="25">
+                    <img src="{% static 'store-assets/assets/images/demos/demo-6/logo-footer.png' %}" alt="timexo Logo" width="82" height="25">
                     <p class="footer-copyright">Copyright © 2024 Store. All Rights Reserved.</p><!-- End .footer-copyright -->
                 </div><!-- End .container -->
             </div><!-- End .footer-bottom -->
@@ -861,6 +859,6 @@
 </body>
 
 
-<!-- molla/index-6.html  22 Nov 2019 09:56:39 GMT -->
+
 </html>
 
