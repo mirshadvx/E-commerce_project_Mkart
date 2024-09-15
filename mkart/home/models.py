@@ -64,7 +64,14 @@ class Profile(models.Model):
 
             return True
         except cls.DoesNotExist:
-            return False        
+            return False       
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+@receiver(post_save, sender=User)
+def create_or_update_user_profile(sender, instance, created, **kwargs):
+    if created:
+        Profile.objects.create(user=instance)
+    instance.profile.save() 
     
 class UserAddress(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='addresses')

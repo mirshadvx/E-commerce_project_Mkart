@@ -21,7 +21,6 @@ from django.db.models import Q
 from django.urls import reverse
 from django.contrib.auth import update_session_auth_hash
 from django.views.decorators.http import require_POST
-from allauth.socialaccount.models import SocialAccount
 import razorpay
 from django.conf import settings
 from decimal import Decimal
@@ -38,27 +37,6 @@ from io import BytesIO
 from django.shortcuts import get_object_or_404
 
 # Create your views here.
-
-@csrf_exempt
-def auth_receiver(request):
-    """
-    Google calls this URL after the user has signed in with their Google account.
-    """
-    print('Inside')
-    token = request.POST['credential']
-
-    try:
-        user_data = id_token.verify_oauth2_token(
-            token, requests.Request(), os.environ['GOOGLE_OAUTH_CLIENT_ID']
-        )
-    except ValueError:
-        return HttpResponse(status=403)
-
-    # In a real app, I'd also save any new user here to the database.
-    # You could also authenticate the user here using the details from Google (https://docs.djangoproject.com/en/4.2/topics/auth/default/#how-to-log-a-user-in)
-    request.session['user_data'] = user_data
-
-    return redirect('sign_in')
 
 
 def store(request):
@@ -77,7 +55,7 @@ def store(request):
         'brands': brands,
     }
     
-    return render(request,'store/store.html',context)
+    return render(request,'store/home.html',context)
 
 
 def check_username(request):
@@ -94,12 +72,6 @@ def check_email(request):
     }
     return JsonResponse(data)
 
-# def check_username(request):
-#     username = request.GET.get('username', None)
-#     data = {
-#         'exists': User.objects.filter(username=username).exists()
-#     }
-#     return JsonResponse(data)
 def register(request):
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -178,9 +150,8 @@ def register(request):
             from_email = settings.EMAIL_HOST_USER
             recipient_list = [email]
             send_mail(subject, message, from_email, recipient_list)
-            print('worked')
         except:
-            print('find error')
+            None
        
      
         stored_data = request.session.get('registration_data')
@@ -199,16 +170,17 @@ def validate_otp(request):
 
         otp_created_at = timezone.datetime.fromisoformat(stored_data.get('otp_created_at'))
         time_elapsed = (timezone.now() - otp_created_at).total_seconds()
+        time_left = max(300 - int(time_elapsed), 0)
 
-        if time_elapsed > 300:  
+        if time_left == 0:
             del request.session['registration_data']
-            return render(request, 'store/validateOTP.html', {'error': 'OTP has expired. Please try again.'})
+            return render(request, 'store/validateOTP.html', {'error': 'OTP has expired. Please try again.', 'time_left': 0})
         
         if user_otp == stored_data.get('otp'):
             try:
                 existing_user = User.objects.filter(email=stored_data['email']).first()
                 if existing_user:
-                    return render(request, 'store/validateOTP.html', {'error': 'An account with this email already exists.'})
+                    return render(request, 'store/validateOTP.html', {'error': 'An account with this email already exists.', 'time_left': time_left})
                 
                 new_user = User.objects.create_user(
                     username=stored_data['username'],
@@ -224,24 +196,30 @@ def validate_otp(request):
                 if stored_data.get('referral_code'):
                     Profile.apply_referral(new_user, stored_data['referral_code'])
 
+                del request.session['registration_data']
                 return redirect('login')
             except IntegrityError:
-                return render(request, 'store/validateOTP.html', {'error': 'An error occurred while creating your account. Please try again.'})
+                return render(request, 'store/validateOTP.html', {'error': 'An error occurred while creating your account. Please try again.', 'time_left': time_left})
         else:
-            return render(request, 'store/validateOTP.html', {'error': 'Invalid OTP'})
+            return render(request, 'store/validateOTP.html', {'error': 'Invalid OTP', 'time_left': time_left})
     
-    return render(request, 'store/validateOTP.html')
+    stored_data = request.session.get('registration_data', {})
+    if not stored_data:
+        return redirect('register')
 
+    otp_created_at = timezone.datetime.fromisoformat(stored_data.get('otp_created_at'))
+    time_elapsed = (timezone.now() - otp_created_at).total_seconds()
+    time_left = max(300 - int(time_elapsed), 0)  # 300 seconds = 5 minutes
+
+    return render(request, 'store/validateOTP.html', {'time_left': time_left})
 
 def resend_otp(request):
     stored_data = request.session.get('registration_data', {})
     if not stored_data:
         return redirect('register')
 
-    
     new_otp = str(random.randint(100000, 999999))
 
-    print('new otp ',new_otp)
     send_mail(
         'Your new OTP for registration',
         f'Your new OTP is: {new_otp}. This OTP will expire in 5 minutes.',
@@ -266,7 +244,6 @@ def loginpage(request):
 
 
         user = authenticate(request, username=username, password=password)
-        print(user)
 
         if user is not None:
             if not user.is_active:
@@ -280,8 +257,40 @@ def loginpage(request):
                 return redirect('home') 
         else:
             messages.error(request, 'Invalid username or password')
-    
+            
+    elif request.user.is_authenticated:
+        return redirect('home')  # or your desired redirect URL
     return render(request, 'store/login.html')
+
+from allauth.socialaccount.models import SocialAccount
+def google_login_success(request):
+    if request.user.is_authenticated:
+        try:
+            google_account = SocialAccount.objects.get(user=request.user, provider='google')
+            # You can access Google account info like this:
+            # google_account.extra_data['given_name']
+            # google_account.extra_data['family_name']
+            # google_account.extra_data['picture']
+            
+            # Create or update the user's profile
+            profile, created = Profile.objects.get_or_create(user=request.user)
+            if created:
+                # If it's a new user, you might want to set some default values
+                profile.phone = ''  # You may want to ask for phone number separately
+                profile.save()
+            
+            messages.success(request, 'Successfully logged in with Google.')
+            return redirect('home')  # or your desired redirect URL
+        except SocialAccount.DoesNotExist:
+            messages.error(request, 'Unable to log in with Google. Please try again.')
+            return redirect('login')
+    else:
+        return redirect('login')
+
+def logoutPage(request):
+    if request.user.is_authenticated:
+        logout(request)
+    return redirect('login')
 
 def home(request):
     user_wishlist_count = 0
@@ -322,14 +331,6 @@ def home(request):
     }
     return render(request, 'store/home.html', context)
 
-   
-
-def logoutPage(request):
-    if request.user.is_authenticated:
-        logout(request)
-    return redirect('login') 
-
-
 def social_login_success(request):
     if request.user.is_authenticated:
         messages.success(request, 'Successfully logged in with Google!')
@@ -349,44 +350,55 @@ def social_login_success(request):
 from django.db.models import Min
 
 def show_products(request):
-    try:
+    # User-related data
+    user_wishlist_count = 0
+    user_cart_count = 0
+    cart_total = 0
+
+    if request.user.is_authenticated:
         user_wishlist_count = Wishlist.objects.filter(user=request.user).count()
-    except Wishlist.DoesNotExist:
-        user_wishlist_count = None
-    
-    try:
-        user_cart_count = CartItem.objects.filter(cart__user=request.user).count()  
-    except Cart.DoesNotExist:
-        user_cart_count = None
+        
+        try:
+            user_cart = Cart.objects.get(user=request.user)
+            user_cart_count = CartItem.objects.filter(cart=user_cart).count()
+            cart_total = user_cart.get_total_price()
+        except Cart.DoesNotExist:
+            pass
 
-    cart, created = Cart.objects.get_or_create(user=request.user)   
-    
-    cart_total = cart.get_total_price()
-    
+    # Start with all products
     products = Product.objects.filter(category__status=True)
-    
 
-    category = request.GET.get('category')
-    if category:
-        products = products.filter(category__name=category)
-    
-    gender = request.GET.get('gender')
-    if gender:
-        products = products.filter(gender__name=gender)
-    
-    brand = request.GET.get('brand')
-    if brand:
-        products = products.filter(brand__name=brand)
-    
-    color = request.GET.get('color')
-    if color:
-        products = products.filter(variants__color__name=color).distinct()
-    
+    # Search functionality
+    search_query = request.GET.get('search', '')
+    if search_query:
+        products = products.filter(
+            Q(name__icontains=search_query) |
+            Q(description__icontains=search_query) |
+            Q(category__name__icontains=search_query) |
+            Q(brand__name__icontains=search_query)
+        ).distinct()
+
+    # Get all filter parameters
+    selected_categories = request.GET.getlist('category')
+    selected_genders = request.GET.getlist('gender')
+    selected_brands = request.GET.getlist('brand')
+    selected_colors = request.GET.getlist('color')
     min_price = request.GET.get('min_price')
     max_price = request.GET.get('max_price')
+
+    # Apply filters
+    if selected_categories:
+        products = products.filter(category__name__in=selected_categories)
+    if selected_genders:
+        products = products.filter(gender__name__in=selected_genders)
+    if selected_brands:
+        products = products.filter(brand__name__in=selected_brands)
+    if selected_colors:
+        products = products.filter(variants__color__name__in=selected_colors).distinct()
     if min_price and max_price:
         products = products.filter(variants__price__gte=min_price, variants__price__lte=max_price).distinct()
-    
+
+    # Sorting
     sort_by = request.GET.get('sortby')
     if sort_by:
         if sort_by == 'low to high':
@@ -399,38 +411,235 @@ def show_products(request):
             products = products.order_by('name')
         elif sort_by == 'zZ-aA':
             products = products.order_by('-name')
-    
-    
+
+    # Annotate products with display price and discount
     for product in products:
         variant = product.variants.first()
         if variant:
             product.display_price = variant.price
             product.discounted_price = product.get_discounted_price()
             if product.discounted_price < variant.price:
-                product.discount_percentage = 100 * (1 - product.discounted_price / variant.price)
+                product.discount_percentage = round(100 * (1 - product.discounted_price / variant.price), 2)
             else:
                 product.discount_percentage = None
-    
-    categories = Category.objects.filter(status=True)
-    genders = Gender.objects.all()
-    brands = Brand.objects.all()
-    colors = Color.objects.all()
-    
+
+    # Get all available options for filters
+    all_categories = Category.objects.filter(status=True)
+    all_genders = Gender.objects.all()
+    all_brands = Brand.objects.all()
+    all_colors = Color.objects.all()
+
     context = {
         'products': products,
-        'categories': categories,
-        'genders': genders,
-        'brands': brands,
-        'colors': colors,
+        'categories': all_categories,
+        'genders': all_genders,
+        'brands': all_brands,
+        'colors': all_colors,
         'sort_by': sort_by,
-        'wishlist_count':user_wishlist_count,
-        'cart_count':user_cart_count,
-        'cart_total':cart_total,
+        'wishlist_count': user_wishlist_count,
+        'cart_count': user_cart_count,
+        'cart_total': cart_total,
+        'selected_categories': selected_categories,
+        'selected_genders': selected_genders,
+        'selected_brands': selected_brands,
+        'selected_colors': selected_colors,
+        'min_price': min_price,
+        'max_price': max_price,
+        'search_query': search_query,
     }
-    
+
     return render(request, 'store/products_home.html', context)
 
+def mens_items(request):
+    # User-related data
+    user_wishlist_count = 0
+    user_cart_count = 0
+    cart_total = 0
 
+    if request.user.is_authenticated:
+        user_wishlist_count = Wishlist.objects.filter(user=request.user).count()
+        
+        try:
+            user_cart = Cart.objects.get(user=request.user)
+            user_cart_count = CartItem.objects.filter(cart=user_cart).count()
+            cart_total = user_cart.get_total_price()
+        except Cart.DoesNotExist:
+            pass
+
+    # Start with men's products only
+    products = Product.objects.filter(category__status=True, gender__name='Men')
+
+    # Search functionality
+    search_query = request.GET.get('search', '')
+    if search_query:
+        products = products.filter(
+            Q(name__icontains=search_query) |
+            Q(description__icontains=search_query) |
+            Q(category__name__icontains=search_query) |
+            Q(brand__name__icontains=search_query)
+        ).distinct()
+
+    # Get all filter parameters
+    selected_categories = request.GET.getlist('category')
+    selected_brands = request.GET.getlist('brand')
+    selected_colors = request.GET.getlist('color')
+    min_price = request.GET.get('min_price')
+    max_price = request.GET.get('max_price')
+
+    # Apply filters
+    if selected_categories:
+        products = products.filter(category__name__in=selected_categories)
+    if selected_brands:
+        products = products.filter(brand__name__in=selected_brands)
+    if selected_colors:
+        products = products.filter(variants__color__name__in=selected_colors).distinct()
+    if min_price and max_price:
+        products = products.filter(variants__price__gte=min_price, variants__price__lte=max_price).distinct()
+
+    # Sorting
+    sort_by = request.GET.get('sortby')
+    if sort_by:
+        if sort_by == 'low to high':
+            products = products.annotate(min_price=Min('variants__price')).order_by('min_price')
+        elif sort_by == 'high to low':
+            products = products.annotate(min_price=Min('variants__price')).order_by('-min_price')
+        elif sort_by == 'new arrivals':
+            products = products.order_by('-created_at')
+        elif sort_by == 'aA-zZ':
+            products = products.order_by('name')
+        elif sort_by == 'zZ-aA':
+            products = products.order_by('-name')
+
+    # Annotate products with display price and discount
+    for product in products:
+        variant = product.variants.first()
+        if variant:
+            product.display_price = variant.price
+            product.discounted_price = product.get_discounted_price()
+            if product.discounted_price < variant.price:
+                product.discount_percentage = round(100 * (1 - product.discounted_price / variant.price), 2)
+            else:
+                product.discount_percentage = None
+
+    # Get all available options for filters
+    all_categories = Category.objects.filter(status=True)
+    all_brands = Brand.objects.all()
+    all_colors = Color.objects.all()
+
+    context = {
+        'products': products,
+        'categories': all_categories,
+        'brands': all_brands,
+        'colors': all_colors,
+        'sort_by': sort_by,
+        'wishlist_count': user_wishlist_count,
+        'cart_count': user_cart_count,
+        'cart_total': cart_total,
+        'selected_categories': selected_categories,
+        'selected_brands': selected_brands,
+        'selected_colors': selected_colors,
+        'min_price': min_price,
+        'max_price': max_price,
+        'search_query': search_query,
+    }
+
+    return render(request, 'store/mens_items.html', context)
+
+def womens_items(request):
+    # User-related data
+    user_wishlist_count = 0
+    user_cart_count = 0
+    cart_total = 0
+
+    if request.user.is_authenticated:
+        user_wishlist_count = Wishlist.objects.filter(user=request.user).count()
+        
+        try:
+            user_cart = Cart.objects.get(user=request.user)
+            user_cart_count = CartItem.objects.filter(cart=user_cart).count()
+            cart_total = user_cart.get_total_price()
+        except Cart.DoesNotExist:
+            pass
+
+    # Start with women's products only
+    products = Product.objects.filter(category__status=True, gender__name='Women')
+
+    # Search functionality
+    search_query = request.GET.get('search', '')
+    if search_query:
+        products = products.filter(
+            Q(name__icontains=search_query) |
+            Q(description__icontains=search_query) |
+            Q(category__name__icontains=search_query) |
+            Q(brand__name__icontains=search_query)
+        ).distinct()
+
+    # Get all filter parameters
+    selected_categories = request.GET.getlist('category')
+    selected_brands = request.GET.getlist('brand')
+    selected_colors = request.GET.getlist('color')
+    min_price = request.GET.get('min_price')
+    max_price = request.GET.get('max_price')
+
+    # Apply filters
+    if selected_categories:
+        products = products.filter(category__name__in=selected_categories)
+    if selected_brands:
+        products = products.filter(brand__name__in=selected_brands)
+    if selected_colors:
+        products = products.filter(variants__color__name__in=selected_colors).distinct()
+    if min_price and max_price:
+        products = products.filter(variants__price__gte=min_price, variants__price__lte=max_price).distinct()
+
+    # Sorting
+    sort_by = request.GET.get('sortby')
+    if sort_by:
+        if sort_by == 'low to high':
+            products = products.annotate(min_price=Min('variants__price')).order_by('min_price')
+        elif sort_by == 'high to low':
+            products = products.annotate(min_price=Min('variants__price')).order_by('-min_price')
+        elif sort_by == 'new arrivals':
+            products = products.order_by('-created_at')
+        elif sort_by == 'aA-zZ':
+            products = products.order_by('name')
+        elif sort_by == 'zZ-aA':
+            products = products.order_by('-name')
+
+    # Annotate products with display price and discount
+    for product in products:
+        variant = product.variants.first()
+        if variant:
+            product.display_price = variant.price
+            product.discounted_price = product.get_discounted_price()
+            if product.discounted_price < variant.price:
+                product.discount_percentage = round(100 * (1 - product.discounted_price / variant.price), 2)
+            else:
+                product.discount_percentage = None
+
+    # Get all available options for filters
+    all_categories = Category.objects.filter(status=True)
+    all_brands = Brand.objects.all()
+    all_colors = Color.objects.all()
+
+    context = {
+        'products': products,
+        'categories': all_categories,
+        'brands': all_brands,
+        'colors': all_colors,
+        'sort_by': sort_by,
+        'wishlist_count': user_wishlist_count,
+        'cart_count': user_cart_count,
+        'cart_total': cart_total,
+        'selected_categories': selected_categories,
+        'selected_brands': selected_brands,
+        'selected_colors': selected_colors,
+        'min_price': min_price,
+        'max_price': max_price,
+        'search_query': search_query,
+    }
+
+    return render(request, 'store/womens_items.html', context)
+    
 def product_info(request, id):
     try:
         user_wishlist_count = Wishlist.objects.filter(user=request.user).count()
@@ -709,7 +918,6 @@ def submit_address(request):
         
 
         if check:
-            print('exists')
             messages.error(request,"Sorry, the address already exists !!!")
             return redirect('account')
 
@@ -730,7 +938,6 @@ def submit_address(request):
             is_default=request.POST.get('is_default') == 'on'
         )
         
-        print(address)
         address.save()
         messages.success(request,"Address created successfully!!!")
         
@@ -893,7 +1100,6 @@ def handle_failed_payment(request):
             'redirect_url': f'/'
         })
     except Exception as e:
-        print(f"Error in handle_failed_payment: {str(e)}")
         return JsonResponse({
             'success': False,
             'message': 'An error occurred while processing your order. Please try again.'
@@ -1393,15 +1599,16 @@ def cancel_item(request):
     except Exception as e:
         return JsonResponse({'success': False, 'message': f'An error occurred: {str(e)}'})
 
-
+def contact(request):
+    return render(request,'store/contact.html')
 # @require_POST
 # def cancel_item(request):
 #     item_id = request.POST.get('item_id')
 #     variant_id = request.POST.get('variant_id')
 #     inc_quantity = request.POST.get('inc_quantity')
 #     variant = ProductVariant.objects.get(id=variant_id)
-#     print(item_id,'item id ddddddd')
-#     print(variant_id)
+#  
+#    
     
     
 #     try:
@@ -1462,7 +1669,7 @@ def return_item(request):
 # @csrf_protect
 # def razorpay_selected(request):
     
-#     print('user selected the razorapy option')
+#    
 #     return JsonResponse({
 #         'success': True,
 #         'message': 'Razorpay payment option selected successfully!'

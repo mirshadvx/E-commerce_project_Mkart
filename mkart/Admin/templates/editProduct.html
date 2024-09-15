@@ -158,22 +158,6 @@
                 </select>
             </div>
         </div>
-        {% comment %} <div class="col-md-12">
-            <div class="form-group">
-                <label>Images</label>
-                {% for image in variant.images %}
-                <div class="mb-2">
-                    <input type="file" name="variant_image_{{ variant.id }}_{{ forloop.counter }}" class="form-control-file image-input" accept="image/*" data-variant-id="{{ variant.id }}" data-image-number="{{ forloop.counter }}" />
-                    <small class="form-text text-muted">Variant Image {{ forloop.counter }}</small>
-                    {% if image %}
-                        <img src="{{ image.url }}" alt="Current Image {{ forloop.counter }}" style="max-width: 100px; margin-top: 10px;" />
-                    {% endif %}
-                    <img class="image-preview" id="imagePreview_{{ variant.id }}_{{ forloop.counter }}" style="display: none; max-width: 100%" />
-                    <input type="hidden" name="cropped_image_{{ variant.id }}_{{ forloop.counter }}" id="croppedImage_{{ variant.id }}_{{ forloop.counter }}" />
-                </div>
-                {% endfor %}
-            </div>
-        </div> {% endcomment %}
         <div class="col-md-12">
             <div class="form-group">
                 <label>Images</label>
@@ -198,8 +182,6 @@
     <hr>
     {% endfor %}
 </div>
-
-                        
                         <div class="col-md-12">
                             <div class="text-right mt-4">
                                 <button type="submit" class="btn btn-primary">Update Product</button>
@@ -234,9 +216,6 @@
     </div>
 </div>
 {% endblock %}
-
-
-
 {% block extra_js %}
 <script src="https://unpkg.com/cropperjs/dist/cropper.min.js"></script>
 <script>
@@ -316,75 +295,16 @@ function deleteNewImage(button) {
     container.remove();
 }
 </script>
-{% comment %} <script src="https://unpkg.com/cropperjs/dist/cropper.min.js"></script>
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    let cropper;
-    let currentImageInput;
-
-    document.querySelectorAll('.image-input').forEach(input => {
-        input.addEventListener('change', function (e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function (event) {
-                    document.getElementById('imageToCrop').src = event.target.result;
-                    $('#cropModal').modal('show');
-                    currentImageInput = input;
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-    });
-
-    document.getElementById('cropImage').addEventListener('click', function () {
-        const canvas = cropper.getCroppedCanvas();
-        const croppedImage = canvas.toDataURL();
-        const variantId = currentImageInput.dataset.variantId;
-        const imageNumber = currentImageInput.dataset.imageNumber;
-        const previewId = `imagePreview_${variantId}_${imageNumber}`;
-        const croppedImageId = `croppedImage_${variantId}_${imageNumber}`;
-        
-        document.getElementById(previewId).src = croppedImage;
-        document.getElementById(previewId).style.display = 'block';
-        document.getElementById(croppedImageId).value = croppedImage;
-        
-        $('#cropModal').modal('hide');
-    });
-
-    $('#cropModal').on('shown.bs.modal', function () {
-        cropper = new Cropper(document.getElementById('imageToCrop'), {
-            aspectRatio: 1,
-            viewMode: 1
-        });
-    }).on('hidden.bs.modal', function () {
-        cropper.destroy();
-        cropper = null;
-    });
-
-    // Initialize Select2
-    $('.select').select2();
-});
-</script> {% endcomment %}
         <script src="{% static 'admin-assets/js/jquery-3.6.0.min.js' %}"></script>
         <script src="{% static 'admin-assets/js/bootstrap.bundle.min.js' %}"></script>
         <script src="{% static 'admin-assets/plugins/select2/js/select2.min.js' %}"></script>
-
-
         <script src="{% static 'admin-assets/js/feather.min.js' %}"></script>
-
         <script src="{% static 'admin-assets/js/jquery.slimscroll.min.js' %}"></script>
-
         <script src="{% static 'admin-assets/js/jquery.dataTables.min.js' %}"></script>
         <script src="{% static 'admin-assets/js/dataTables.bootstrap4.min.js' %}"></script>
-
         <script src="{% static 'admin-assets/js/bootstrap.bundle.min.js' %}"></script>
-
         <script src="{% static 'admin-assets/plugins/select2/js/select2.min.js' %}"></script>
-
         <script src="{% static 'admin-assets/plugins/sweetalert/sweetalert2.all.min.js' %}"></script>
         <script src="{% static 'admin-assets/plugins/sweetalert/sweetalerts.min.js' %}"></script>
-
         <script src="{% static 'admin-assets/js/script.js' %}"></script>
-
 {% endblock %}

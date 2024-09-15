@@ -97,3 +97,6 @@ class WalletTransaction(models.Model):
 
     def __str__(self):
         return f"{self.transaction_type.title()} of {self.amount} at {self.timestamp}"
+    
+    class Meta:
+        ordering = ["-timestamp"]

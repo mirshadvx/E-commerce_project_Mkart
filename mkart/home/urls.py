@@ -17,6 +17,8 @@ urlpatterns = [
     path('account',views.account,name='account'),
     path('social-login-success/', views.social_login_success, name='social_login_success'),
     path('productslist/',views.show_products,name='productslist'),
+    path('mens_items/',views.mens_items,name='mens_items'),
+    path('womens_items/',views.womens_items,name='womens_items'),
     path('product_info/<int:id>/',views.product_info,name='product_info'),
     # path('product_variant/<int:id>/',views.product_variant_info, name='product_variant_info'),
     path('wishlist/', views.wishlist, name='wishlist'),
@@ -39,7 +41,6 @@ urlpatterns = [
     path('password_reset_done/',auth_views.PasswordResetDoneView.as_view(template_name='store/password_reset_done.html'),name='password_reset_done'),
     path('password-reset-confirm/<uidb64>/<token>/',auth_views.PasswordResetConfirmView.as_view(template_name='store/password_reset_confirm.html'),name='password_reset_confirm'),
     path('password-reset-complete/',auth_views.PasswordResetCompleteView.as_view(template_name='store/password_reset_complete.html'),name='password_reset_complete'),
-    path('auth-receiver', views.auth_receiver, name='auth_receiver'),
     
     path('cancel-item/', views.cancel_item, name='cancel_item'),
     path('return-item/', views.return_item, name='return_item'),
@@ -48,4 +49,7 @@ urlpatterns = [
     # path('razorpay_selected/', views.razorpay_selected, name='razorpay_selected'),
     path('handle-failed-payment/', views.handle_failed_payment, name='handle_failed_payment'),
     path('razorpay_payment_success/', views.razorpay_payment_success, name='razorpay_payment_success'),
+    path('contact/', views.contact, name='contact'),
+    
+    path('google-login-success/', views.google_login_success, name='google_login_success'),
 ]

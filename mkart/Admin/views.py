@@ -5,7 +5,7 @@ from django.utils.text import slugify
 from products.models import Category , Brand, Color, Gender, Product , ProductVariant
 from django.contrib import messages
 from django.http import HttpResponse, JsonResponse
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_GET
 import base64
 from base64 import b64decode
 from PIL import Image
@@ -34,6 +34,7 @@ from django.utils.dateparse import parse_datetime
 from django.views.decorators.cache import never_cache
 from django.db.models import Sum, F, Count, DecimalField, Case, When, Value , Q
 from django.db.models.functions import Coalesce
+from django.db import transaction
 
 
 
@@ -132,6 +133,49 @@ def brand_list(request):
     brands = Brand.objects.all()
     return render(request, 'brandList.html', {'brands': brands})
 
+@require_GET
+def check_brand_exists(request):
+    brand_name = request.GET.get('name')
+    brand_id = request.GET.get('id')
+    if brand_id:
+        exists = Brand.objects.filter(name__iexact=brand_name).exclude(id=brand_id).exists()
+    else:
+        exists = Brand.objects.filter(name__iexact=brand_name).exists()
+    return JsonResponse({'exists': exists})
+
+@require_POST
+def add_brand(request):
+    brand_name = request.POST.get('name')
+    if Brand.objects.filter(name__iexact=brand_name).exists():
+        return JsonResponse({'success': False, 'error': 'This brand already exists.'})
+    else:
+        Brand.objects.create(name=brand_name)
+        return JsonResponse({'success': True})
+
+@require_POST
+def edit_brand(request):
+    brand_id = request.POST.get('id')
+    brand_name = request.POST.get('name')
+    try:
+        brand = Brand.objects.get(id=brand_id)
+        if Brand.objects.filter(name__iexact=brand_name).exclude(id=brand_id).exists():
+            return JsonResponse({'success': False, 'error': 'This brand name is already in use.'})
+        brand.name = brand_name
+        brand.save()
+        return JsonResponse({'success': True})
+    except Brand.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Brand not found.'})
+
+@require_POST
+def delete_brand(request):
+    brand_id = request.POST.get('id')
+    try:
+        brand = Brand.objects.get(id=brand_id)
+        brand.delete()
+        return JsonResponse({'success': True})
+    except Brand.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Brand not found.'})
+
 
 def edit_product(request, product_id):
     product = get_object_or_404(Product, id=product_id)
@@ -196,70 +240,6 @@ def edit_product(request, product_id):
     }
 
     return render(request, 'editProduct.html', context)
-
-# @login_required
-# @user_passes_test(lambda u: u.is_superuser)
-# def edit_product(request, product_id):
-#     product = get_object_or_404(Product, id=product_id)
-#     variants_data = []
-#     for variant in product.variants.all():
-#         variant_data = {
-#             'id': variant.id,
-#             'color': variant.color,
-#             'price': variant.price,
-#             'stock': variant.stock,
-#             'is_available': variant.is_available,
-#             'images': [
-#                 getattr(variant, f'image_{i}') for i in range(1, 4)
-#             ]
-#         }
-#         variants_data.append(variant_data)
-
-    
-#     if request.method == 'POST':
-#         product.name = request.POST.get('name')
-#         product.gender = get_object_or_404(Gender, id=request.POST.get('gender'))
-#         product.category = get_object_or_404(Category, id=request.POST.get('category'))
-#         product.brand = get_object_or_404(Brand, id=request.POST.get('brand'))
-#         product.description = request.POST.get('description')
-#         product.save()
-
-#         for variant in product.variants.all():
-#             variant.color = get_object_or_404(Color, id=request.POST.get(f'variant_color_{variant.id}'))
-#             variant.price = request.POST.get(f'variant_price_{variant.id}')
-#             variant.stock = request.POST.get(f'variant_stock_{variant.id}')
-#             variant.is_available = request.POST.get(f'variant_is_available_{variant.id}') == 'True'
-
-#             for i in range(1, 4):
-#                 cropped_image = request.POST.get(f'cropped_image_{variant.id}_{i}')
-#                 if cropped_image:
-                
-#                     format, imgstr = cropped_image.split(';base64,')
-#                     ext = format.split('/')[-1]
-                    
-            
-#                     filename = f'product_{product.id}_variant_{variant.id}_image_{i}.{ext}'
-      
-      
-#                     image_field = getattr(variant, f'image_{i}')
-#                     image_field.save(filename, ContentFile(base64.b64decode(imgstr)), save=False)
-
-#             variant.save()
-#         return redirect('productlist') 
-
-#     context = {
-#         'product': product,
-#         'variants_data': variants_data, 
-#         'genders': Gender.objects.all(),
-#         'categories': Category.objects.all(),
-#         'brands': Brand.objects.all(),
-#         'colors': Color.objects.all(),
-#     }
-    
-#     return render(request, 'editProduct.html', context)
-
-
-
 
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
@@ -498,20 +478,39 @@ def show_order_details(request, id):
     }
     return render(request, 'order_Details.html', context)
 
-# @require_POST
+# @login_required
+# @user_passes_test(lambda u: u.is_superuser)
 # def update_order_item_status(request):
-#     item_id = request.POST.get('item_id')
-#     new_status = request.POST.get('new_status')
-    
-#     try:
-#         order_item = OrderItem.objects.get(id=item_id)
-#         order_item.item_status = new_status
-#         order_item.save()
-#         return JsonResponse({'success': True})
-#     except OrderItem.DoesNotExist:
-#         return JsonResponse({'success': False, 'error': 'Order item not found'})
-#     except Exception as e:
-#         return JsonResponse({'success': False, 'error': str(e)})
+#     if request.method == 'POST':
+#         item_id = request.POST.get('item_id')
+#         new_status = request.POST.get('new_status')
+
+#         try:
+#             order_item = OrderItem.objects.get(id=item_id)
+            
+#             if order_item.update_status(new_status):
+#                 if order_item.item_status == 'delivered':
+#                     order_item.payment_status_item = 'paid'
+#                     order_item.save()
+                
+#                 order = order_item.order
+#                 all_items_status = order.ordered_items.values_list('item_status', flat=True)
+                
+#                 if all(status in ['delivered', 'cancelled', 'returned'] for status in all_items_status):
+#                     order.status = 'completed'
+#                 else:
+#                     order.status = 'incomplete'
+
+#                 order.save()
+                
+#                 return JsonResponse({'success': True})
+#             else:
+#                 return JsonResponse({'success': False, 'error': 'Invalid status transition.'})
+        
+#         except OrderItem.DoesNotExist:
+#             return JsonResponse({'success': False, 'error': 'Order item not found.'})
+
+#     return JsonResponse({'success': False, 'error': 'Invalid'})
 
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
@@ -519,56 +518,47 @@ def update_order_item_status(request):
     if request.method == 'POST':
         item_id = request.POST.get('item_id')
         new_status = request.POST.get('new_status')
-
-        try:
-            order_item = OrderItem.objects.get(id=item_id)
-            
-            if order_item.update_status(new_status):
-                if order_item.item_status == 'delivered':
-                    order_item.payment_status_item = 'paid'
-                    order_item.save()
-                
-                order = order_item.order
-                all_items_status = order.ordered_items.values_list('item_status', flat=True)
-                
-                if all(status in ['delivered', 'cancelled', 'returned'] for status in all_items_status):
-                    order.status = 'completed'
-                else:
-                    order.status = 'incomplete'
-
-                order.save()
-                
-                return JsonResponse({'success': True})
-            else:
-                return JsonResponse({'success': False, 'error': 'Invalid status transition.'})
         
+        try:
+            with transaction.atomic():
+                order_item = OrderItem.objects.select_for_update().get(id=item_id)
+                
+                if order_item.update_status(new_status):
+                    if order_item.item_status == 'delivered':
+                        order_item.payment_status_item = 'paid'
+                        order_item.save()
+                    elif order_item.item_status == 'returned':
+                        # Credit the order item price to the user's wallet
+                        wallet, created = Wallet.objects.get_or_create(user=order_item.order.user)
+                        refund_amount = order_item.get_total_price() - order_item.orderItem_coupon_discount
+                        wallet.balance += Decimal(refund_amount)
+                        wallet.save()
+                        
+                        # Create a wallet transaction record
+                        WalletTransaction.objects.create(
+                            wallet=wallet,
+                            amount=refund_amount,
+                            transaction_type='credit'
+                        )
+                    
+                    order = order_item.order
+                    all_items_status = order.ordered_items.values_list('item_status', flat=True)
+                    
+                    if all(status in ['delivered', 'cancelled', 'returned'] for status in all_items_status):
+                        order.status = 'completed'
+                    else:
+                        order.status = 'incomplete'
+                    
+                    order.save()
+                    
+                    return JsonResponse({'success': True})
+                else:
+                    return JsonResponse({'success': False, 'error': 'Invalid status transition.'})
+                
         except OrderItem.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'Order item not found.'})
-
-    return JsonResponse({'success': False, 'error': 'Invalid request method.'})
-
-
-# def update_order_item_status(request):
     
-#     if request.method == 'POST':
-#         item_id = request.POST.get('item_id')
-#         new_status = request.POST.get('new_status')
-
-#         try:
-#             order_item = OrderItem.objects.get(id=item_id)
-#             if order_item.update_status(new_status):
-#                 if order_item.item_status == 'delivered':
-#                     order_item.payment_status_item = 'paid'
-#                     order_item.save()
-#                 return JsonResponse({'success': True})
-#             else:
-#                 return JsonResponse({'success': False, 'error': 'Invalid status transition.'})
-#         except OrderItem.DoesNotExist:
-#             return JsonResponse({'success': False, 'error': 'Order item not found.'})
-
-#     return JsonResponse({'success': False, 'error': 'Invalid request method.'})
-
-
+    return JsonResponse({'success': False, 'error': 'Invalid request method.'})
 
 @login_required
 @user_passes_test(lambda u: u.is_superuser)

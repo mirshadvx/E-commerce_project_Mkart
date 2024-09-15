@@ -1,26 +1,16 @@
 {% extends "Base.html" %}
 {% load static %}
-
 {% block title %}Brand list{% endblock  %}
-
 {% block extra_style %}
-
         <link rel="shortcut icon" type="image/x-icon" href="admin-assets/img/favicon.jpg" />
-
         <link rel="stylesheet" href="{% static 'admin-assets/css/bootstrap.min.css' %}" />
-
         <link rel="stylesheet" href="{% static 'admin-assets/css/animate.css' %}" />
-
         <link rel="stylesheet" href="{% static 'admin-assets/plugins/select2/css/select2.min.css' %}" />
-
         <link rel="stylesheet" href="{% static 'admin-assets/css/dataTables.bootstrap4.min.css' %}" />
-
         <link rel="stylesheet" href="{% static 'admin-assets/plugins/fontawesome/css/fontawesome.min.css' %}" />
         <link rel="stylesheet" href="{% static 'admin-assets/plugins/fontawesome/css/all.min.css' %}" />
-
         <link rel="stylesheet" href="{% static 'admin-assets/css/style.css' %}" />
 {% endblock  %}
-
 {% block content %}
             <div class="page-wrapper">
                 <div class="content">
@@ -29,12 +19,11 @@
                             <h4>Brand List</h4>
                             <h6>Manage your Brand</h6>
                         </div>
-                        <div class="page-btn">
-                            <a href="addbrand.html" class="btn btn-added"
-                                ><img src="{% static 'admin-assets/img/icons/plus.svg' %}" class="me-2" alt="img" />Add
-                                Brand</a
-                            >
-                        </div>
+            <div class="page-btn">
+                <a class="btn btn-added" data-bs-toggle="modal" data-bs-target="#brandModal">
+                    <img src="{% static 'admin-assets/img/icons/plus.svg' %}" class="me-2" alt="img" />Add Brand
+                </a>
+            </div>
                     </div>
 
                     <div class="card">
@@ -101,7 +90,6 @@
                                     </div>
                                 </div>
                             </div>
-
                             <div class="table-responsive">
                                 <table class="table datanew">
                                     <thead>
@@ -112,40 +100,10 @@
                                                     <span class="checkmarks"></span>
                                                 </label>
                                             </th>
-                                            <th>Image</th>
                                             <th>Brand Name</th>
                                             <th>Action</th>
                                         </tr>
                                     </thead>
-                                    {% comment %}
-                                    <tbody>
-                                        <tr>
-                                            <td>
-                                                <label class="checkboxs">
-                                                    <input type="checkbox" />
-                                                    <span class="checkmarks"></span>
-                                                </label>
-                                            </td>
-                                            <td>
-                                                <a class="product-img">
-                                                    <img
-                                                        src="{% static 'admin-assets/img/brand/adidas.png' %}"
-                                                        alt="product"
-                                                    />
-                                                </a>
-                                            </td>
-                                            <td>Adidas</td>
-                                            <td>
-                                                <a class="me-3" href="editbrand.html">
-                                                    <img src="{% static 'admin-assets/img/icons/edit.svg' %}" alt="img" />
-                                                </a>
-                                                <a class="me-3 confirm-text" href="javascript:void(0);">
-                                                    <img src="{% static 'admin-assets/img/icons/delete.svg' %}" alt="img" />
-                                                </a>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                    {% endcomment %}
                                     <tbody>
                                         {% for brand in brands %}
                                         <tr>
@@ -155,43 +113,51 @@
                                                     <span class="checkmarks"></span>
                                                 </label>
                                             </td>
-                                            <td>
-                                                <a class="product-img">
-                                                    {% if brand.logo %}
-                                                    <img src="{{ brand.logo.url }}" alt="{{ brand.name }}" />
-                                                    {% else %}
-                                                    <img
-                                                        src="{% static 'admin-assets/img/brand/default.png' %}"
-                                                        alt="default"
-                                                    />
-                                                    {% endif %}
-                                                </a>
-                                            </td>
                                             <td>{{ brand.name }}</td>
                                             <td>
-                                                <a class="me-3">
+                                                <a class="me-3" href="#" onclick="editBrand('{{ brand.id }}', '{{ brand.name }}')">
                                                     <img src="{% static 'admin-assets/img/icons/edit.svg' %}" alt="edit" />
                                                 </a>
-                                                <a
-                                                    class="me-3 confirm-text"
-                                                    href="javascript:void(0);"
-                                                    onclick="confirmDelete('{{ brand.slug }}')"
-                                                >
-                                                    <img
-                                                        src="{% static 'admin-assets/img/icons/delete.svg' %}"
-                                                        alt="delete"
-                                                    />
+                                                <a class="me-3 confirm-text" href="javascript:void(0);" onclick="confirmDelete('{{ brand.id }}')">
+                                                    <img src="{% static 'admin-assets/img/icons/delete.svg' %}" alt="delete" />
                                                 </a>
                                             </td>
                                         </tr>
                                         {% endfor %}
                                     </tbody>
                                 </table>
-                            </div>
+                            </div>                        
+                                    
                         </div>
                     </div>
                 </div>
             </div>
+<!-- Brand Modal -->
+    <div class="modal fade" id="brandModal" tabindex="-1" aria-labelledby="brandModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="brandModalLabel">Add New Brand</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="brandForm">
+                        {% csrf_token %}
+                        <input type="hidden" id="brandId" name="id">
+                        <div class="mb-3">
+                            <label for="brandName" class="form-label">Brand Name</label>
+                            <input type="text" class="form-control" id="brandName" name="name" required>
+                            <div id="brandNameFeedback" class="invalid-feedback"></div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="saveBrandBtn">Save Brand</button>
+                </div>
+            </div>
+        </div>
+    </div>      
 {% endblock  %}
 
 {% block extra_js %}
@@ -212,5 +178,104 @@
         <script src="{% static 'admin-assets/plugins/sweetalert/sweetalerts.min.js' %}"></script>
 
         <script src="{% static 'admin-assets/js/script.js' %}"></script>
+
+    <script>
+        $(document).ready(function() {
+            var $brandInput = $('#brandName');
+            var $brandForm = $('#brandForm');
+            var $brandModal = $('#brandModal');
+            var $saveBrandBtn = $('#saveBrandBtn');
+
+            $brandInput.on('input', function() {
+                checkBrandExists();
+            });
+
+            function checkBrandExists() {
+                var brandName = $brandInput.val();
+                var brandId = $('#brandId').val();
+                $.ajax({
+                    url: '{% url "check_brand_exists" %}',
+                    type: 'GET',
+                    data: {'name': brandName, 'id': brandId},
+                    success: function(response) {
+                        if (response.exists) {
+                            $('#brandNameFeedback').text('This brand already exists.');
+                            $brandInput.addClass('is-invalid');
+                        } else {
+                            $brandInput.removeClass('is-invalid');
+                            $('#brandNameFeedback').text('');
+                        }
+                    },
+                    error: function() {
+                        console.log('An error occurred while checking the brand name.');
+                    }
+                });
+            }
+
+            $saveBrandBtn.click(function() {
+                var brandName = $brandInput.val();
+                var brandId = $('#brandId').val();
+                if (!$brandInput.hasClass('is-invalid') && brandName) {
+                    $.ajax({
+                        url: brandId ? '{% url "edit_brand" %}' : '{% url "add_brand" %}',
+                        type: 'POST',
+                        data: $brandForm.serialize(),
+                        success: function(response) {
+                            if (response.success) {
+                                $brandModal.modal('hide');
+                                location.reload();
+                            } else {
+                                $('#brandNameFeedback').text(response.error);
+                                $brandInput.addClass('is-invalid');
+                            }
+                        },
+                        error: function() {
+                            alert('An error occurred. Please try again.');
+                        }
+                    });
+                }
+            });
+
+            $brandModal.on('show.bs.modal', function (event) {
+                var button = $(event.relatedTarget);
+                var brandId = button.data('id');
+                var brandName = button.data('name');
+                
+                $('#brandId').val(brandId || '');
+                $('#brandName').val(brandName || '');
+                $('#brandModalLabel').text(brandId ? 'Edit Brand' : 'Add New Brand');
+            });
+        });
+
+        function editBrand(id, name) {
+            $('#brandModal').modal('show');
+            $('#brandId').val(id);
+            $('#brandName').val(name);
+            $('#brandModalLabel').text('Edit Brand');
+        }
+
+        function confirmDelete(brandId) {
+            if (confirm('Are you sure you want to delete this brand?')) {
+                $.ajax({
+                    url: '{% url "delete_brand" %}',
+                    type: 'POST',
+                    data: {
+                        'id': brandId,
+                        'csrfmiddlewaretoken': '{{ csrf_token }}'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            location.reload();
+                        } else {
+                            alert('Error: ' + response.error);
+                        }
+                    },
+                    error: function() {
+                        alert('An error occurred. Please try again.');
+                    }
+                });
+            }
+        }
+    </script> 
 {% endblock  %}
 

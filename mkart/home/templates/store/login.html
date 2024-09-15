@@ -1,7 +1,6 @@
 {% extends 'store/main_Base.html' %}
-
-{% load static %}
 {% load socialaccount %}
+{% load static %}
 
 {% block title %}login{% endblock  %}
 
@@ -10,7 +9,6 @@
     <link rel="apple-touch-icon" sizes="180x180" href="store-assets/assets/images/icons/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="store-assets/assets/images/icons/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="store-assets/assets/images/icons/favicon-16x16.png">
-    <link rel="manifest" href="store-assets/assets/images/icons/site.html">
     <link rel="mask-icon" href="store-assets/assets/images/icons/safari-pinned-tab.svg" color="#666666">
     <link rel="shortcut icon" href="store-assets/assets/images/icons/favicon.ico">
     <meta name="apple-mobile-web-app-title" content="Molla">
@@ -143,11 +141,10 @@
                                     <p class="text-center">or sign in with</p>
                                     <div class="row">
                                         <div class="col-sm-12">
-                                            <a class="btn btn-login btn-g" >
+                                            <a href="{% provider_login_url 'google' %}" class="btn btn-login btn-g">
                                                 <i class="icon-google"></i>
-                                                Login With Google
+                                                Login with Google
                                             </a>
-                                            {% comment %} href="{% provider_login_url 'google' %}?next=/"  {% endcomment %}
                                         </div>
                                     </div>
                                 </div>
@@ -157,33 +154,7 @@
             </div>
         </div>
     </div>
-
-{% comment %}     
-  <!-- Bootstrap Modal -->
-    <div class="modal fade" id="adminModal" tabindex="-1" role="dialog" aria-labelledby="adminModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="adminModalLabel">Welcome, Admin!</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <p>Please choose where you would like to go:</p>
-                    <button class="btn btn-primary" onclick="window.location.href='{% url 'store' %}'">Go to Store</button>
-                    <button class="btn btn-secondary" onclick="window.location.href='/admin/'">Go to Admin Panel</button>
-                </div>
-            </div>
-        </div>
-    </div> {% endcomment %}
-
-     <!-- Enhanced Bootstrap Modal -->
-
-
 </main>
-
-
 <div class="modal fade" id="adminModal" tabindex="-1" role="dialog" aria-labelledby="adminModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
         <div class="modal-content">
@@ -214,15 +185,8 @@
   
 {% endblock  %}
 
-
-
-
-
-
 {% block extra_js %}
 <!-- Your other script tags -->
-
-
 <script src="{% static 'store-assets/assets/js/jquery.min.js' %}"></script>
 <script src="{% static 'store-assets/assets/js/bootstrap.bundle.min.js' %}"></script>
 
@@ -233,10 +197,6 @@
 <script src="{% static 'store-assets/assets/js/owl.carousel.min.js' %}"></script>
 <!-- Main JS File -->
 <script src="{% static 'store-assets/assets/js/main.js' %}"></script>
-
-
-
-
   <!-- Script to trigger modal if admin -->
     {% if show_admin_modal %}
     <script>
@@ -245,6 +205,5 @@
         });
     </script>
     {% endif %}
-
 {% endblock %}
 
