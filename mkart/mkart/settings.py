@@ -2,25 +2,24 @@ import os
 from dotenv import load_dotenv
 from pathlib import Path
 
-
 load_dotenv()
 
 GOOGLE_OAUTH_CLIENT_ID = os.environ.get('GOOGLE_OAUTH_CLIENT_ID')
 if not GOOGLE_OAUTH_CLIENT_ID:
     raise ValueError(
-        'GOOGLE_OAUTH_CLIENT_ID is missing.' 
-        'Have you put it in a file at core/.env ?'
+        'GOOGLE_OAUTH_CLIENT_ID is missing. check it' 
+        ' Have you put it in a file at core/.env ?'
     )
 
-# We need these lines below to allow the Google sign in popup to work.
+
 SECURE_REFERRER_POLICY = 'no-referrer-when-downgrade'
 SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
+BASE_DIR = Path(__file__).resolve().parent.parent
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_URL = '/static/'
+
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get('SECRET_KEY')
@@ -34,9 +33,6 @@ ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 USE_TZ = True
 TIME_ZONE = 'Asia/Kolkata'
 # TIME_ZONE = 'UTC'
-
-# Application definition
-
 
 INSTALLED_APPS = [
     'django.contrib.sites',
@@ -74,15 +70,13 @@ MIDDLEWARE = [
 ]
 
 
-
-ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'http'  # Change to 'https' if you're using HTTPS
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'http' 
 SOCIALACCOUNT_STORE_TOKENS = True
 
 
 
 ROOT_URLCONF = 'mkart.urls'
 LOGIN_URL = 'login'
-# LOGIN_REDIRECT_URL = 'store'
 LOGOUT_REDIRECT_URL = '/'
 
 TEMPLATES = [
@@ -117,12 +111,6 @@ DATABASES = {
     }
 }
 
-
-
-
-# Password validation
-# https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -139,9 +127,6 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-# Internationalization
-# https://docs.djangoproject.com/en/5.0/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
 
 
@@ -151,15 +136,12 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = '/static/'
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR,'static')
 ]
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR,'media')
@@ -167,20 +149,8 @@ MEDIA_ROOT = os.path.join(BASE_DIR,'media')
 LOGIN_URL = 'login'
 
 
-
-
-
-
-# AUTH_USER_MODEL = 'home.Profile'
-
-
-
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
@@ -188,10 +158,8 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'jhonvx77@gmail.com'
 EMAIL_HOST_PASSWORD = 'uflmjnphhqrtqnai'
 
-# settings.py
-
-SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Default
-SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
+SESSION_ENGINE = 'django.contrib.sessions.backends.db' 
+SESSION_COOKIE_SECURE = False 
 
 
 INTERNAL_IPS = [
@@ -206,23 +174,9 @@ AUTHENTICATION_BACKENDS = [
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
-
 SITE_ID = 1
-LOGIN_REDIRECT_URL = 'home'  # or your desired redirect URL after login
+LOGIN_REDIRECT_URL = 'home' 
 ACCOUNT_LOGOUT_REDIRECT_URL = 'login'
-
-# SOCIALACCOUNT_PROVIDERS = {
-#     'google': {
-#         'SCOPE': [
-#             'profile',
-#             'email',
-#         ],
-#         'AUTH_PARAMS': {
-#             'access_type': 'online',
-#         },
-#         'OAUTH_CALLBACK_URL': 'google_login_success',
-#     }
-# }
 
 SOCIALACCOUNT_PROVIDERS = {
     'google': {

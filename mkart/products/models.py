@@ -3,7 +3,6 @@ from django.contrib.auth.models import User
 from Admin.models import *
 from django.utils import timezone as django_timezone
 
-
 class Gender(models.Model):
     name = models.CharField(max_length=100, unique=True)
     slug = models.SlugField(max_length=100, unique=True)
@@ -49,21 +48,17 @@ class Product(models.Model):
     offer = models.ForeignKey(Offer, on_delete=models.SET_NULL, null=True, blank=True)
 
     def get_discounted_price(self):
-        # Initialize with product's offer
         best_discount = 0
         if self.offer and self.offer.is_active and self.offer.valid_from <= django_timezone.now() <= self.offer.valid_to:
             best_discount = self.offer.discount
 
-        # Check if category's offer is better
         if self.category.offer and self.category.offer.is_active and self.category.offer.valid_from <= django_timezone.now() <= self.category.offer.valid_to:
             if self.category.offer.discount > best_discount:
                 best_discount = self.category.offer.discount
 
-        # If there's a discount, apply it
         if best_discount > 0:
             return self.variants.first().price * (1 - best_discount / 100)
         
-        # Otherwise, return the original price
         return self.variants.first().price
 
     def __str__(self):
@@ -81,25 +76,3 @@ class ProductVariant(models.Model):
 
     def __str__(self):
         return f"{self.product.name} - {self.color.name}"
-
-    # def save(self, *args, **kwargs):
-    #     # Automatically set is_available to False if stock is 0
-    #     if self.stock == 0:
-    #         self.is_available = False
-    #     else:
-    #         self.is_available = True
-            
-            
-    #     super().save(*args, **kwargs)
-
-
-
-# class Review(models.Model):
-#     product = models.ForeignKey(Product, related_name='reviews', on_delete=models.CASCADE)
-#     user = models.ForeignKey('home.Profile', on_delete=models.CASCADE)
-#     rating = models.PositiveSmallIntegerField()
-#     comment = models.TextField()
-#     created_at = models.DateTimeField(auto_now_add=True)
-
-#     def __str__(self):
-#         return f"Review by {self.user.username} for {self.product.name}"

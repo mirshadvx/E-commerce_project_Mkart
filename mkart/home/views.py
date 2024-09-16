@@ -6,7 +6,6 @@ from django.contrib.auth.models import User
 from django.contrib import messages
 from django.core.mail import send_mail
 from django.conf import settings
-# from django.utils import timezone
 import random
 import time
 from django.shortcuts import render, redirect
@@ -35,9 +34,7 @@ from django.template.loader import get_template
 from xhtml2pdf import pisa
 from io import BytesIO
 from django.shortcuts import get_object_or_404
-
-# Create your views here.
-
+from django.db import transaction
 
 def store(request):
     if request.user.is_authenticated:
@@ -152,10 +149,8 @@ def register(request):
             send_mail(subject, message, from_email, recipient_list)
         except:
             None
-       
      
         stored_data = request.session.get('registration_data')
-        print(stored_data)
        
         return redirect('validate_otp')
     return render(request, 'store/register.html')
@@ -209,7 +204,7 @@ def validate_otp(request):
 
     otp_created_at = timezone.datetime.fromisoformat(stored_data.get('otp_created_at'))
     time_elapsed = (timezone.now() - otp_created_at).total_seconds()
-    time_left = max(300 - int(time_elapsed), 0)  # 300 seconds = 5 minutes
+    time_left = max(300 - int(time_elapsed), 0)  
 
     return render(request, 'store/validateOTP.html', {'time_left': time_left})
 
@@ -259,7 +254,7 @@ def loginpage(request):
             messages.error(request, 'Invalid username or password')
             
     elif request.user.is_authenticated:
-        return redirect('home')  # or your desired redirect URL
+        return redirect('home')  
     return render(request, 'store/login.html')
 
 from allauth.socialaccount.models import SocialAccount
@@ -267,20 +262,15 @@ def google_login_success(request):
     if request.user.is_authenticated:
         try:
             google_account = SocialAccount.objects.get(user=request.user, provider='google')
-            # You can access Google account info like this:
-            # google_account.extra_data['given_name']
-            # google_account.extra_data['family_name']
-            # google_account.extra_data['picture']
-            
-            # Create or update the user's profile
+
             profile, created = Profile.objects.get_or_create(user=request.user)
             if created:
-                # If it's a new user, you might want to set some default values
-                profile.phone = ''  # You may want to ask for phone number separately
+                
+                profile.phone = '' 
                 profile.save()
             
             messages.success(request, 'Successfully logged in with Google.')
-            return redirect('home')  # or your desired redirect URL
+            return redirect('home')  
         except SocialAccount.DoesNotExist:
             messages.error(request, 'Unable to log in with Google. Please try again.')
             return redirect('login')
@@ -305,10 +295,9 @@ def home(request):
             user_wishlist_count = 0
         
         try:
-            user_cart_count = CartItem.objects.filter(cart__user=request.user).count()  # Count CartItems, not Cart itself
+            user_cart_count = CartItem.objects.filter(cart__user=request.user).count()
         except Cart.DoesNotExist:
             user_cart_count = 0
-
 
         cart, created = Cart.objects.get_or_create(user=request.user)   
         cart_items = CartItem.objects.filter(cart=cart)
@@ -350,7 +339,6 @@ def social_login_success(request):
 from django.db.models import Min
 
 def show_products(request):
-    # User-related data
     user_wishlist_count = 0
     user_cart_count = 0
     cart_total = 0
@@ -365,10 +353,8 @@ def show_products(request):
         except Cart.DoesNotExist:
             pass
 
-    # Start with all products
     products = Product.objects.filter(category__status=True)
 
-    # Search functionality
     search_query = request.GET.get('search', '')
     if search_query:
         products = products.filter(
@@ -378,7 +364,6 @@ def show_products(request):
             Q(brand__name__icontains=search_query)
         ).distinct()
 
-    # Get all filter parameters
     selected_categories = request.GET.getlist('category')
     selected_genders = request.GET.getlist('gender')
     selected_brands = request.GET.getlist('brand')
@@ -386,7 +371,6 @@ def show_products(request):
     min_price = request.GET.get('min_price')
     max_price = request.GET.get('max_price')
 
-    # Apply filters
     if selected_categories:
         products = products.filter(category__name__in=selected_categories)
     if selected_genders:
@@ -398,7 +382,7 @@ def show_products(request):
     if min_price and max_price:
         products = products.filter(variants__price__gte=min_price, variants__price__lte=max_price).distinct()
 
-    # Sorting
+
     sort_by = request.GET.get('sortby')
     if sort_by:
         if sort_by == 'low to high':
@@ -412,7 +396,6 @@ def show_products(request):
         elif sort_by == 'zZ-aA':
             products = products.order_by('-name')
 
-    # Annotate products with display price and discount
     for product in products:
         variant = product.variants.first()
         if variant:
@@ -423,7 +406,6 @@ def show_products(request):
             else:
                 product.discount_percentage = None
 
-    # Get all available options for filters
     all_categories = Category.objects.filter(status=True)
     all_genders = Gender.objects.all()
     all_brands = Brand.objects.all()
@@ -451,7 +433,6 @@ def show_products(request):
     return render(request, 'store/products_home.html', context)
 
 def mens_items(request):
-    # User-related data
     user_wishlist_count = 0
     user_cart_count = 0
     cart_total = 0
@@ -466,10 +447,8 @@ def mens_items(request):
         except Cart.DoesNotExist:
             pass
 
-    # Start with men's products only
     products = Product.objects.filter(category__status=True, gender__name='Men')
 
-    # Search functionality
     search_query = request.GET.get('search', '')
     if search_query:
         products = products.filter(
@@ -479,14 +458,12 @@ def mens_items(request):
             Q(brand__name__icontains=search_query)
         ).distinct()
 
-    # Get all filter parameters
     selected_categories = request.GET.getlist('category')
     selected_brands = request.GET.getlist('brand')
     selected_colors = request.GET.getlist('color')
     min_price = request.GET.get('min_price')
     max_price = request.GET.get('max_price')
 
-    # Apply filters
     if selected_categories:
         products = products.filter(category__name__in=selected_categories)
     if selected_brands:
@@ -496,7 +473,6 @@ def mens_items(request):
     if min_price and max_price:
         products = products.filter(variants__price__gte=min_price, variants__price__lte=max_price).distinct()
 
-    # Sorting
     sort_by = request.GET.get('sortby')
     if sort_by:
         if sort_by == 'low to high':
@@ -510,7 +486,6 @@ def mens_items(request):
         elif sort_by == 'zZ-aA':
             products = products.order_by('-name')
 
-    # Annotate products with display price and discount
     for product in products:
         variant = product.variants.first()
         if variant:
@@ -521,7 +496,6 @@ def mens_items(request):
             else:
                 product.discount_percentage = None
 
-    # Get all available options for filters
     all_categories = Category.objects.filter(status=True)
     all_brands = Brand.objects.all()
     all_colors = Color.objects.all()
@@ -546,7 +520,6 @@ def mens_items(request):
     return render(request, 'store/mens_items.html', context)
 
 def womens_items(request):
-    # User-related data
     user_wishlist_count = 0
     user_cart_count = 0
     cart_total = 0
@@ -561,10 +534,8 @@ def womens_items(request):
         except Cart.DoesNotExist:
             pass
 
-    # Start with women's products only
     products = Product.objects.filter(category__status=True, gender__name='Women')
 
-    # Search functionality
     search_query = request.GET.get('search', '')
     if search_query:
         products = products.filter(
@@ -574,14 +545,12 @@ def womens_items(request):
             Q(brand__name__icontains=search_query)
         ).distinct()
 
-    # Get all filter parameters
     selected_categories = request.GET.getlist('category')
     selected_brands = request.GET.getlist('brand')
     selected_colors = request.GET.getlist('color')
     min_price = request.GET.get('min_price')
     max_price = request.GET.get('max_price')
 
-    # Apply filters
     if selected_categories:
         products = products.filter(category__name__in=selected_categories)
     if selected_brands:
@@ -591,7 +560,6 @@ def womens_items(request):
     if min_price and max_price:
         products = products.filter(variants__price__gte=min_price, variants__price__lte=max_price).distinct()
 
-    # Sorting
     sort_by = request.GET.get('sortby')
     if sort_by:
         if sort_by == 'low to high':
@@ -605,7 +573,6 @@ def womens_items(request):
         elif sort_by == 'zZ-aA':
             products = products.order_by('-name')
 
-    # Annotate products with display price and discount
     for product in products:
         variant = product.variants.first()
         if variant:
@@ -616,7 +583,6 @@ def womens_items(request):
             else:
                 product.discount_percentage = None
 
-    # Get all available options for filters
     all_categories = Category.objects.filter(status=True)
     all_brands = Brand.objects.all()
     all_colors = Color.objects.all()
@@ -730,7 +696,7 @@ def add_wishlist(request, id):
     
     return JsonResponse({'success': False, 'error': 'Invalid request method'})
 
-
+@login_required
 def remove_wishlist(request, id):
     if request.method == 'POST':
         try:
@@ -828,7 +794,7 @@ def add_to_cart(request, id):
     
     return JsonResponse({'success': False, 'error': 'Invalid request method'})
 
-
+@login_required
 def update_cart(request, cart_item_id):
     if request.method == 'POST':
         try:
@@ -838,7 +804,7 @@ def update_cart(request, cart_item_id):
             cart_item.quantity = quantity
             cart_item.save()
             
-            item_total = cart_item.get_total_price()  # This will now include the discount
+            item_total = cart_item.get_total_price() 
             cart_total = sum(item.get_total_price() for item in cart_item.cart.items.all())
             
             return JsonResponse({
@@ -852,6 +818,7 @@ def update_cart(request, cart_item_id):
             return JsonResponse({'success': False, 'error': str(e)})
     return JsonResponse({'success': False, 'error': 'Invalid request method.'})
 
+@login_required
 def remove_cart(request, id):
     if request.method == 'POST':
         try:
@@ -869,6 +836,7 @@ def remove_cart(request, id):
             return JsonResponse({'success': False, 'error': 'Item not found in cart'}, status=404)
     return JsonResponse({'success': False, 'error': 'Invalid request'}, status=400)
 
+@login_required
 def account(request):
  
     try:
@@ -903,7 +871,7 @@ def account(request):
     }
     return render(request, 'store/Account.html', context)
 
-
+@login_required
 def submit_address(request):
     if request.method == 'POST':
         
@@ -920,8 +888,6 @@ def submit_address(request):
         if check:
             messages.error(request,"Sorry, the address already exists !!!")
             return redirect('account')
-
-        
         
         address = UserAddress(
             user=request.user,
@@ -947,6 +913,7 @@ def submit_address(request):
         return redirect('account') 
     return redirect('account',)
 
+@login_required
 def edit_address(request,id):
     address = get_object_or_404(UserAddress, id=id, user=request.user)
     
@@ -1067,12 +1034,10 @@ def handle_failed_payment(request):
                     price=cart_item.product_variant.price
                 )
 
-            # Improved address handling
             address_data = request.session.get('checkout_address') or data.get('address')
             if address_data:
                 OrderAddress.objects.create(order=order, **address_data)
             else:
-                # Use the user's default address if available
                 default_address = request.user.addresses.filter(is_default=True).first()
                 if default_address:
                     OrderAddress.objects.create(
@@ -1112,7 +1077,6 @@ def process_order(request, cart_items, total, coupon, razorpay_client, coupon_di
     if not validate_cart_items(request, cart_items):
         return redirect('cart')
 
- 
     order = create_order(request, total, coupon, coupon_discount)
 
     if order:
@@ -1121,9 +1085,7 @@ def process_order(request, cart_items, total, coupon, razorpay_client, coupon_di
             order.delete()  
             return redirect('checkout')
 
-    
         payment_method = request.POST.get('payment_method')
-
      
         if payment_method == 'razorpay':
             razorpay_payment_id = request.POST.get('razorpay_payment_id')
@@ -1137,7 +1099,6 @@ def process_order(request, cart_items, total, coupon, razorpay_client, coupon_di
                 order.delete() 
                 messages.error(request, "Razorpay payment failed.")
                 return redirect('checkout')
-
        
         elif payment_method == 'cod':
             if total < Decimal('1000.00'):
@@ -1147,7 +1108,6 @@ def process_order(request, cart_items, total, coupon, razorpay_client, coupon_di
 
             finalize_order(request, order, cart_items, 'cod')
             return redirect('order_confirmation', order_id=order.id)
-
 
         elif payment_method == 'wallet':
             if total > wallet.balance:
@@ -1159,7 +1119,6 @@ def process_order(request, cart_items, total, coupon, razorpay_client, coupon_di
             wallet.balance -= total
             wallet.save()
 
-      
             WalletTransaction.objects.create(
                 wallet=wallet,
                 amount=total,
@@ -1169,7 +1128,6 @@ def process_order(request, cart_items, total, coupon, razorpay_client, coupon_di
             finalize_order(request, order, cart_items, 'wallet')
 
             return redirect('order_confirmation', order_id=order.id)
-
     else:
         messages.error(request, "There was an error processing your order. Please try again.")
         return redirect('checkout')
@@ -1197,7 +1155,6 @@ def create_order(request, total, coupon,coupon_discount):
         coupon = coupon,
         discount_amount_coupon = coupon_discount,
     )
-
 
 def handle_order_address(request, order, user):
     use_new_address = request.POST.get('use_new_address')
@@ -1258,7 +1215,6 @@ def process_razorpay_payment(request, client, order, payment_id, order_id, signa
             'razorpay_signature': signature
         }
         client.utility.verify_payment_signature(params_dict)
-        
     
         order.status = 'incomplete'
         order.payment_status = 'paid'
@@ -1279,13 +1235,10 @@ def finalize_order(request, order, cart_items, payment_method):
 
     create_order_items_and_update_stock(order, cart_items, payment_method)
     
- 
     cart = Cart.objects.get(user=request.user)
     cart.items.all().delete()
     if 'coupon' in request.session:
         del request.session['coupon']
-
-
 
 def process_cod_order(order):
     order.status = 'incomplete'
@@ -1299,12 +1252,10 @@ def create_order_items_and_update_stock(order, cart_items, payment_method):
 
         discounted_price = item.product_variant.product.get_discounted_price()
 
-      
         if total_price > 0:
             item_coupon_discount = (item.quantity * discounted_price / total_price) * order.discount_amount_coupon
         else:
             item_coupon_discount = Decimal('0.00')
-
         
         if payment_method == 'razorpay':
             item_status = 'processing'
@@ -1318,7 +1269,6 @@ def create_order_items_and_update_stock(order, cart_items, payment_method):
             item_status = 'pending'
             payment_status_item = 'unpaid'
 
-
         OrderItem.objects.create(
             order=order,
             product_variant=item.product_variant,
@@ -1330,8 +1280,7 @@ def create_order_items_and_update_stock(order, cart_items, payment_method):
         )
         
         item.product_variant.stock -= item.quantity
-        item.product_variant.save()
-        
+        item.product_variant.save() 
 
 @require_POST
 def apply_coupon(request):
@@ -1362,7 +1311,6 @@ def apply_coupon(request):
     
     return redirect('checkout')
 
-
 @login_required
 def order_confirmation(request, order_id):
     try:
@@ -1376,44 +1324,7 @@ def order_confirmation(request, order_id):
     }
     return render(request, 'store/order_confirmation.html', context)
 
-# def show_order_details(request,order_id):
-#     order = get_object_or_404(Order, id=order_id, user=request.user)
-#     order_items = OrderItem.objects.filter(order=order)
-#     order_address = order.order_address
-    
-#     try:
-#         user_wishlist_count = Wishlist.objects.filter(user=request.user).count()
-#     except Wishlist.DoesNotExist:
-#         user_wishlist_count = 0
-    
-#     try:
-#         user_cart_count = CartItem.objects.filter(cart__user=request.user).count() 
-#     except Cart.DoesNotExist:
-#         user_cart_count = 0
-
-#     cart, created = Cart.objects.get_or_create(user=request.user)   
-#     cart_total = cart.get_total_price()
-
-#     razorpay_order = None
-#     if order.payment_method == 'razorpay' and order.status == 'pending':
-#         client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
-#         razorpay_order = client.order.create({
-#             'amount': int(order.total_price * 100),  # Amount in paise
-#             'currency': 'INR',
-#             'payment_capture': '1'
-#         })
-        
-#     context = {
-#         'order': order,
-#         'order_items': order_items,
-#         'order_address': order_address,
-#         'wishlist_count': user_wishlist_count,
-#         'cart_count': user_cart_count,
-#         'cart_total': cart_total,
-#         'razorpay_order': razorpay_order,
-#         'razorpay_key_id': settings.RAZORPAY_KEY_ID,
-#     }
-#     return render(request,'store/ordered_product_info.html',context)
+@login_required
 def show_order_details(request, order_id):
     order = get_object_or_404(Order, id=order_id, user=request.user)
     order_items = OrderItem.objects.filter(order=order)
@@ -1436,7 +1347,7 @@ def show_order_details(request, order_id):
     if order.payment_method == 'razorpay' and order.payment_status == 'unpaid':
         client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
         razorpay_order = client.order.create({
-            'amount': int(order.total_price * 100),  # Amount in paise
+            'amount': int(order.total_price * 100),  
             'currency': 'INR',
             'payment_capture': '1'
         })
@@ -1458,7 +1369,6 @@ def razorpay_payment_success(request):
     if request.method == 'POST':
         client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
 
-        # Verify the payment signature
         params_dict = {
             'razorpay_payment_id': request.POST.get('razorpay_payment_id'),
             'razorpay_order_id': request.POST.get('razorpay_order_id'),
@@ -1473,19 +1383,16 @@ def razorpay_payment_success(request):
         order_id = request.POST.get('order_id')
         order = Order.objects.get(id=order_id)
 
-        # Update order status
         order.payment_status = 'paid'
         order.save()
 
-        # Update OrderItem status
         OrderItem.objects.filter(order=order).update(payment_status_item='paid')
 
         return JsonResponse({'success': True})
 
     return JsonResponse({'success': False})
 
-
-
+@login_required
 def download_invoice(request, item_id):
     order_item = get_object_or_404(OrderItem, id=item_id, order__user=request.user)
 
@@ -1513,7 +1420,6 @@ def download_invoice(request, item_id):
 def edit_details(request):
     user = request.user
     profile = Profile.objects.get(user=user)
-
 
     username = request.POST.get('username')
     last_name = request.POST.get('last_name')
@@ -1547,8 +1453,6 @@ def edit_details(request):
     
     return redirect(request.META.get('HTTP_REFERER', 'home'))
 
-from django.db import transaction
-
 @require_POST
 @transaction.atomic
 def cancel_item(request):
@@ -1560,21 +1464,18 @@ def cancel_item(request):
         if item.item_status in ['pending', 'processing', 'shipped']:
            
             refund_amount = item.get_total_price() - item.orderItem_coupon_discount
-            
     
             item.item_status = 'cancelled'
             item.save()
 
             item.product_variant.stock += item.quantity
             item.product_variant.save()
-
      
             order = item.order
             if all(i.item_status == 'cancelled' for i in order.ordered_items.all()):
                 order.status = 'cancelled'
                 order.save()
 
-      
             if order.payment_status == 'paid':
                 user_wallet, _ = Wallet.objects.get_or_create(user=request.user)
                 user_wallet.balance += Decimal(refund_amount)
@@ -1599,52 +1500,9 @@ def cancel_item(request):
     except Exception as e:
         return JsonResponse({'success': False, 'message': f'An error occurred: {str(e)}'})
 
+@login_required
 def contact(request):
     return render(request,'store/contact.html')
-# @require_POST
-# def cancel_item(request):
-#     item_id = request.POST.get('item_id')
-#     variant_id = request.POST.get('variant_id')
-#     inc_quantity = request.POST.get('inc_quantity')
-#     variant = ProductVariant.objects.get(id=variant_id)
-#  
-#    
-    
-    
-#     try:
-#         item = OrderItem.objects.get(id=item_id, order__user=request.user)
-        
-#         if item.item_status in ['pending', 'processing', 'shipped']:
-#             item.item_status = 'cancelled'
-            
-#             variant.stock = variant.stock + int(inc_quantity)
-#             variant.save()
-#             item.save()
-
-#             order = item.order
-#             if all(i.item_status == 'cancelled' for i in order.ordered_items.all()):
-#                 order.status = 'cancelled'
-#                 order.save()
-
-#             if order.payment_method == 'razorpay':
-#                 # refund_amount = item.get_total_price()
-#                 refund_amount = item.orderItem_coupon_discount
-#                 request.user.wallet.balance += refund_amount
-#                 request.user.wallet.save()
-
-#                 WalletTransaction.objects.create(
-#                     wallet=request.user.wallet,
-#                     amount=refund_amount,
-#                     transaction_type='credit'
-#                 )
-
-#             return JsonResponse({'success': True, 'message': 'Item cancelled successfully'})
-#         else:
-#             return JsonResponse({'success': False, 'message': 'Item cannot be cancelled in its current status'})
-
-#     except OrderItem.DoesNotExist:
-#         return JsonResponse({'success': False, 'message': 'Item not found'})
-
 
 @require_POST
 def return_item(request):
@@ -1653,24 +1511,11 @@ def return_item(request):
     try:
         item = OrderItem.objects.get(id=item_id, order__user=request.user)
         if item.item_status == 'delivered' and not item.return_request:
-            item.return_request = True
-            # item.item_status = 'returned'   
+            item.return_request = True   
             item.save()
 
-            return JsonResponse({'success': True, 'message': 'Return request submitted successfully'})
+            return JsonResponse({'success': True, 'message': 'Return request submitted successfully !!!'})
         else:
-            return JsonResponse({'success': False, 'message': 'Unable to process return request'})
+            return JsonResponse({'success': False, 'message': 'Unable to process return request !!!'})
     except OrderItem.DoesNotExist:
-        return JsonResponse({'success': False, 'message': 'Item not found'})
-
-        
-# from django.views.decorators.csrf import csrf_protect
-# @require_POST
-# @csrf_protect
-# def razorpay_selected(request):
-    
-#    
-#     return JsonResponse({
-#         'success': True,
-#         'message': 'Razorpay payment option selected successfully!'
-#     })
+        return JsonResponse({'success': False, 'message': 'Item not found !!!'})

@@ -2,8 +2,6 @@ from django.urls import path
 from . import views
 from django.contrib.auth import views as auth_views
 
-
-
 urlpatterns = [
     path('', views.store, name='store'),
     path('home/',views.home,name='home'),
@@ -20,7 +18,6 @@ urlpatterns = [
     path('mens_items/',views.mens_items,name='mens_items'),
     path('womens_items/',views.womens_items,name='womens_items'),
     path('product_info/<int:id>/',views.product_info,name='product_info'),
-    # path('product_variant/<int:id>/',views.product_variant_info, name='product_variant_info'),
     path('wishlist/', views.wishlist, name='wishlist'),
     path('wishlist/add/<int:id>/', views.add_wishlist, name='add_wishlist'),
     path('wishlist/remove/<int:id>/', views.remove_wishlist, name='remove_wishlist'),
@@ -36,20 +33,15 @@ urlpatterns = [
     path('order_info/<int:order_id> ',views.show_order_details,name='order_info'),
     path('download_invoice/<int:item_id>/', views.download_invoice, name='download_invoice'),
     path('edit_details',views.edit_details,name='edit_details'),
-    #for reset password 
     path('password_reset/',auth_views.PasswordResetView.as_view(template_name='store/password_reset.html'),name='password_reset'),
     path('password_reset_done/',auth_views.PasswordResetDoneView.as_view(template_name='store/password_reset_done.html'),name='password_reset_done'),
     path('password-reset-confirm/<uidb64>/<token>/',auth_views.PasswordResetConfirmView.as_view(template_name='store/password_reset_confirm.html'),name='password_reset_confirm'),
     path('password-reset-complete/',auth_views.PasswordResetCompleteView.as_view(template_name='store/password_reset_complete.html'),name='password_reset_complete'),
-    
     path('cancel-item/', views.cancel_item, name='cancel_item'),
     path('return-item/', views.return_item, name='return_item'),
-    
     path('apply_coupon/',views.apply_coupon,name='apply_coupon'),
-    # path('razorpay_selected/', views.razorpay_selected, name='razorpay_selected'),
     path('handle-failed-payment/', views.handle_failed_payment, name='handle_failed_payment'),
     path('razorpay_payment_success/', views.razorpay_payment_success, name='razorpay_payment_success'),
     path('contact/', views.contact, name='contact'),
-    
     path('google-login-success/', views.google_login_success, name='google_login_success'),
 ]

@@ -19,11 +19,9 @@ class Profile(models.Model):
         return self.user.username
 
     def generate_referral_code(self):
-        # Use the user's ID (which is unique) and a random 4-character string to create the referral code
         random_suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
         self.referral_code = f'{self.user.id}{random_suffix}'
-
-        # Ensure the generated code is unique
+        
         while Profile.objects.filter(referral_code=self.referral_code).exists():
             random_suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
             self.referral_code = f'{self.user.id}{random_suffix}'
@@ -50,15 +48,12 @@ class Profile(models.Model):
             user.profile.referred_by = referred_by_profile.user
             user.profile.save()
 
-            # Add 50 rupees to the new user's wallet
             user.wallet.balance += 50
             user.wallet.save()
 
-            # Add 100 rupees to the referrer's wallet
             referred_by_profile.user.wallet.balance += 100
             referred_by_profile.user.wallet.save()
 
-            # Log the wallet transactions
             WalletTransaction.objects.create(wallet=user.wallet, amount=50, transaction_type='credit')
             WalletTransaction.objects.create(wallet=referred_by_profile.user.wallet, amount=100, transaction_type='credit')
 
@@ -141,7 +136,6 @@ class Order(models.Model):
     ]
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='incomplete')
-    # created_at = models.DateTimeField(auto_now_add=True)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
