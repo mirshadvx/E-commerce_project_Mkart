@@ -1,4 +1,4 @@
-{% extends "store/Base.html" %}
+{% extends "store/main_base.html" %}
 {% load static %}
 
 {% block title %}Order Confirmation{% endblock %}
@@ -9,7 +9,6 @@
         <link rel="stylesheet" href="{% static 'store-assets/assets/css/plugins/magnific-popup/magnific-popup.css' %}" />
         <!-- Main CSS File -->
         <link rel="stylesheet" href="{% static 'store-assets/assets/css/style.css' %}" />
-        {% comment %} <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet"> {% endcomment %}
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 
 
@@ -209,57 +208,3 @@
     </section>
 </main>
 {% endblock %}
-
-
-
-
-{% comment %} {% extends "store/Base.html" %}
-
-{% block title %}order done{% endblock  %}
-
-
-{% block content %}
-  <main>
-        <section class="order-summary">
-            <h2>Thank you for your order, {{ order.user.username }}!</h2>
-            <p>Your order has been successfully placed and is being processed. Here are the details of your order:</p>
-            
-            <h3>Order Details</h3>
-            <p>Order Number: {{ order.id }}</p>
-            <p>Status: {{ order.get_status_display }}</p>
-            <p>Date Created: {{ order.created_at }}</p>
-            
-            <h3>Items in Your Order</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Product</th>
-                        <th>Quantity</th>
-                        <th>Price</th>
-                        <th>Total</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item in order.ordered_items.all %}
-                    <tr>
-                        <td>{{ item.product_variant.product.name }} ({{ item.product_variant.color.name }})</td>
-                        <td>{{ item.quantity }}</td>
-                        <td>${{ item.price }}</td>
-                        <td>${{ item.get_total_price }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            
-            <h3>Total Price</h3>
-            <p>${{ order.total_price }}</p>
-            
-            <h3>Shipping Address</h3>
-            <p>{{ order.orderaddress.address }}</p>
-            
-            <h3>Contact Information</h3>
-            <p>Email: {{ order.user.email }}</p>
-        </section>
-    </main>
-
-{% endblock  %} {% endcomment %}

@@ -44,6 +44,7 @@ def dashboard(request):
     return render(request,'dashboard.html') 
 
 
+@never_cache
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
 def add_Category(request):
@@ -80,6 +81,7 @@ def check_category(request):
     }
     return JsonResponse(data)
 
+@never_cache
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
 def category_list(request):
@@ -101,12 +103,10 @@ def toggle_category_status(request, category_id):
 @user_passes_test(lambda u: u.is_superuser)
 def delete_category(request, category_id):
     category = Category.objects.get(id=category_id)
-    category.status = False
-    category.save()
-
+    category.delete()
     return redirect('categorylist')
 
-
+@never_cache
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
 def edit_category(request, category_id):
@@ -124,6 +124,7 @@ def edit_category(request, category_id):
 
     return render(request, 'editCategory.html', {'category': category})
 
+@never_cache
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
 def brand_list(request):
@@ -179,7 +180,7 @@ def delete_brand(request):
     except Brand.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'Brand not found.'})
 
-
+@never_cache
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
 def edit_product(request, product_id):
@@ -234,6 +235,7 @@ def edit_product(request, product_id):
 
     return render(request, 'editProduct.html', context)
 
+@never_cache
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
 def add_product(request):
@@ -318,6 +320,7 @@ def superuser_required(view_func):
     decorated_view_func = user_passes_test(check_superuser, login_url='login')(view_func)
     return decorated_view_func
 
+@never_cache
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
 def products_list(request):
@@ -353,7 +356,7 @@ def toggle_variant_availability(request):
     except ProductVariant.DoesNotExist:
         return JsonResponse({'success': False}, status=404)
    
-
+@never_cache
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
 def user_list(request):
@@ -376,7 +379,7 @@ def toggle_user_status(request):
     except User.DoesNotExist:
         return JsonResponse({'success': False}, status=404)
     
-    
+@never_cache
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
 def add_variant(request, id):
@@ -424,6 +427,7 @@ def logout_admin(request):
         logout(request)
     return redirect(reverse('login'))
 
+@never_cache
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
 def show_order_list(request):
@@ -434,6 +438,7 @@ def show_order_list(request):
     }
     return render(request,'orderlist.html',context)
 
+@never_cache
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
 def show_order_details(request, id):
@@ -496,6 +501,7 @@ def update_order_item_status(request):
     
     return JsonResponse({'success': False, 'error': 'Invalid request method.'})
 
+@never_cache
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
 def add_coupon(request):
@@ -563,11 +569,13 @@ def coupon_exists(request):
 
     return JsonResponse({'exists': exists})
 
+@never_cache
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
 def show_coupon_list(request):
     coupons = Coupon.objects.all()
     return render(request, 'couponList.html', {'coupons': coupons})
+
 
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
@@ -639,6 +647,7 @@ def control_coupon_status(request):
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
+@never_cache
 @login_required
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
@@ -648,6 +657,7 @@ def offer_list(request):
         'offers': offers,
     }
     return render(request, 'Offer.html', context)
+
 
 @require_POST
 @login_required
@@ -773,7 +783,7 @@ def update_category_offer(request):
             'message': f'An error occurred: {str(e)}'
         }, status=400)
         
-
+@never_cache
 @never_cache
 @login_required
 @user_passes_test(lambda u: u.is_superuser)

@@ -154,6 +154,9 @@ class Order(models.Model):
         self.total_price = total
         self.save()
         return total
+    
+    class Meta:
+        ordering = ['-id']
 
 class OrderItem(models.Model):
     

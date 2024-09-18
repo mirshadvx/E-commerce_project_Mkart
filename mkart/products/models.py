@@ -12,7 +12,6 @@ class Gender(models.Model):
 
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
-    logo = models.ImageField(upload_to='category_images/', blank=True, null=True)
     slug = models.SlugField(max_length=50, unique=True)
     description = models.TextField(null=True,blank=True)
     status = models.BooleanField(default=True)
