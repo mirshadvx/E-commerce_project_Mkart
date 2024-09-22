@@ -176,3 +176,22 @@ ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_EMAIL_VERIFICATION = 'optional'
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file_registration_errors': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': 'registration_errors.log',  # This file will store your registration errors
+        },
+    },
+    'loggers': {
+        'registration': {
+            'handlers': ['file_registration_errors'],
+            'level': 'ERROR',
+            'propagate': False,  # To prevent logs from being propagated to the default Django logger
+        },
+    },
+}

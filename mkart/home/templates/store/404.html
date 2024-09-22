@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Page Not Found | Luxury Watch Shop</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: 'Arial', sans-serif;
+            background-color: #000;
+            color: #fff;
+            overflow: hidden;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: radial-gradient(circle, #1a1a1a 0%, #000 100%);
+        }
+        .clock {
+            width: 200px;
+            height: 200px;
+            border: 4px solid #gold;
+            border-radius: 50%;
+            position: relative;
+            margin-bottom: 30px;
+            box-shadow: 0 0 20px #gold;
+        }
+        .hand {
+            position: absolute;
+            background: #fff;
+            transform-origin: bottom center;
+            transition: transform 0.5s cubic-bezier(0.4, 2.3, 0.3, 1);
+        }
+        .hour-hand {
+            width: 6px;
+            height: 60px;
+            top: 40px;
+            left: 97px;
+        }
+        .minute-hand {
+            width: 4px;
+            height: 80px;
+            top: 20px;
+            left: 98px;
+        }
+        .second-hand {
+            width: 2px;
+            height: 90px;
+            top: 10px;
+            left: 99px;
+            background: #ff0000;
+        }
+        h1 {
+            font-size: 4em;
+            margin: 20px 0;
+            text-shadow: 0 0 10px #fff;
+        }
+        p {
+            font-size: 1.5em;
+            text-align: center;
+            max-width: 80%;
+            margin-bottom: 30px;
+        }
+        .btn {
+            padding: 15px 30px;
+            font-size: 1.2em;
+            text-decoration: none;
+            color: #000;
+            background-color: #gold;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        .btn:hover {
+            background-color: #fff;
+            box-shadow: 0 0 20px #fff;
+        }
+        @keyframes shine {
+            0% {
+                box-shadow: 0 0 5px #gold;
+            }
+            50% {
+                box-shadow: 0 0 20px #gold, 0 0 30px #gold;
+            }
+            100% {
+                box-shadow: 0 0 5px #gold;
+            }
+        }
+        .clock {
+            animation: shine 4s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="clock">
+            <div class="hand hour-hand"></div>
+            <div class="hand minute-hand"></div>
+            <div class="hand second-hand"></div>
+        </div>
+        <h1>404</h1>
+        <p>Oops! It seems time has slipped away. The page you're looking for doesn't exist in our timeline.</p>
+        <a href="/" class="btn">Return to Homepage</a>
+    </div>
+    <script>
+        function setTime() {
+            const now = new Date();
+            const seconds = now.getSeconds();
+            const minutes = now.getMinutes();
+            const hours = now.getHours() % 12;
+            
+            const secondHand = document.querySelector('.second-hand');
+            const minuteHand = document.querySelector('.minute-hand');
+            const hourHand = document.querySelector('.hour-hand');
+            
+            const secondDegrees = ((seconds / 60) * 360) + 90;
+            const minuteDegrees = ((minutes / 60) * 360) + ((seconds/60)*6) + 90;
+            const hourDegrees = ((hours / 12) * 360) + ((minutes/60)*30) + 90;
+            
+            secondHand.style.transform = `rotate(${secondDegrees}deg)`;
+            minuteHand.style.transform = `rotate(${minuteDegrees}deg)`;
+            hourHand.style.transform = `rotate(${hourDegrees}deg)`;
+        }
+
+        setInterval(setTime, 1000);
+        setTime();
+    </script>
+</body>
+</html>

@@ -18,9 +18,11 @@
         <link rel="stylesheet" href="{% static 'store-assets/assets/css/plugins/magnific-popup/magnific-popup.css' %}" />
         <!-- Main CSS File -->
         <link rel="stylesheet" href="{% static 'store-assets/assets/css/style.css' %}" />
-            <link rel="stylesheet" href="{% static 'store-assets/assets/css/skins/skin-demo-6.css' %}">
-    <link rel="stylesheet" href="{% static 'store-assets/assets/css/demos/demo-6.css' %}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <link rel="stylesheet" href="{% static 'store-assets/assets/css/skins/skin-demo-6.css' %}">
+        <link rel="stylesheet" href="{% static 'store-assets/assets/css/demos/demo-6.css' %}">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
     <style>
         body {
             background-color: #f8f9fa;
@@ -150,14 +152,91 @@
             border-bottom: 1px solid #dee2e6;
         }
 
-.error-message {
-    color: #dc3545;
-    font-size: 0.875em;
-    margin-top: 0.25rem;
+
+#couponModal .modal-content {
+    border-radius: 20px;
+    overflow: hidden;
+    border: none;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 }
 
-.is-invalid {
-    border-color: #dc3545;
+#couponModal .modal-header {
+    background: linear-gradient(135deg, #007bff, #00c6ff);
+    border-bottom: none;
+    padding: 1.5rem;
+}
+
+#couponModal .modal-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+#couponModal .btn-close-white {
+    color: white;
+}
+
+#couponModal .coupon-item {
+    transition: all 0.3s ease;
+    border: none;
+    background-color: #f9f9f9;
+    border-radius: 15px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+#couponModal .coupon-item:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+}
+
+#couponModal .coupon-code {
+    font-size: 1.3rem;
+    padding: 0.7rem 1.2rem;
+    border-radius: 30px;
+}
+
+#couponModal .copy-coupon {
+    transition: all 0.3s ease;
+    border-radius: 50px;
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+}
+
+#couponModal .copy-coupon:hover {
+    background-color: #00a5ff;
+    color: white;
+}
+
+#couponModal .card-body {
+    padding: 1.5rem;
+}
+
+#couponModal .card-footer {
+    background: none;
+    border-top: none;
+}
+
+#couponModal .modal-footer {
+    background-color: #f0f0f0;
+    padding: 1.5rem;
+    border-top: none;
+}
+
+#couponModal .btn-secondary {
+    border-radius: 50px;
+    padding: 0.5rem 1.5rem;
+}
+
+#couponModal .btn-primary {
+    background: linear-gradient(135deg, #007bff, #00a5ff);
+    border-radius: 50px;
+    padding: 0.5rem 1.5rem;
+    border: none;
+    font-size: 1rem;
+}
+
+#couponModal .btn-primary:hover {
+    background: linear-gradient(135deg, #0056d2, #008cff);
+    color: white;
 }
 
     </style>
@@ -282,9 +361,9 @@
     <input type="hidden" name="razorpay_order_id" id="razorpay_order_id">
     <input type="hidden" name="razorpay_signature" id="razorpay_signature">
 
-                <button type="submit" class="btn btn-primary btn-lg w-100" id="place-order-btn">Place Order</button>
-                <button type="button" class="btn btn-primary btn-lg w-100" id="rzp-button1" style="display: none;">Pay with Razorpay</button>
-                <button type="submit" class="btn btn-primary btn-lg w-100" id="place-order-wallet-btn">Pay with Wallet</button>
+                <button type="submit" class="btn btn-primary btn-lg w-100" style="background-color: #c99436; border-radius: 23px;" id="place-order-btn">Place Order</button>
+                <button type="button" class="btn btn-primary btn-lg w-100" style="background-color: #c99436; border-radius: 23px;" id="rzp-button1" style="display: none;">Pay with Razorpay</button>
+                <button type="submit" class="btn btn-primary btn-lg w-100" style="background-color: #c99436; border-radius: 23px;" id="place-order-wallet-btn">Pay with Wallet</button>
             </form>
         </div>
 
@@ -336,6 +415,11 @@
                 </div>
             </div>
 
+            <div class="card mb-4">
+                <button type="button" class="btn btn-outline-primary mt-3" data-bs-toggle="modal" data-bs-target="#couponModal">
+    View Available Coupons
+</button>
+            </div>
             <!-- Coupon Application Section -->
             <div class="card">
                 <div class="card-header">
@@ -345,8 +429,8 @@
                     <form method="post" class="coupon-form">
                         {% csrf_token %}
                         <div class="input-group mb-3">
-                            <input type="text" name="coupon_code" class="form-control" placeholder="Enter coupon code">
-                            <button type="submit" class="btn btn-primary">Apply</button>
+                            <input type="text" name="coupon_code" class="form-control" placeholder="Enter coupon">
+                            <button style="background-color: #c99436;" type="submit" class="btn btn-primary">Apply</button>
                         </div>
                     </form>
 
@@ -386,6 +470,57 @@
         </div>
     </div>
 </div>
+
+
+<!-- Coupon Modal -->
+<div class="modal fade" id="couponModal" tabindex="-1" aria-labelledby="couponModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="couponModalLabel">
+                    <i class="fas fa-tags me-2"></i> Available Coupons
+                </h5>
+            </div>
+            <div class="modal-body">
+                {% if available_coupons %}
+                    <div class="row gy-4">
+                        {% for coupon in available_coupons %}
+                            <div class="col-md-6">
+                                <div class="coupon-item card h-100">
+                                    <div class="card-body">
+                                        <h5 class="card-title text-center">
+                                            <span class="coupon-code badge bg-primary">{{ coupon.code }}</span>
+                                        </h5>
+                                        <p class="card-text">{{ coupon.description }}</p>
+                                        <p class="card-text text-center">
+                                            <small class="text-muted">
+                                                <i class="far fa-calendar-alt me-1"></i>
+                                                Valid until: {{ coupon.valid_to|date:"F d, Y" }}
+                                            </small>
+                                        </p>
+                                    </div>
+                                    <div class="card-footer text-center">
+                                        <button class="btn btn-outline-primary btn-sm copy-coupon w-100" data-coupon="{{ coupon.code }}">
+                                            <i class="far fa-copy me-1"></i>Copy Code
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-info" role="alert">
+                        <i class="fas fa-info-circle me-2"></i>No coupons available at the moment.
+                    </div>
+                {% endif %}
+            </div>
+            <div class="modal-footer justify-content-between">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block extra_js %}
@@ -404,6 +539,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 $(document).ready(function() {
     if ($("#messageContent").children().length > 0) {
@@ -418,6 +554,29 @@ $(document).ready(function() {
             $('#new_address_form').hide();
             $('input[name="selected_address"]:first').prop('checked', true);
         }
+    });
+
+    $('.copy-coupon').click(function() {
+        var couponCode = $(this).data('coupon');
+        navigator.clipboard.writeText(couponCode).then(function() {
+        const Toast = Swal.mixin({
+            toast: true,
+            position: "top-end",
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.onmouseenter = Swal.stopTimer;
+                toast.onmouseleave = Swal.resumeTimer;
+            }
+        });
+        Toast.fire({
+            icon: "success",
+            title: "Coupon code copied to clipboard"
+        });
+        }, function(err) {
+            console.error('Could not copy text: ', err);
+        });
     });
 
     $('input[name="payment_method"]').change(function() {
@@ -650,65 +809,3 @@ $(document).ready(function() {
 });
 </script>
 {% endblock %}
-
-
-
-
-
-
-  {% comment %} $('#checkout-form').submit(function(event) {
-        if ($('#use_new_address').is(':checked')) {
-            let isValid = true;
-            
-            isValid = validateField('#full_name', 'Please enter a valid full name') && isValid;
-            isValid = validateField('#last_name', 'Please enter a valid last name') && isValid;
-            isValid = validateField('#phone_number', 'Please enter a valid phone number', /^\d{10}$/) && isValid;
-            isValid = validateField('#email', 'Please enter a valid email address', /^[^\s@]+@[^\s@]+\.[^\s@]+$/) && isValid;
-            isValid = validateField('#address_line_1', 'Address is required') && isValid;
-            isValid = validateField('#city', 'City is required') && isValid;
-            isValid = validateField('#state', 'State is required') && isValid;
-            isValid = validateField('#postal_code', 'Please enter a valid 6-digit postal code', /^\d{6}$/) && isValid;
-            isValid = validateField('#country', 'Country is required') && isValid;
-
-            if (!isValid) {
-                event.preventDefault();
-            }
-        }
-    });
-
-    function validateField(selector, errorMessage, regex = null) {
-        const $field = $(selector);
-        const value = $field.val().trim();
-        
-        if (value === '' || (regex && !regex.test(value))) {
-            showError($field, errorMessage);
-            return false;
-        } else {
-            removeError($field);
-            return true;
-        }
-    }
-
-    function showError($element, message) {
-        $element.addClass('is-invalid');
-        $element.siblings('.error-message').text(message);
-    }
-
-    function removeError($element) {
-        $element.removeClass('is-invalid');
-        $element.siblings('.error-message').text('');
-    }
-    
-    $('input').on('input', function() {
-        removeError($(this));
-    }); {% endcomment %}
-
-
-
-
-
-
-
-
-
-

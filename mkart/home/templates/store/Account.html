@@ -1,9 +1,6 @@
 {% extends "store/main_base.html" %}
 {% load static %}
-
 {% block title %}Account{% endblock  %}
-
-
 {% block extra_style %}
     <link rel="apple-touch-icon" sizes="180x180" href="store-assets/assets/images/icons/apple-touch-icon.png">
     
@@ -118,9 +115,6 @@
         to { opacity: 1; transform: translateY(0); }
     }
 
-
-
-
         .order-item {
         display: flex;
         align-items: center;
@@ -187,9 +181,7 @@
 {% endblock  %}
 
 {% block content %}
-
 <main class="main">
-
 {% if messages %}
 <div class="message-container">
     {% for message in messages %}
@@ -200,29 +192,25 @@
     {% endfor %}
 </div>
 {% endif %}
-
-    <div class="page-header text-center" style="background-image: url('store-assets/assets/images/page-header-bg.jpg')">
+    <div class="page-header text-center" style="background-image: url( {% static "store-assets/assets/images/page-header-bg.jpg" %});  height: 121px;">
         <div class="container">
-            <h1 class="page-title">My Account<span>Shop</span></h1>
+            <h1 class="page-title">My Account<span><a href="{% url "home" %}">Shop</a></span></h1>
         </div><!-- End .container -->
     </div><!-- End .page-header -->
-    
-
     <nav aria-label="breadcrumb" class="breadcrumb-nav mb-3">
         <div class="container">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="index.html">Home</a></li>
-                <li class="breadcrumb-item"><a href="#">Shop</a></li>
+                <li class="breadcrumb-item"><a href="{% url "home" %}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{% url "productslist" %}">Shop</a></li>
                 <li class="breadcrumb-item active" aria-current="page">My Account</li>
             </ol>
         </div><!-- End .container -->
     </nav><!-- End .breadcrumb-nav -->
-
     <div class="page-content">
         <div class="dashboard">
             <div class="container">
                 <div class="row">
-                    <aside class="col-md-4 col-lg-2">
+                    <aside class="col-md-4 col-lg-3">
                         <ul class="nav nav-dashboard flex-column mb-3 mb-md-0" role="tablist">
                             <li class="nav-item">
                                 <a class="nav-link active" id="tab-dashboard-link" data-toggle="tab" href="#tab-dashboard" role="tab" aria-controls="tab-dashboard" aria-selected="true">Dashboard</a>
@@ -244,13 +232,17 @@
                             </li>
                         </ul>
                     </aside><!-- End .col-lg-3 -->
-
-                    <div class="col-md-8 col-lg-10">
+                    <div class="col-md-8 col-lg-9">
                         <div class="tab-content">
                             <div class="tab-pane fade show active" id="tab-dashboard" role="tabpanel" aria-labelledby="tab-dashboard-link">
-                            </div><!-- .End .tab-pane -->
+                                <p>Hello <span class="font-weight-normal text-dark">{{ request.user }}</span>
+                                <br>
+                                From your account dashboard you can view your <a href="#tab-orders" class="tab-trigger-link link-underline">recent orders</a>, manage your <a href="#tab-address" class="tab-trigger-link">shipping and billing addresses</a>, and <a href="#tab-account" class="tab-trigger-link">edit your password and account details</a>.</p>
+                            </div>
 
+                            
                             <div class="tab-pane fade" id="tab-orders" role="tabpanel" aria-labelledby="tab-orders-link">
+                                <!-- Orders content here -->
 <div class="tab-content">
     <div class="tab-pane fade show active" id="tab-orders" role="tabpanel" aria-labelledby="tab-orders-link">
         {% if orders %}
@@ -296,28 +288,11 @@
         {% endif %}
     </div><!-- .End .tab-pane -->
 </div><!-- .End .tab-content -->
-                            </div><!-- .End .tab-pane -->
+</div>
 
-<div class="tab-pane fade" id="tab-downloads" role="tabpanel" aria-labelledby="tab-downloads-link">
-    {% comment %} <div>    <h3>Your Wallet</h3>
-    <p>Balance: {{ wallet.balance }}</p>
-
-    <h4>Transaction History</h4>
-    {% if transactions %}
-        <ul>
-            {% for transaction in transactions %}
-                <li>
-                    <strong>{{ transaction.transaction_type.title }}</strong>: 
-                    {{ transaction.amount }} 
-                    <span>on {{ transaction.timestamp|date:"Y-m-d H:i" }}</span>
-                </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p>No transactions yet.</p>
-    {% endif %}</div> {% endcomment %}
-
-    <div class="wallet-container">
+                            <div class="tab-pane fade" id="tab-downloads" role="tabpanel" aria-labelledby="tab-downloads-link">
+                                <!-- Wallet content here -->
+ <div class="wallet-container">
         <div class="wallet-header">
             <h2>Your Wallet</h2>
             <div class="wallet-balance">Balance: {{ wallet.balance }}</div>
@@ -344,22 +319,17 @@
         {% else %}
             <p class="no-transactions">No transactions yet.</p>
         {% endif %}
-    </div>
-</div>
+    </div>                                 
+                            </div>
 
                             <div class="tab-pane fade" id="tab-address" role="tabpanel" aria-labelledby="tab-address-link">
-                                <button style="border-radius: 25px; position: absolute; bottom: 0;" id="myBtn" class="btn btn-primary">Add Address</button>
-
+                                <button style="border-radius: 25px; margin-bottom: 20px;" id="myBtn" class="btn btn-primary">Add Address</button>
                                 <div class="row">
-
                                     {% for address in user.addresses.all %}
-                                    <div class="col-lg-6 ">
+                                    <div class="col-lg-6 mb-4">
                                         <div class="card card-dashboard">
                                             <div class="card-body">
-                                                <h3 class="card-title">
-                                                    {% if address.is_default %}Default {% endif %}Address
-                                                </h3><!-- End .card-title -->
-
+                                                <h3 class="card-title">{% if address.is_default %}Default {% endif %}Address</h3>
                                                 <p>
                                                     {{ address.full_name }} {{ address.last_name }}<br>
                                                     {{ address.address_line_1 }}<br>
@@ -371,14 +341,75 @@
                                                     <a href="{% url 'edit_address' address.id %}">Edit <i class="icon-edit"></i></a>
                                                     <button class="btn btn-sm btn-danger delete-address" style="background: none; color: #f00; border: none; padding: 0; font: inherit; cursor: pointer; outline: inherit;" data-address-id="{{ address.id }}">Delete</button>
                                                 </p>
-                                            </div><!-- End .card-body -->
-                                        </div><!-- End .card-dashboard -->
-                                    </div><!-- End .col-lg-6 -->
+                                            </div>
+                                        </div>
+                                    </div>
                                     {% empty %}
                                     <div class="col-12">
                                         <p>You have no saved addresses.</p>
                                     </div>
                                     {% endfor %}
+                                </div>
+                            </div>
+
+                            <div class="tab-pane fade" id="tab-account" role="tabpanel" aria-labelledby="tab-account-link">
+                                <form action="{% url 'edit_details' %}" method="POST">
+                                    {% csrf_token %}
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <label>User name</label>
+                                            <input type="text" name="username" class="form-control" value="{{ user.username }}" required>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <label>Last Name</label>
+                                            <input type="text" name="last_name" class="form-control" value="{{ user.last_name }}" required>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <label>Email address</label>
+                                            <input type="email" name="email" class="form-control" value="{{ user.email }}" required>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <label>Phone number</label>
+                                            <input type="text" name="phone_number" class="form-control" value="{{ profile.phone }}" required>
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="btn btn-outline-primary-2 mt-3">
+                                        <span>SAVE CHANGES</span>
+                                        <i class="icon-long-arrow-right"></i>
+                                    </button>
+                                </form>
+                                <div class="card card-dashboard mt-5">
+                                    <div class="card-body">
+                                        <h3 class="card-title">Your Referral Code</h3>
+                                        <p>Share this code with your friends and earn rewards!</p>
+                                        <div class="referral-code">
+                                            {{ user.profile.referral_code }}
+                                        </div>
+                                        <button class="btn btn-outline-primary-2 mt-2" onclick="copyReferralCode()">
+                                            <span>Copy Code</span>
+                                            <i class="icon-copy"></i>
+                                        </button>
+                                        <hr>
+                                        <h4>Referral Program Benefits</h4>
+                                        <ul>
+                                            <li>You'll receive ₹100 in your wallet for each successful referral</li>
+                                            <li>Your friend will receive ₹50 in their wallet upon signing up</li>
+                                        </ul>
+                                        <p>Start sharing and earning today!</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>                            
+
+
 <div class="col-lg-9">
     <div id="myModal" class="modal">
         <div class="modal-content">
@@ -445,8 +476,9 @@
                     <div class="col-sm-6">
                         <label>Email Address *</label>
                         <input type="text" name="email" class="form-control">
-                        <span class="error" id="email_error"></span>
+                        <span class="error" id="email_error" style="color: red;"></span> <!-- Error message display -->
                     </div>
+
                 </div>
 
                 <div class="custom-control custom-checkbox">
@@ -462,87 +494,7 @@
         </div>
     </div>
 </div>
-
-<div class="tab-pane fade" id="tab-account" role="tabpanel" aria-labelledby="tab-account-link">
-    <form action="{% url 'edit_details' %}" method="POST">
-        {% csrf_token %}
-        <div class="row">
-            <div class="col-sm-6">
-                <label>User name</label>
-                <input type="text" name="username" class="form-control" value="{{ user.username }}" required>
-            </div><!-- End .col-sm-6 -->
-
-            <div class="col-sm-6">
-                <label>Last Name</label>
-                <input type="text" name="last_name" class="form-control" value="{{ user.last_name }}" required>
-            </div><!-- End .col-sm-6 -->
-        </div><!-- End .row -->
-
-        <div class="row">
-            <div class="col-sm-6">
-                <label>Email address</label>
-                <input type="email" name="email" class="form-control" value="{{ user.email }}" required>
-            </div><!-- End .col-sm-6 -->
-
-            <div class="col-sm-6">
-                <label>Phone number</label>
-                <input type="text" name="phone_number" class="form-control" value="{{ profile.phone }}" required>
-            </div><!-- End .col-sm-6 -->
-        </div><!-- End .row -->
-
-        {% comment %} <label>Current password</label>
-        <input type="password" name="current_password" class="form-control">
-
-        <label>New password</label>
-        <input type="password" name="new_password" class="form-control">
-
-        <label>Confirm new password</label>
-        <input type="password" name="confirm_new_password" class="form-control mb-2"> {% endcomment %}
-
-        <button type="submit" class="btn btn-outline-primary-2">
-            <span>SAVE CHANGES</span>
-            <i class="icon-long-arrow-right"></i>
-        </button>
-    </form>
-
-
-    
-                                <div class="card card-dashboard">
-                                    <div class="card-body">
-                                        <h3 class="card-title">Your Referral Code</h3>
-                                        <p>Share this code with your friends and earn rewards!</p>
-                                        <div class="referral-code">
-                                            {{ user.profile.referral_code }}
-                                        </div>
-                                        <button class="btn btn-outline-primary-2" onclick="copyReferralCode()">
-                                            <span>Copy Code</span>
-                                            <i class="icon-copy"></i>
-                                        </button>
-                                        <hr>
-                                        <h4>Referral Program Benefits</h4>
-                                        <ul>
-                                            <li>You'll receive ₹100 in your wallet for each successful referral</li>
-                                            <li>Your friend will receive ₹50 in their wallet upon signing up</li>
-                                        </ul>
-                                        <p>Start sharing and earning today!</p>
-                                    </div>
-                                </div>
-               
-
-    
-</div><!-- .End .tab-pane -->
-
-                        </div><!-- End .tab-content -->
-                    </div><!-- End .col-lg-9 -->
-                </div><!-- End .row -->
-            </div><!-- End .container -->
-        </div><!-- End .dashboard -->
-    </div><!-- End .page-content -->
-</main><!-- End .main -->
-
 {% endblock %}
-
-
 {% block extra_js %}
     <script src="{% static 'store-assets/assets/js/jquery.min.js' %}"></script>
     <script src="{% static 'store-assets/assets/js/bootstrap.bundle.min.js' %}"></script>
@@ -551,10 +503,8 @@
     <script src="{% static 'store-assets/assets/js/superfish.min.js' %}"></script>
     <script src="{% static 'store-assets/assets/js/owl.carousel.min.js' %}"></script>
     <!-- Main JS File -->
-    <script src="{% static 'store-assets/assets/js/main.js' %}"></script>
-
+    <script src="{% static 'store-assets/assets/js/main.js' %}"></script>   
 	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <script>
@@ -569,48 +519,22 @@
     </script>
 
 <script>
-{% comment %} // Get the modal
-var modal = document.getElementById("myModal");
 
-// Get the button that opens the modal
-var btn = document.getElementById("myBtn");
-
-// Get the <span> element that closes the modal
-var span = document.getElementsByClassName("close")[0];
-
-// When the user clicks the button, open the modal 
-btn.onclick = function() {
-  modal.style.display = "block";
-}
-
-// When the user clicks on <span> (x), close the modal
-span.onclick = function() {
-  modal.style.display = "none";
-}
-
-// When the user clicks anywhere outside of the modal, close it
-window.onclick = function(event) {
-  if (event.target == modal) {
-    modal.style.display = "none";
-  }
-} {% endcomment %}
-
-
-    // Modal-related scripts
-    var modal = document.getElementById("myModal");
-    var btn = document.getElementById("myBtn");
-    var span = document.getElementsByClassName("close")[0];
-    btn.onclick = function() {
-        modal.style.display = "block";
-    }
-    span.onclick = function() {
-        modal.style.display = "none";
-    }
-    window.onclick = function(event) {
-        if (event.target == modal) {
+        // Modal-related scripts
+        var modal = document.getElementById("myModal");
+        var btn = document.getElementById("myBtn");
+        var span = document.getElementsByClassName("close")[0];
+        btn.onclick = function() {
+            modal.style.display = "block";
+        }
+        span.onclick = function() {
             modal.style.display = "none";
         }
-    }
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
 
 
         document.getElementById('addressForm').onsubmit = function(e) {
@@ -699,26 +623,31 @@ window.onclick = function(event) {
             document.getElementById('country_error').innerText = 'Country cannot contain numbers or special characters.';
             isValid = false;
         }
-
-        // Validate Phone Number (10-digit number)
-        const phoneNumber = document.getElementsByName('phone_number')[0].value.trim();
-        const phoneNumberPattern = /^[0-9]{10}$/;
-        if (!phoneNumberPattern.test(phoneNumber)) {
-            document.getElementById('phone_number_error').innerText = 'Phone number must be a 10-digit number.';
-            isValid = false;
-        }
-
         // Validate Email Address
         const email = document.getElementsByName('email')[0].value.trim();
         const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
-        if (!emailPattern.test(email)) {
+        if (email === '') {
+            document.getElementById('email_error').innerText = 'Email is required.';
+            isValid = false;
+        } 
+        else if (!emailPattern.test(email)) {
             document.getElementById('email_error').innerText = 'Please enter a valid email address.';
             isValid = false;
         }
-
-        // Prevent form submission if validation fails
         if (!isValid) {
             e.preventDefault();
+        }
+        // Validate Phone Number (10-digit number)
+        const phoneNumber = document.getElementsByName('phone_number')[0].value.trim();
+        const phoneNumberPattern = /^[0-9]{10}$/;
+        if (phoneNumber === '') {
+            document.getElementById('phone_number_error').innerText = 'Phone number is required.'; // Error if phone number is empty
+            isValid = false;
+        } else if (!phoneNumberPattern.test(phoneNumber)) {
+            document.getElementById('phone_number_error').innerText = 'Phone number must be a 10-digit number.'; // Error if phone number is not valid
+            isValid = false;
+        } else {
+            document.getElementById('phone_number_error').innerText = ''; // Clear error if phone number is valid
         }
     }
 
@@ -772,8 +701,5 @@ $(document).ready(function() {
         });
     });
 });
-
 </script>
-
-
 {% endblock  %}

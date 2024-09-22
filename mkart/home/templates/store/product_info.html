@@ -104,6 +104,18 @@
         height: 100%;
         object-fit: cover;
     }
+
+        .zoomContainer {
+        z-index: 9999;
+    }
+    
+    .product-gallery {
+        position: relative;
+    }
+    
+    .product-gallery .zoomImg {
+        background-color: #fff;
+    }
 </style>
 {% endblock %}
 
@@ -124,34 +136,7 @@
             <div class="product-details-top">
                 <div class="row">
                     <div class="col-md-6 d-flex align-items-center">
-                        {% comment %} <div class="product-gallery product-gallery-vertical">
-                            <div class="row">
-                                <figure class="product-main-image">
-                                    <img id="product-zoom" src="{{ selected_variant.image_1.url }}" data-zoom-image="{{ selected_variant.image_1.url }}" alt="{{ product.name }}">
-                                    <a href="#" id="btn-product-gallery" class="btn-product-gallery">
-                                        <i class="icon-arrows"></i>
-                                    </a>
-                                </figure>
-                                <div id="product-zoom-gallery" class="product-image-gallery">
-                                    {% if selected_variant.image_1 %}
-                                        <a class="product-gallery-item active" href="#" data-image="{{ selected_variant.image_1.url }}" data-zoom-image="{{ selected_variant.image_1.url }}">
-                                            <img src="{{ selected_variant.image_1.url }}" alt="{{ product.name }} thumbnail">
-                                        </a>
-                                    {% endif %}
-                                    {% if selected_variant.image_2 %}
-                                        <a class="product-gallery-item" href="#" data-image="{{ selected_variant.image_2.url }}" data-zoom-image="{{ selected_variant.image_2.url }}">
-                                            <img src="{{ selected_variant.image_2.url }}" alt="{{ product.name }} thumbnail">
-                                        </a>
-                                    {% endif %}
-                                    {% if selected_variant.image_3 %}
-                                        <a class="product-gallery-item" href="#" data-image="{{ selected_variant.image_3.url }}" data-zoom-image="{{ selected_variant.image_3.url }}">
-                                            <img src="{{ selected_variant.image_3.url }}" alt="{{ product.name }} thumbnail">
-                                        </a>
-                                    {% endif %}
-                                </div>  
-                            </div>
-                        </div> {% endcomment %}
-    <div class="product-gallery product-gallery-vertical">
+    {% comment %} <div class="product-gallery product-gallery-vertical">
         <div class="row">
             <figure class="product-main-image">
                 {% if selected_variant.image_1 %}
@@ -185,7 +170,42 @@
                 {% endif %}
             </div>
         </div>
+    </div> {% endcomment %}
+
+
+<div class="product-gallery product-gallery-vertical">
+    <div class="row">
+        <figure class="product-main-image">
+            {% if selected_variant.image_1 %}
+                <img id="product-zoom" src="{{ selected_variant.image_1.url }}" data-zoom-image="{{ selected_variant.image_1.url }}" alt="{{ product.name }}">
+            {% elif selected_variant.image_2 %}
+                <img id="product-zoom" src="{{ selected_variant.image_2.url }}" data-zoom-image="{{ selected_variant.image_2.url }}" alt="{{ product.name }}">
+            {% elif selected_variant.image_3 %}
+                <img id="product-zoom" src="{{ selected_variant.image_3.url }}" data-zoom-image="{{ selected_variant.image_3.url }}" alt="{{ product.name }}">
+            {% else %}
+                <img id="product-zoom" src="{% static 'no-image.png' %}" alt="{{ product.name }}">
+            {% endif %}
+        </figure>
+        <div id="product-zoom-gallery" class="product-image-gallery">
+            {% if selected_variant.image_1 %}
+                <a class="product-gallery-item active" href="#" data-image="{{ selected_variant.image_1.url }}" data-zoom-image="{{ selected_variant.image_1.url }}">
+                    <img src="{{ selected_variant.image_1.url }}" alt="{{ product.name }} thumbnail">
+                </a>
+            {% endif %}
+            {% if selected_variant.image_2 %}
+                <a class="product-gallery-item" href="#" data-image="{{ selected_variant.image_2.url }}" data-zoom-image="{{ selected_variant.image_2.url }}">
+                    <img src="{{ selected_variant.image_2.url }}" alt="{{ product.name }} thumbnail">
+                </a>
+            {% endif %}
+            {% if selected_variant.image_3 %}
+                <a class="product-gallery-item" href="#" data-image="{{ selected_variant.image_3.url }}" data-zoom-image="{{ selected_variant.image_3.url }}">
+                    <img src="{{ selected_variant.image_3.url }}" alt="{{ product.name }} thumbnail">
+                </a>
+            {% endif %}
+        </div>
     </div>
+</div>
+
                     </div>
 
                     <div class="col-md-6">
@@ -368,7 +388,51 @@
 
 <script>
     $(document).ready(function() {
-        // Image zoom
+    // Image zoom
+    function initZoom() {
+        $('#product-zoom').elevateZoom({
+            zoomType: "inner",
+            cursor: "crosshair",
+            zoomWindowFadeIn: 500,
+            zoomWindowFadeOut: 750,
+            gallery: 'product-zoom-gallery',
+            galleryActiveClass: 'active'
+        });
+    }
+
+    initZoom();
+
+    // Image gallery
+    $('#product-zoom-gallery').on('click', 'a', function(e) {
+        e.preventDefault();
+        var $this = $(this);
+        var imageUrl = $this.attr('data-image');
+        var zoomImageUrl = $this.attr('data-zoom-image');
+
+        $('#product-zoom')
+            .attr('src', imageUrl)
+            .attr('data-zoom-image', zoomImageUrl);
+
+        $('.zoomContainer').remove();
+        initZoom();
+
+        $this.siblings().removeClass('active');
+        $this.addClass('active');
+    });
+
+    // Magnific popup for image zoom
+    $('.product-gallery').magnificPopup({
+        delegate: 'a',
+        type: 'image',
+        gallery: {
+            enabled: true
+        }
+    });
+    });
+</script>
+{% endblock %}
+
+        {% comment %} // Image zoom
         $('#product-zoom').elevateZoom({
             zoomType: "lens",
             lensShape: "round",
@@ -391,33 +455,4 @@
                     type: 'image'
                 });
             });
-        });
-    });
-</script>
-{% comment %} <script>
-    $(document).ready(function() {
-        // Lightbox for main image
-        $('.product-main-image img').on('click', function() {
-            var imgSrc = $(this).attr('src');
-            $.magnificPopup.open({
-                items: {
-                    src: imgSrc
-                },
-                type: 'image'
-            });
-        });
-
-        // Image zoom
-        $('#product-zoom').elevateZoom({
-            zoomType: "lens",
-            lensShape: "round",
-            lensSize: 200,
-            easing: true,
-            gallery: 'product-zoom-gallery',
-            cursor: 'pointer',
-            galleryActiveClass: 'active',
-            imageCrossfade: true
-        });
-    });
-</script> {% endcomment %}
-{% endblock %}
+        }); {% endcomment %}

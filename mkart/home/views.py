@@ -35,6 +35,14 @@ from django.shortcuts import get_object_or_404
 from django.db import transaction
 from django.db.models import Min
 import json
+import logging
+logger = logging.getLogger('registration')
+
+def custom_404(request, exception):
+    return render(request, 'store/404.html', status=404)
+
+def custom_500(request):
+    return render(request, 'store/500.html', status=500)
 
 def store(request):
     if request.user.is_authenticated:
@@ -155,56 +163,75 @@ def register(request):
         return redirect('validate_otp')
     return render(request, 'store/register.html')
 
+
 def validate_otp(request):
     if request.method == "POST":
         user_otp = request.POST.get('otp')
         stored_data = request.session.get('registration_data', {})
 
         if not stored_data:
+            logger.error("No registration data found in session.")
             return redirect('register')
 
-        otp_created_at = timezone.datetime.fromisoformat(stored_data.get('otp_created_at'))
-        time_elapsed = (timezone.now() - otp_created_at).total_seconds()
-        time_left = max(300 - int(time_elapsed), 0)
+        try:
+            otp_created_at = timezone.datetime.fromisoformat(stored_data.get('otp_created_at'))
+            time_elapsed = (timezone.now() - otp_created_at).total_seconds()
+            time_left = max(300 - int(time_elapsed), 0)
 
-        if time_left == 0:
-            del request.session['registration_data']
-            return render(request, 'store/validateOTP.html', {'error': 'OTP has expired. Please try again.', 'time_left': 0})
-        
-        if user_otp == stored_data.get('otp'):
-            try:
-                existing_user = User.objects.filter(email=stored_data['email']).first()
-                if existing_user:
-                    return render(request, 'store/validateOTP.html', {'error': 'An account with this email already exists.', 'time_left': time_left})
-                
-                new_user = User.objects.create_user(
-                    username=stored_data['username'],
-                    email=stored_data['email'],
-                    password=stored_data['password']
-                )
-                new_user.save()
-                
-                profile = Profile.objects.create(user=new_user, phone=stored_data['phone_number'])
-                
-                wallet = Wallet.objects.create(user=new_user)
-                
-                if stored_data.get('referral_code'):
-                    Profile.apply_referral(new_user, stored_data['referral_code'])
-
+            if time_left == 0:
                 del request.session['registration_data']
-                return redirect('login')
-            except IntegrityError:
-                return render(request, 'store/validateOTP.html', {'error': 'An error occurred while creating your account. Please try again.', 'time_left': time_left})
-        else:
-            return render(request, 'store/validateOTP.html', {'error': 'Invalid OTP', 'time_left': time_left})
-    
+                logger.error("OTP expired for user: %s", stored_data.get('email'))
+                return render(request, 'store/validateOTP.html', {'error': 'OTP has expired. Please try again.', 'time_left': 0})
+
+            if user_otp == stored_data.get('otp'):
+                try:
+                    existing_user = User.objects.filter(email=stored_data['email']).first()
+                    if existing_user:
+                        logger.error("User with email %s already exists.", stored_data.get('email'))
+                        return render(request, 'store/validateOTP.html', {'error': 'An account with this email already exists.', 'time_left': time_left})
+
+                
+                    new_user = User.objects.create_user(
+                        username=stored_data['username'],
+                        email=stored_data['email'],
+                        password=stored_data['password']
+                    )
+                    new_user.save()
+
+                    if not Profile.objects.filter(user=new_user).exists():
+                        profile = Profile.objects.create(user=new_user, phone=stored_data['phone_number'])
+                    if not Wallet.objects.filter(user=new_user).exists():
+                        wallet = Wallet.objects.create(user=new_user)
+
+            
+                    if stored_data.get('referral_code'):
+                        Profile.apply_referral(new_user, stored_data['referral_code'])
+
+                    user = authenticate(request, username=stored_data['username'], password=stored_data['password'])
+                    if user is not None:
+                        login(request, user)
+                
+                    return redirect('home')
+
+                except IntegrityError as e:
+                    logger.error("IntegrityError while creating user: %s", str(e))
+                    return render(request, 'store/validateOTP.html', {'error': 'An error occurred while creating your account. Please try again.', 'time_left': time_left})
+
+            else:
+                logger.error("Invalid OTP entered by user: %s", stored_data.get('email'))
+                return render(request, 'store/validateOTP.html', {'error': 'Invalid OTP', 'time_left': time_left})
+
+        except Exception as e:
+            logger.error("Unexpected error during OTP validation: %s", str(e))
+            return render(request, 'store/validateOTP.html', {'error': 'An unexpected error occurred. Please try again later.', 'time_left': time_left})
+
     stored_data = request.session.get('registration_data', {})
     if not stored_data:
         return redirect('register')
 
     otp_created_at = timezone.datetime.fromisoformat(stored_data.get('otp_created_at'))
     time_elapsed = (timezone.now() - otp_created_at).total_seconds()
-    time_left = max(300 - int(time_elapsed), 0)  
+    time_left = max(300 - int(time_elapsed), 0)
 
     return render(request, 'store/validateOTP.html', {'time_left': time_left})
 
@@ -571,18 +598,13 @@ def womens_items(request):
 
     return render(request, 'store/womens_items.html', context)
 
-
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import AnonymousUser
-
 @never_cache
 def product_info(request, id):
-    # Initialize variables with defaults in case the user is not authenticated
+
     user_wishlist_count = 0
     user_cart_count = 0
     cart_total = 0
     
-    # Check if the user is authenticated
     if request.user.is_authenticated:
         try:
             user_wishlist_count = Wishlist.objects.filter(user=request.user).count()
@@ -594,26 +616,23 @@ def product_info(request, id):
         except Cart.DoesNotExist:
             user_cart_count = None
         
-        # Get or create the cart only if the user is authenticated
         cart, created = Cart.objects.get_or_create(user=request.user)   
         cart_total = cart.get_total_price()
 
-    # Fetch product and variants
     product = get_object_or_404(Product, id=id)
     variants = product.variants.all()
 
-    # Handle selected variant logic
+    
     variant_id = request.GET.get('variant_id')
     if variant_id:
         selected_variant = get_object_or_404(ProductVariant, id=variant_id)
     else:
         selected_variant = product.variants.first()
 
-    # Price and discount logic
+   
     original_price = selected_variant.price
     discounted_price = product.get_discounted_price()
 
-    # Check for active offer
     active_offer = None
     if product.offer and product.offer.is_active and product.offer.valid_from <= timezone.now() <= product.offer.valid_to:
         active_offer = product.offer
@@ -633,58 +652,6 @@ def product_info(request, id):
     }
 
     return render(request, 'store/product_info.html', context)
-   
-   
-
-# @never_cache 
-# def product_info(request, id):
-#     try:
-#         user_wishlist_count = Wishlist.objects.filter(user=request.user).count()
-#     except Wishlist.DoesNotExist:
-#         user_wishlist_count = None
-    
-#     try:
-#         user_cart_count = CartItem.objects.filter(cart__user=request.user).count() 
-#     except Cart.DoesNotExist:
-#         user_cart_count = None
-
-#     cart, created = Cart.objects.get_or_create(user=request.user)   
-    
-#     cart_total = cart.get_total_price()
-    
-    
-#     product = get_object_or_404(Product, id=id)
-#     variants = product.variants.all()
-
-#     variant_id = request.GET.get('variant_id')
-#     if variant_id:
-#         selected_variant = get_object_or_404(ProductVariant, id=variant_id)
-#     else:
-#         selected_variant = product.variants.first()
-   
-   
-#     original_price = selected_variant.price
-#     discounted_price = product.get_discounted_price()
-
-#     active_offer = None
-#     if product.offer and product.offer.is_active and product.offer.valid_from <= timezone.now() <= product.offer.valid_to:
-#         active_offer = product.offer
-#     elif product.category.offer and product.category.offer.is_active and product.category.offer.valid_from <= timezone.now() <= product.category.offer.valid_to:
-#         active_offer = product.category.offer
-
-#     context = {
-#         'product': product,
-#         'variants': variants,
-#         'selected_variant': selected_variant,
-#         'active_offer': active_offer,
-#         'original_price': original_price,
-#         'discounted_price': discounted_price,
-#         'wishlist_count':user_wishlist_count,
-#         'cart_count':user_cart_count,
-#         'cart_total':cart_total,
-#     }
-
-#     return render(request, 'store/product_info.html', context)
 
 @never_cache
 @login_required
