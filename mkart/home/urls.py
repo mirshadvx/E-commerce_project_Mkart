@@ -13,7 +13,6 @@ urlpatterns = [
     path('login/', views.loginpage, name='login'), 
     path('resend-otp',views.resend_otp,name='resend_otp'),
     path('account',views.account,name='account'),
-    path('social-login-success/', views.social_login_success, name='social_login_success'),
     path('productslist/',views.show_products,name='productslist'),
     path('mens_items/',views.mens_items,name='mens_items'),
     path('womens_items/',views.womens_items,name='womens_items'),
@@ -43,5 +42,4 @@ urlpatterns = [
     path('handle-failed-payment/', views.handle_failed_payment, name='handle_failed_payment'),
     path('razorpay_payment_success/', views.razorpay_payment_success, name='razorpay_payment_success'),
     path('contact/', views.contact, name='contact'),
-    path('google-login-success/', views.google_login_success, name='google_login_success'),
 ]

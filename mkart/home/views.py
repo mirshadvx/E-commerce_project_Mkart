@@ -28,13 +28,13 @@ from django.utils import timezone as django_timezone
 import os
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
-from google.oauth2 import id_token
-from google.auth.transport import requests
 from django.template.loader import get_template
 from xhtml2pdf import pisa
 from io import BytesIO
 from django.shortcuts import get_object_or_404
 from django.db import transaction
+from django.db.models import Min
+import json
 
 def store(request):
     if request.user.is_authenticated:
@@ -257,31 +257,12 @@ def loginpage(request):
         return redirect('home')  
     return render(request, 'store/login.html')
 
-from allauth.socialaccount.models import SocialAccount
-def google_login_success(request):
-    if request.user.is_authenticated:
-        try:
-            google_account = SocialAccount.objects.get(user=request.user, provider='google')
-
-            profile, created = Profile.objects.get_or_create(user=request.user)
-            if created:
-                
-                profile.phone = '' 
-                profile.save()
-            
-            messages.success(request, 'Successfully logged in with Google.')
-            return redirect('home')  
-        except SocialAccount.DoesNotExist:
-            messages.error(request, 'Unable to log in with Google. Please try again.')
-            return redirect('login')
-    else:
-        return redirect('login')
-
 def logoutPage(request):
     if request.user.is_authenticated:
         logout(request)
     return redirect('login')
 
+@never_cache
 def home(request):
     user_wishlist_count = 0
     user_cart_count = 0
@@ -320,24 +301,7 @@ def home(request):
     }
     return render(request, 'store/home.html', context)
 
-def social_login_success(request):
-    if request.user.is_authenticated:
-        messages.success(request, 'Successfully logged in with Google!')
-        return redirect('store')
-    else:
-        messages.error(request, 'Social login failed. Please try again.')
-        return redirect('login') 
-    
-def social_login_success(request):
-    if request.user.is_authenticated:
-        messages.success(request, 'Successfully logged in with Google!')
-        return redirect('store')
-    else:
-        messages.error(request, 'Social login failed. Please try again.')
-        return redirect('login') 
-
-from django.db.models import Min
-
+@never_cache
 def show_products(request):
     user_wishlist_count = 0
     user_cart_count = 0
@@ -432,6 +396,7 @@ def show_products(request):
 
     return render(request, 'store/products_home.html', context)
 
+@never_cache
 def mens_items(request):
     user_wishlist_count = 0
     user_cart_count = 0
@@ -518,7 +483,7 @@ def mens_items(request):
     }
 
     return render(request, 'store/mens_items.html', context)
-
+@never_cache
 def womens_items(request):
     user_wishlist_count = 0
     user_cart_count = 0
@@ -605,36 +570,50 @@ def womens_items(request):
     }
 
     return render(request, 'store/womens_items.html', context)
-    
-def product_info(request, id):
-    try:
-        user_wishlist_count = Wishlist.objects.filter(user=request.user).count()
-    except Wishlist.DoesNotExist:
-        user_wishlist_count = None
-    
-    try:
-        user_cart_count = CartItem.objects.filter(cart__user=request.user).count() 
-    except Cart.DoesNotExist:
-        user_cart_count = None
 
-    cart, created = Cart.objects.get_or_create(user=request.user)   
+
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import AnonymousUser
+
+@never_cache
+def product_info(request, id):
+    # Initialize variables with defaults in case the user is not authenticated
+    user_wishlist_count = 0
+    user_cart_count = 0
+    cart_total = 0
     
-    cart_total = cart.get_total_price()
-    
-    
+    # Check if the user is authenticated
+    if request.user.is_authenticated:
+        try:
+            user_wishlist_count = Wishlist.objects.filter(user=request.user).count()
+        except Wishlist.DoesNotExist:
+            user_wishlist_count = None
+        
+        try:
+            user_cart_count = CartItem.objects.filter(cart__user=request.user).count()
+        except Cart.DoesNotExist:
+            user_cart_count = None
+        
+        # Get or create the cart only if the user is authenticated
+        cart, created = Cart.objects.get_or_create(user=request.user)   
+        cart_total = cart.get_total_price()
+
+    # Fetch product and variants
     product = get_object_or_404(Product, id=id)
     variants = product.variants.all()
 
+    # Handle selected variant logic
     variant_id = request.GET.get('variant_id')
     if variant_id:
         selected_variant = get_object_or_404(ProductVariant, id=variant_id)
     else:
         selected_variant = product.variants.first()
-   
-   
+
+    # Price and discount logic
     original_price = selected_variant.price
     discounted_price = product.get_discounted_price()
 
+    # Check for active offer
     active_offer = None
     if product.offer and product.offer.is_active and product.offer.valid_from <= timezone.now() <= product.offer.valid_to:
         active_offer = product.offer
@@ -648,13 +627,66 @@ def product_info(request, id):
         'active_offer': active_offer,
         'original_price': original_price,
         'discounted_price': discounted_price,
-        'wishlist_count':user_wishlist_count,
-        'cart_count':user_cart_count,
-        'cart_total':cart_total,
+        'wishlist_count': user_wishlist_count,
+        'cart_count': user_cart_count,
+        'cart_total': cart_total,
     }
 
     return render(request, 'store/product_info.html', context)
+   
+   
 
+# @never_cache 
+# def product_info(request, id):
+#     try:
+#         user_wishlist_count = Wishlist.objects.filter(user=request.user).count()
+#     except Wishlist.DoesNotExist:
+#         user_wishlist_count = None
+    
+#     try:
+#         user_cart_count = CartItem.objects.filter(cart__user=request.user).count() 
+#     except Cart.DoesNotExist:
+#         user_cart_count = None
+
+#     cart, created = Cart.objects.get_or_create(user=request.user)   
+    
+#     cart_total = cart.get_total_price()
+    
+    
+#     product = get_object_or_404(Product, id=id)
+#     variants = product.variants.all()
+
+#     variant_id = request.GET.get('variant_id')
+#     if variant_id:
+#         selected_variant = get_object_or_404(ProductVariant, id=variant_id)
+#     else:
+#         selected_variant = product.variants.first()
+   
+   
+#     original_price = selected_variant.price
+#     discounted_price = product.get_discounted_price()
+
+#     active_offer = None
+#     if product.offer and product.offer.is_active and product.offer.valid_from <= timezone.now() <= product.offer.valid_to:
+#         active_offer = product.offer
+#     elif product.category.offer and product.category.offer.is_active and product.category.offer.valid_from <= timezone.now() <= product.category.offer.valid_to:
+#         active_offer = product.category.offer
+
+#     context = {
+#         'product': product,
+#         'variants': variants,
+#         'selected_variant': selected_variant,
+#         'active_offer': active_offer,
+#         'original_price': original_price,
+#         'discounted_price': discounted_price,
+#         'wishlist_count':user_wishlist_count,
+#         'cart_count':user_cart_count,
+#         'cart_total':cart_total,
+#     }
+
+#     return render(request, 'store/product_info.html', context)
+
+@never_cache
 @login_required
 def wishlist(request):
     try:
@@ -679,7 +711,7 @@ def wishlist(request):
     }
     return render(request, 'store/wishlist.html', context)
 
-
+@never_cache
 @login_required
 def add_wishlist(request, id):
     if request.method == 'POST':
@@ -696,6 +728,7 @@ def add_wishlist(request, id):
     
     return JsonResponse({'success': False, 'error': 'Invalid request method'})
 
+@never_cache
 @login_required
 def remove_wishlist(request, id):
     if request.method == 'POST':
@@ -707,6 +740,7 @@ def remove_wishlist(request, id):
             return JsonResponse({'success': False, 'error': 'Item not found in wishlist'}, status=404)
     return JsonResponse({'success': False, 'error': 'Invalid request'}, status=400)
     
+@never_cache
 @login_required
 def cart(request):
     try:
@@ -764,7 +798,7 @@ def cart(request):
     
     return render(request, 'store/cart.html', context)
 
-
+@never_cache
 @login_required
 def add_to_cart(request, id):
     if request.method == 'POST':
@@ -794,6 +828,7 @@ def add_to_cart(request, id):
     
     return JsonResponse({'success': False, 'error': 'Invalid request method'})
 
+@never_cache
 @login_required
 def update_cart(request, cart_item_id):
     if request.method == 'POST':
@@ -818,6 +853,7 @@ def update_cart(request, cart_item_id):
             return JsonResponse({'success': False, 'error': str(e)})
     return JsonResponse({'success': False, 'error': 'Invalid request method.'})
 
+@never_cache
 @login_required
 def remove_cart(request, id):
     if request.method == 'POST':
@@ -836,6 +872,7 @@ def remove_cart(request, id):
             return JsonResponse({'success': False, 'error': 'Item not found in cart'}, status=404)
     return JsonResponse({'success': False, 'error': 'Invalid request'}, status=400)
 
+@never_cache
 @login_required
 def account(request):
  
@@ -871,6 +908,7 @@ def account(request):
     }
     return render(request, 'store/Account.html', context)
 
+@never_cache
 @login_required
 def submit_address(request):
     if request.method == 'POST':
@@ -913,6 +951,7 @@ def submit_address(request):
         return redirect('account') 
     return redirect('account',)
 
+@never_cache
 @login_required
 def edit_address(request,id):
     address = get_object_or_404(UserAddress, id=id, user=request.user)
@@ -944,7 +983,8 @@ def delete_address(request, address_id):
         return JsonResponse({'status': 'success', 'message': 'Address deleted successfully.'})
     except UserAddress.DoesNotExist:
         return JsonResponse({'status': 'error', 'message': 'Address not found.'}, status=404)
-          
+     
+@never_cache     
 @login_required
 def checkout(request):
     try:
@@ -962,6 +1002,12 @@ def checkout(request):
     subtotal = sum(item.quantity * item.product_variant.product.get_discounted_price() for item in cart_items)
     coupon = request.session.get('coupon')
     coupon_discount = Decimal('0.00')
+
+    available_coupons = Coupon.objects.filter(
+        active=True,
+        valid_from__lte=django_timezone.now(),
+        valid_to__gte=django_timezone.now()
+    )
 
     if coupon:
         try:
@@ -989,6 +1035,7 @@ def checkout(request):
         'total': total,
         'razorpay_key_id': settings.RAZORPAY_KEY_ID,
         'razorpay_order_id': razorpay_order['id'],
+        'available_coupons': available_coupons,
         'coupon': coupon,
     }
 
@@ -1004,8 +1051,9 @@ def checkout(request):
             return process_order(request, cart_items, total, coupon, client,coupon_discount)
 
     return render(request, 'store/checkout.html', context)
-import json
 
+
+@never_cache
 @csrf_exempt
 @require_POST
 def handle_failed_payment(request):
@@ -1324,6 +1372,7 @@ def order_confirmation(request, order_id):
     }
     return render(request, 'store/order_confirmation.html', context)
 
+@never_cache
 @login_required
 def show_order_details(request, order_id):
     order = get_object_or_404(Order, id=order_id, user=request.user)
@@ -1416,6 +1465,7 @@ def download_invoice(request, item_id):
  
     return HttpResponse("Error generating PDF", status=400)
 
+@never_cache
 @require_POST
 def edit_details(request):
     user = request.user
@@ -1452,6 +1502,7 @@ def edit_details(request):
     messages.success(request, 'Your profile was successfully updated!')
     
     return redirect(request.META.get('HTTP_REFERER', 'home'))
+
 
 @require_POST
 @transaction.atomic
@@ -1500,6 +1551,7 @@ def cancel_item(request):
     except Exception as e:
         return JsonResponse({'success': False, 'message': f'An error occurred: {str(e)}'})
 
+@never_cache
 @login_required
 def contact(request):
     return render(request,'store/contact.html')

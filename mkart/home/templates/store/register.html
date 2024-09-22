@@ -1,6 +1,5 @@
-{% extends 'store/main_Base.html' %}
+{% extends 'store/main_base.html' %}
 {% load static %}
-{% load socialaccount %}
 {% block title %}sing up{% endblock  %}
 {% block extra_style %}
     <link rel="apple-touch-icon" sizes="180x180" href="store-assets/assets/images/icons/apple-touch-icon.png">
@@ -95,12 +94,12 @@
                                             <i class="icon-long-arrow-right"></i>
                                         </button>
                                     </div>
-                                     <div class="col-sm-12">
-    <a class="btn btn-login btn-g">
-        <i class="icon-google"></i>
-        Sign in With Google
-    </a>
-</div>
+                                    <div class="col-sm-12">
+                                        <a href="{% url 'social:begin' 'google-oauth2' %}" class="btn btn-login btn-g">
+                                            <i class="icon-google"></i>
+                                            Sign in With Google
+                                        </a>
+                                    </div>
                             </form>
                             </div><!-- End .form-choice -->
                         </div><!-- .End .tab-pane -->
@@ -160,53 +159,3 @@
 });
 </script>
 {% endblock %}
-
-{% comment %} 
-     $('#register-form').on('submit', function(e) {
-            if ($('#username-error').is(':visible') || $('#email-error').is(':visible')) {
-                e.preventDefault();
-                alert('Please correct the errors before submitting.');
-            }
-        }); {% endcomment %}
-
-{% comment %} 
-<script>
-    alert('started')
-    $(document).ready(function() {
-        function checkField(field, errorElement, checkUrl, paramName) {
-            var value = field.val();
-            var data = {};
-            data[paramName] = value;
-            $.ajax({
-                url: checkUrl,
-                data: data,
-                dataType: 'json',
-                success: function(data) {
-                    if (data.exists) {
-                        errorElement.text('This ' + field.attr('name') + ' is already taken.').show();
-                    } else {
-                        errorElement.hide();
-                    }
-                },
-                error: function(jqXHR, textStatus, errorThrown) {
-                    console.log('AJAX error:', textStatus, errorThrown);
-                }
-            });
-        }
-
-        $('#register-username').on('blur', function() {
-            checkField($(this), $('#username-error'), '{% url "check_username" %}', 'username');
-        });
-
-        $('#register-email').on('blur', function() {
-            checkField($(this), $('#email-error'), '{% url "check_email" %}', 'email');
-        });
-
-        $('#register-form').on('submit', function(e) {
-            if ($('#username-error').is(':visible') || $('#email-error').is(':visible')) {
-                e.preventDefault();
-                alert('Please correct the errors before submitting.');
-            }
-        });
-    });
-</script> {% endcomment %}
