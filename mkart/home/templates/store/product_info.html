@@ -1,8 +1,6 @@
 {% extends "store/main_base.html" %}
 {% load static %}
-
 {% block title %}Product info{% endblock %}
-
 {% block extra_style %}
 {{ block.super }}
 <style>
@@ -116,9 +114,43 @@
     .product-gallery .zoomImg {
         background-color: #fff;
     }
+
+    .zoomWindow {
+        border: 1px solid rgba(0, 0, 0, 0.1) !important;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+        background: linear-gradient(to bottom, #ffffff, #f8f8f8);
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    .zoomLens {
+        border: 2px solid rgba(255, 255, 255, 0.8) !important;
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.15);
+        cursor: crosshair !important;
+    }
+
+    .product-gallery img {
+        transition: all 0.3s ease;
+    }
+
+    .product-gallery img:hover {
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .product-image-gallery a {
+        transition: all 0.3s ease;
+    }
+
+    .product-image-gallery a:hover {
+        transform: scale(1.05);
+    }
+
+    .product-image-gallery a.active {
+        border-color: #007bff;
+        transform: scale(1.1);
+    }
 </style>
 {% endblock %}
-
 {% block content %}
 <main class="main">
     <nav aria-label="breadcrumb" class="breadcrumb-nav border-0 mb-0">
@@ -130,49 +162,11 @@
             </ol>
         </div>
     </nav>
-
     <div class="page-content">
         <div class="container">
             <div class="product-details-top">
                 <div class="row">
                     <div class="col-md-6 d-flex align-items-center">
-    {% comment %} <div class="product-gallery product-gallery-vertical">
-        <div class="row">
-            <figure class="product-main-image">
-                {% if selected_variant.image_1 %}
-                    <img id="product-zoom" src="{{ selected_variant.image_1.url }}" data-zoom-image="{{ selected_variant.image_1.url }}" alt="{{ product.name }}">
-                {% elif selected_variant.image_2 %}
-                    <img id="product-zoom" src="{{ selected_variant.image_2.url }}" data-zoom-image="{{ selected_variant.image_2.url }}" alt="{{ product.name }}">
-                {% elif selected_variant.image_3 %}
-                    <img id="product-zoom" src="{{ selected_variant.image_3.url }}" data-zoom-image="{{ selected_variant.image_3.url }}" alt="{{ product.name }}">
-                {% else %}
-                    <img id="product-zoom" src="{% static 'no-image.png' %}" alt="{{ product.name }}">
-                {% endif %}
-                <a href="#" id="btn-product-gallery" class="btn-product-gallery">
-                    <i class="icon-arrows"></i>
-                </a>
-            </figure>
-            <div id="product-zoom-gallery" class="product-image-gallery">
-                {% if selected_variant.image_1 %}
-                    <a class="product-gallery-item active" href="#" data-image="{{ selected_variant.image_1.url }}" data-zoom-image="{{ selected_variant.image_1.url }}">
-                        <img src="{{ selected_variant.image_1.url }}" alt="{{ product.name }} thumbnail">
-                    </a>
-                {% endif %}
-                {% if selected_variant.image_2 %}
-                    <a class="product-gallery-item" href="#" data-image="{{ selected_variant.image_2.url }}" data-zoom-image="{{ selected_variant.image_2.url }}">
-                        <img src="{{ selected_variant.image_2.url }}" alt="{{ product.name }} thumbnail">
-                    </a>
-                {% endif %}
-                {% if selected_variant.image_3 %}
-                    <a class="product-gallery-item" href="#" data-image="{{ selected_variant.image_3.url }}" data-zoom-image="{{ selected_variant.image_3.url }}">
-                        <img src="{{ selected_variant.image_3.url }}" alt="{{ product.name }} thumbnail">
-                    </a>
-                {% endif %}
-            </div>
-        </div>
-    </div> {% endcomment %}
-
-
 <div class="product-gallery product-gallery-vertical">
     <div class="row">
         <figure class="product-main-image">
@@ -205,9 +199,7 @@
         </div>
     </div>
 </div>
-
                     </div>
-
                     <div class="col-md-6">
                         <div class="product-details">
                             <h1 class="product-title">{{ product.name }}</h1>
@@ -220,7 +212,6 @@
                                     <span id="product-price">{{ original_price|floatformat:2 }}</span>
                                 {% endif %}
                             </div>
-                            
                             {% if active_offer %}
                                 <div class="offer-details">
                                     <h4>{{ active_offer.name }}</h4>
@@ -228,7 +219,6 @@
                                     <p>Offer ends: {{ active_offer.valid_to|date:"F d, Y" }}</p>
                                 </div>
                             {% endif %}
-                            
                             <div class="stock-status">
                                 {% if selected_variant.is_available and selected_variant.stock > 0 %}
                                     <span class="in-stock">In Stock</span>
@@ -236,7 +226,6 @@
                                     <span class="out-of-stock">Out of Stock</span>
                                 {% endif %}
                             </div>
-
                             <div class="details-filter-row details-row-size">
                                 <label>Color:</label>
                                 <div class="product-nav product-nav-thumbs">
@@ -251,7 +240,6 @@
                                     {% endfor %}
                                 </div>
                             </div>
-
                             {% if selected_variant.is_available and selected_variant.stock > 0 %}
                             <form action="{% url 'add_to_cart' product.id %}" method="POST" id="addToCartForm">
                                 <div class="details-filter-row details-row-size">
@@ -263,7 +251,6 @@
                                         {% else %}
                                         <input name="quantity" type="number" id="quantity" class="form-control" value="1" min="1" max="{{ selected_variant.stock }}" step="1" data-decimals="0" readonly>
                                         {% endif %}
-                                  
                                     </div>
                                 </div>         
                                 <div class="product-details-action">
@@ -271,10 +258,9 @@
                                     <input type="hidden" name="variant_id" id="selectedVariantId" value="{{ selected_variant.id }}">
                                     <button type="submit" class="btn-product btn-cart"><span>Add to cart</span></button>
                                 </div>
-                                
                                 <!-- ... (rest of the form remains unchanged) ... -->
                             </form>
-                                                            <div class="details-action-wrapper">
+                                <div class="details-action-wrapper">
                                     <form action="{% url 'add_wishlist' product.id %}" method="POST" id="wishlistForm">
                                         {% csrf_token %}
                                         <input type="hidden" name="variant_id" id="selectedVariantIdWishlist" value="{{ selected_variant.id }}">
@@ -300,7 +286,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="product-details-tab">
                 <ul class="nav nav-pills justify-content-center" role="tablist">
                     <li class="nav-item">
@@ -349,10 +334,7 @@
     </div>
 </main>
 {% endblock %}
-
 {% block extra_js %}
-
-
 <script>
     $(document).ready(function() {
 
@@ -374,7 +356,6 @@
         });
     });
 </script>
-
 <script src="{% static 'store-assets/assets/js/jquery.min.js' %}"></script>
 <script src="{% static 'store-assets/assets/js/bootstrap.bundle.min.js' %}"></script>
 <script src="{% static 'store-assets/assets/js/jquery.hoverIntent.min.js' %}"></script>
@@ -385,74 +366,105 @@
 <script src="{% static 'store-assets/assets/js/jquery.elevateZoom.min.js' %}"></script>
 <script src="{% static 'store-assets/assets/js/jquery.magnific-popup.min.js' %}"></script>
 <script src="{% static 'store-assets/assets/js/main.js' %}"></script>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/elevatezoom-plus/1.2.3/jquery.ez-plus.min.js"></script>
 <script>
     $(document).ready(function() {
-    // Image zoom
-    function initZoom() {
-        $('#product-zoom').elevateZoom({
-            zoomType: "inner",
-            cursor: "crosshair",
-            zoomWindowFadeIn: 500,
-            zoomWindowFadeOut: 750,
-            gallery: 'product-zoom-gallery',
-            galleryActiveClass: 'active'
-        });
-    }
+        var $productZoom = $('#product-zoom');
+        var $productGallery = $('#product-zoom-gallery');
 
-    initZoom();
+        function initZoom() {
+            try {
+                // Destroy existing zoom
+                var zoomInstance = $productZoom.data('elevateZoom');
+                if (zoomInstance) {
+                    zoomInstance.destroy();
+                }
 
-    // Image gallery
-    $('#product-zoom-gallery').on('click', 'a', function(e) {
-        e.preventDefault();
-        var $this = $(this);
-        var imageUrl = $this.attr('data-image');
-        var zoomImageUrl = $this.attr('data-zoom-image');
+                // Remove any existing zoom container
+                $('.zoomContainer').remove();
 
-        $('#product-zoom')
-            .attr('src', imageUrl)
-            .attr('data-zoom-image', zoomImageUrl);
+                // Initialize new zoom
+                $productZoom.elevateZoom({
+                    zoomType: "lens",
+                    lensShape: "round",
+                    lensSize: 200,
+                    lensFadeIn: 500,
+                    lensFadeOut: 500,
+                    borderSize: 2,
+                    borderColour: "#888",
+                    cursor: "crosshair",
+                    galleryActiveClass: "active",
+                    zoomWindowFadeIn: 500,
+                    zoomWindowFadeOut: 750,
+                    zoomWindowPosition: 1,
+                    zoomWindowOffsetX: 10,
+                    zoomWindowHeight: 400,
+                    zoomWindowWidth: 400,
+                    responsive: true,
+                    scrollZoom: true
+                });
 
-        $('.zoomContainer').remove();
+                console.log('Enhanced zoom initialized successfully');
+            } catch (error) {
+                console.error('Error initializing enhanced zoom:', error);
+            }
+        }
+        // Initial zoom setup
         initZoom();
 
-        $this.siblings().removeClass('active');
-        $this.addClass('active');
-    });
+        // Image gallery
+        $productGallery.on('click', 'a', function(e) {
+            e.preventDefault();
+            var $this = $(this);
+            var imageUrl = $this.attr('data-image');
+            var zoomImageUrl = $this.attr('data-zoom-image');
 
-    // Magnific popup for image zoom
-    $('.product-gallery').magnificPopup({
-        delegate: 'a',
-        type: 'image',
-        gallery: {
-            enabled: true
-        }
-    });
+            $productZoom
+                .attr('src', imageUrl)
+                .attr('data-zoom-image', zoomImageUrl);
+
+            // Reinitialize zoom for the new image
+            initZoom();
+
+            $this.siblings().removeClass('active');
+            $this.addClass('active');
+        });
+
+        // Magnific popup for fullscreen view
+        $('.product-gallery').magnificPopup({
+            delegate: 'a',
+            type: 'image',
+            gallery: {
+                enabled: true,
+                navigateByImgClick: true,
+                preload: [0,1]
+            },
+            image: {
+                tError: '<a href="%url%">The image #%curr%</a> could not be loaded.',
+                titleSrc: function(item) {
+                    return item.el.attr('title') || '';
+                }
+            },
+            zoom: {
+                enabled: true,
+                duration: 300
+            }
+        });
+
+        // Handle window resize
+        $(window).on('resize', function() {
+            initZoom();
+        });
+
+        // Log when images are fully loaded
+        $productZoom.on('load', function() {
+            console.log('Main product image loaded');
+            initZoom(); // Reinitialize zoom when main image loads
+        });
+
+        $productGallery.find('img').on('load', function() {
+            console.log('Gallery image loaded:', $(this).attr('src'));
+        });
     });
 </script>
 {% endblock %}
-
-        {% comment %} // Image zoom
-        $('#product-zoom').elevateZoom({
-            zoomType: "lens",
-            lensShape: "round",
-            lensSize: 200,
-            easing: true,
-            gallery: 'product-zoom-gallery',
-            cursor: 'pointer',
-            galleryActiveClass: 'active',
-            imageCrossfade: true
-        });
-
-        // Image gallery zooming
-        $('#product-zoom-gallery a').each(function() {
-            var imgSrc = $(this).data('image');
-            $(this).on('click', function() {
-                $.magnificPopup.open({
-                    items: {
-                        src: imgSrc
-                    },
-                    type: 'image'
-                });
-            });
-        }); {% endcomment %}
