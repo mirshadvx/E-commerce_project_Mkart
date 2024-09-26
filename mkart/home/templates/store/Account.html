@@ -353,7 +353,7 @@
                             </div>
 
                             <div class="tab-pane fade" id="tab-account" role="tabpanel" aria-labelledby="tab-account-link">
-                                <form action="{% url 'edit_details' %}" method="POST">
+                                {% comment %} <form action="{% url 'edit_details' %}" method="POST">
                                     {% csrf_token %}
                                     <div class="row">
                                         <div class="col-sm-6">
@@ -367,10 +367,6 @@
                                     </div>
                                     <div class="row">
                                         <div class="col-sm-6">
-                                            <label>Email address</label>
-                                            <input type="email" name="email" class="form-control" value="{{ user.email }}" required>
-                                        </div>
-                                        <div class="col-sm-6">
                                             <label>Phone number</label>
                                             <input type="text" name="phone_number" class="form-control" value="{{ profile.phone }}" required>
                                         </div>
@@ -379,7 +375,47 @@
                                         <span>SAVE CHANGES</span>
                                         <i class="icon-long-arrow-right"></i>
                                     </button>
-                                </form>
+                                </form> {% endcomment %}
+
+<form action="{% url 'edit_details' %}" method="POST">
+    {% csrf_token %}
+    <div class="row">
+        <div class="col-sm-6">
+            <label>User name</label>
+            <input type="text" name="username" class="form-control" value="{{ user.username }}" required>
+        </div>
+        <div class="col-sm-6">
+            <label>Last Name</label>
+            <input type="text" name="last_name" class="form-control" value="{{ user.last_name }}" required>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-6">
+            <label>Phone number</label>
+            <input type="text" name="phone_number" class="form-control" value="{{ profile.phone }}" required>
+        </div>
+    </div>
+    <!-- Password fields -->
+    <div class="row">
+        <div class="col-sm-6">
+            <label>Current Password</label>
+            <input type="password" name="current_password" class="form-control">
+        </div>
+        <div class="col-sm-6">
+            <label>New Password</label>
+            <input type="password" name="new_password" class="form-control">
+        </div>
+        <div class="col-sm-6">
+            <label>Confirm New Password</label>
+            <input type="password" name="confirm_new_password" class="form-control">
+        </div>
+    </div>
+    <button type="submit" class="btn btn-outline-primary-2 mt-3">
+        <span>SAVE CHANGES</span>
+        <i class="icon-long-arrow-right"></i>
+    </button>
+</form>
+
                                 <div class="card card-dashboard mt-5">
                                     <div class="card-body">
                                         <h3 class="card-title">Your Referral Code</h3>
@@ -409,7 +445,6 @@
     </div>
 </main>                            
 
-
 <div class="col-lg-9">
     <div id="myModal" class="modal">
         <div class="modal-content">
@@ -419,73 +454,61 @@
                 <div class="row">
                     <div class="col-sm-6">
                         <label>First Name *</label>
-                        <input type="text" name="full_name" class="form-control" >
+                        <input type="text" name="full_name" class="form-control" required>
                         <span class="error" id="full_name_error"></span>
                     </div>
-
                     <div class="col-sm-6">
                         <label>Last Name *</label>
-                        <input type="text" name="last_name" class="form-control" >
+                        <input type="text" name="last_name" class="form-control" required>
                         <span class="error" id="last_name_error"></span>
                     </div>
                 </div>
-
                 <label>Address line 1 *</label>
-                <input type="text" name="address_line_1" class="form-control" >
+                <input type="text" name="address_line_1" class="form-control" required>
                 <span class="error" id="address_line_1_error"></span>
-
                 <label>Address line 2</label>
                 <input type="text" name="address_line_2" class="form-control">
                 <span class="error" id="address_line_2_error"></span>
-
                 <div class="row">
                     <div class="col-sm-6">
                         <label>City *</label>
-                        <input type="text" name="city" class="form-control" >
+                        <input type="text" name="city" class="form-control" required>
                         <span class="error" id="city_error"></span>
                     </div>
-
                     <div class="col-sm-6">
                         <label>State *</label>
-                        <input type="text" name="state" class="form-control" >
+                        <input type="text" name="state" class="form-control" required>
                         <span class="error" id="state_error"></span>
                     </div>
                 </div>
-
                 <div class="row">
                     <div class="col-sm-6">
                         <label>Postal Code *</label>
-                        <input type="text" name="postal_code" class="form-control">
+                        <input type="text" name="postal_code" class="form-control" required>
                         <span class="error" id="postal_code_error"></span>
                     </div>
-
                     <div class="col-sm-6">
                         <label>Country *</label>
-                        <input type="text" name="country" class="form-control" >
+                        <input type="text" name="country" class="form-control" required>
                         <span class="error" id="country_error"></span>
                     </div>
                 </div>
-
                 <div class="row">
                     <div class="col-sm-6">
                         <label>Phone Number *</label>
-                        <input type="text" name="phone_number" class="form-control">
+                        <input type="tel" name="phone_number" class="form-control" required>
                         <span class="error" id="phone_number_error"></span>
                     </div>
-
                     <div class="col-sm-6">
                         <label>Email Address *</label>
-                        <input type="text" name="email" class="form-control">
-                        <span class="error" id="email_error" style="color: red;"></span> <!-- Error message display -->
+                        <input type="email" name="email" class="form-control" required>
+                        <span class="error" id="email_error"></span>
                     </div>
-
                 </div>
-
                 <div class="custom-control custom-checkbox">
                     <input type="checkbox" class="custom-control-input" id="default-address" name="is_default">
                     <label class="custom-control-label" for="default-address">Default Address</label>
                 </div>
-
                 <button type="submit" class="btn btn-outline-primary-2">
                     <span>Save</span>
                     <i class="icon-long-arrow-right"></i>
@@ -519,187 +542,238 @@
     </script>
 
 <script>
+    $(document).ready(function() {
+        // Validation rules with custom validators
+        const validationRules = {
+            full_name: {
+                required: true,
+                validator: (value) => /^[a-zA-Z\s]{2,50}$/.test(value),
+                message: 'First name must be 2-50 characters long and contain only letters.'
+            },
+            last_name: {
+                required: true,
+                validator: (value) => /^[a-zA-Z\s]{2,50}$/.test(value),
+                message: 'Last name must be 2-50 characters long and contain only letters.'
+            },
+            address_line_1: {
+                required: true,
+                validator: (value) => /^[a-zA-Z0-9\s,'-]{5,100}$/.test(value),
+                message: 'Address must be 5-100 characters long and may include letters, numbers, spaces, commas, apostrophes, and hyphens.'
+            },
+            address_line_2: {
+                required: false,
+                validator: (value) => value === '' || /^[a-zA-Z0-9\s,'-]{0,100}$/.test(value),
+                message: 'Address line 2 may include up to 100 characters with letters, numbers, spaces, commas, apostrophes, and hyphens.'
+            },
+            city: {
+                required: true,
+                validator: (value) => /^[a-zA-Z\s]{2,50}$/.test(value),
+                message: 'City must be 2-50 characters long and contain only letters.'
+            },
+            state: {
+                required: true,
+                validator: (value) => /^[a-zA-Z\s]{2,50}$/.test(value),
+                message: 'State must be 2-50 characters long and contain only letters.'
+            },
+            postal_code: {
+                required: true,
+                validator: (value) => /^[0-9]{6}$/.test(value),
+                message: 'Postal code must be exactly 6 digits.'
+            },
+            country: {
+                required: true,
+                validator: (value) => /^[a-zA-Z\s]{2,50}$/.test(value),
+                message: 'Country must be 2-50 characters long and contain only letters.'
+            },
+            email: {
+                required: true,
+                validator: (value) => /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/.test(value),
+                message: 'Please enter a valid email address.'
+            },
+            phone_number: {
+                required: true,
+                validator: (value) => /^(\+\d{1,3}[- ]?)?\d{10}$/.test(value),
+                message: 'Please enter a valid 10-digit phone number, optionally starting with a country code.'
+            }
+        };
 
-        // Modal-related scripts
-        var modal = document.getElementById("myModal");
-        var btn = document.getElementById("myBtn");
-        var span = document.getElementsByClassName("close")[0];
-        btn.onclick = function() {
-            modal.style.display = "block";
+        // Form validation class
+        class FormValidator {
+            constructor(form, rules) {
+                this.form = form;
+                this.rules = rules;
+                this.errors = {};
+                this.isValid = true;
+            }
+
+            validateField(fieldName, value) {
+                const rule = this.rules[fieldName];
+                if (!rule) return true;
+
+                if (rule.required && value.trim() === '') {
+                    this.errors[fieldName] = `${fieldName.replace('_', ' ')} is required.`;
+                    return false;
+                }
+
+                if (value.trim() !== '' && rule.validator && !rule.validator(value)) {
+                    this.errors[fieldName] = rule.message;
+                    return false;
+                }
+
+                return true;
+            }
+
+            validateForm() {
+                this.errors = {};
+                this.isValid = true;
+
+                for (const fieldName in this.rules) {
+                    const field = this.form.elements[fieldName];
+                    if (field) {
+                        const isFieldValid = this.validateField(fieldName, field.value);
+                        if (!isFieldValid) {
+                            this.isValid = false;
+                        }
+                    }
+                }
+
+                this.displayErrors();
+                return this.isValid;
+            }
+
+            displayErrors() {
+                // Clear all existing error messages
+                document.querySelectorAll('.error').forEach(el => el.innerText = '');
+
+                // Display new error messages
+                for (const fieldName in this.errors) {
+                    const errorElement = document.getElementById(`${fieldName}_error`);
+                    if (errorElement) {
+                        errorElement.innerText = this.errors[fieldName];
+                    }
+                }
+            }
         }
-        span.onclick = function() {
-            modal.style.display = "none";
-        }
-        window.onclick = function(event) {
+
+        // Modal functionality
+        const modal = document.getElementById("myModal");
+        const btn = document.getElementById("myBtn");
+        const span = document.getElementsByClassName("close")[0];
+
+        btn.onclick = () => modal.style.display = "block";
+        span.onclick = () => modal.style.display = "none";
+        window.onclick = (event) => {
             if (event.target == modal) {
                 modal.style.display = "none";
             }
-        }
+        };
 
-
-        document.getElementById('addressForm').onsubmit = function(e) {
-        let isValid = true;
-
-        // Clear previous error messages
-        const errorElements = document.querySelectorAll('.error');
-        errorElements.forEach(function(element) {
-            element.innerText = '';
+        // Form submission handler
+        $('#addressForm').submit(function(e) {
+            e.preventDefault();
+            
+            const validator = new FormValidator(this, validationRules);
+            if (validator.validateForm()) {
+                // If the form is valid, submit it
+                this.submit();
+            }
         });
 
-        // Regex to check if input contains numbers or special characters
-        const invalidPattern = /[^a-zA-Z\s]/;
+        // Delete address functionality
+        $('.delete-address').click(function() {
+            var addressId = $(this).data('address-id');
+            var addressCard = $(this).closest('.col-lg-6');
 
-        // Validate First Name (no numbers or special characters allowed)
-        const firstName = document.getElementsByName('full_name')[0].value.trim();
-        if (firstName === '') {
-            document.getElementById('full_name_error').innerText = 'First name is required.';
-            isValid = false;
-        } else if (invalidPattern.test(firstName)) {
-            document.getElementById('full_name_error').innerText = 'First name cannot contain numbers or special characters.';
-            isValid = false;
-        }
-
-        // Validate Last Name (no numbers or special characters allowed)
-        const lastName = document.getElementsByName('last_name')[0].value.trim();
-        if (lastName === '') {
-            document.getElementById('last_name_error').innerText = 'Last name is required.';
-            isValid = false;
-        } else if (invalidPattern.test(lastName)) {
-            document.getElementById('last_name_error').innerText = 'Last name cannot contain numbers or special characters.';
-            isValid = false;
-        }
-
-        // Validate Address Line 1 (no special characters allowed)
-        const addressLine1 = document.getElementsByName('address_line_1')[0].value.trim();
-        if (addressLine1 === '') {
-            document.getElementById('address_line_1_error').innerText = 'Address line 1 is required.';
-            isValid = false;
-        } else if (invalidPattern.test(addressLine1)) {
-            document.getElementById('address_line_1_error').innerText = 'Address line 1 cannot contain special characters.';
-            isValid = false;
-        }
-
-        // Validate Address Line 2 (no special characters allowed, but this field is optional)
-        const addressLine2 = document.getElementsByName('address_line_2')[0].value.trim();
-        if (addressLine2 !== '' && invalidPattern.test(addressLine2)) {
-            document.getElementById('address_line_2_error').innerText = 'Address line 2 cannot contain special characters.';
-            isValid = false;
-        }
-
-        // Validate City (no numbers or special characters allowed)
-        const city = document.getElementsByName('city')[0].value.trim();
-        if (city === '') {
-            document.getElementById('city_error').innerText = 'City is required.';
-            isValid = false;
-        } else if (invalidPattern.test(city)) {
-            document.getElementById('city_error').innerText = 'City cannot contain numbers or special characters.';
-            isValid = false;
-        }
-
-        // Validate State (no numbers or special characters allowed)
-        const state = document.getElementsByName('state')[0].value.trim();
-        if (state === '') {
-            document.getElementById('state_error').innerText = 'State is required.';
-            isValid = false;
-        } else if (invalidPattern.test(state)) {
-            document.getElementById('state_error').innerText = 'State cannot contain numbers or special characters.';
-            isValid = false;
-        }
-
-        // Validate Postal Code (6-digit number)
-        const postalCode = document.getElementsByName('postal_code')[0].value.trim();
-        const postalCodePattern = /^[0-9]{6}$/;
-        if (!postalCodePattern.test(postalCode)) {
-            document.getElementById('postal_code_error').innerText = 'Postal code must be a 6-digit number.';
-            isValid = false;
-        }
-
-        // Validate Country (no numbers or special characters allowed)
-        const country = document.getElementsByName('country')[0].value.trim();
-        if (country === '') {
-            document.getElementById('country_error').innerText = 'Country is required.';
-            isValid = false;
-        } else if (invalidPattern.test(country)) {
-            document.getElementById('country_error').innerText = 'Country cannot contain numbers or special characters.';
-            isValid = false;
-        }
-        // Validate Email Address
-        const email = document.getElementsByName('email')[0].value.trim();
-        const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
-        if (email === '') {
-            document.getElementById('email_error').innerText = 'Email is required.';
-            isValid = false;
-        } 
-        else if (!emailPattern.test(email)) {
-            document.getElementById('email_error').innerText = 'Please enter a valid email address.';
-            isValid = false;
-        }
-        if (!isValid) {
-            e.preventDefault();
-        }
-        // Validate Phone Number (10-digit number)
-        const phoneNumber = document.getElementsByName('phone_number')[0].value.trim();
-        const phoneNumberPattern = /^[0-9]{10}$/;
-        if (phoneNumber === '') {
-            document.getElementById('phone_number_error').innerText = 'Phone number is required.'; // Error if phone number is empty
-            isValid = false;
-        } else if (!phoneNumberPattern.test(phoneNumber)) {
-            document.getElementById('phone_number_error').innerText = 'Phone number must be a 10-digit number.'; // Error if phone number is not valid
-            isValid = false;
-        } else {
-            document.getElementById('phone_number_error').innerText = ''; // Clear error if phone number is valid
-        }
-    }
-
-
-$(document).ready(function() {
-    $('.delete-address').click(function() {
-        var addressId = $(this).data('address-id');
-        var addressCard = $(this).closest('.col-lg-6');
-
-        // SweetAlert for confirmation
-        Swal.fire({
-            title: 'Are you sure?',
-            text: "You won't be able to revert this!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes, delete it!',
-            cancelButtonText: 'Cancel'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                $.ajax({
-                    url: '/delete_address/' + addressId + '/',
-                    method: 'POST',
-                    headers: {'X-CSRFToken': '{{ csrf_token }}'},
-                    success: function(response) {
-                        if (response.status === 'success') {
-                            addressCard.fadeOut(300, function() { $(this).remove(); });
-                            Swal.fire(
-                                'Deleted!',
-                                response.message,
-                                'success'
-                            );
-                        } else {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, delete it!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '/delete_address/' + addressId + '/',
+                        method: 'POST',
+                        headers: {'X-CSRFToken': '{{ csrf_token }}'},
+                        success: function(response) {
+                            if (response.status === 'success') {
+                                addressCard.fadeOut(300, function() { $(this).remove(); });
+                                Swal.fire(
+                                    'Deleted!',
+                                    response.message,
+                                    'success'
+                                );
+                            } else {
+                                Swal.fire(
+                                    'Error!',
+                                    'Error: ' + response.message,
+                                    'error'
+                                );
+                            }
+                        },
+                        error: function() {
                             Swal.fire(
                                 'Error!',
-                                'Error: ' + response.message,
+                                'An error occurred while trying to delete the address.',
                                 'error'
                             );
                         }
-                    },
-                    error: function() {
-                        Swal.fire(
-                            'Error!',
-                            'An error occurred while trying to delete the address.',
-                            'error'
-                        );
-                    }
-                });
-            }
+                    });
+                }
+            });
+        });
+
+        // Delete address functionality
+        $('.delete-address').click(function() {
+            var addressId = $(this).data('address-id');
+            var addressCard = $(this).closest('.col-lg-6');
+    
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, delete it!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '/delete_address/' + addressId + '/',
+                        method: 'POST',
+                        headers: {'X-CSRFToken': '{{ csrf_token }}'},
+                        success: function(response) {
+                            if (response.status === 'success') {
+                                addressCard.fadeOut(300, function() { $(this).remove(); });
+                                Swal.fire(
+                                    'Deleted!',
+                                    response.message,
+                                    'success'
+                                );
+                            } else {
+                                Swal.fire(
+                                    'Error!',
+                                    'Error: ' + response.message,
+                                    'error'
+                                );
+                            }
+                        },
+                        error: function() {
+                            Swal.fire(
+                                'Error!',
+                                'An error occurred while trying to delete the address.',
+                                'error'
+                            );
+                        }
+                    });
+                }
+            });
         });
     });
-});
 </script>
 {% endblock  %}

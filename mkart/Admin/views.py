@@ -832,6 +832,7 @@ def get_filtered_sales_data(request):
             Case(
                 When(
                     ordered_items__item_status='cancelled',
+                    payment_status='paid',
                     then=F('ordered_items__price') * F('ordered_items__quantity') - F('ordered_items__orderItem_coupon_discount')
                 ),
                 default=Value(0),

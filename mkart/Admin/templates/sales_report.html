@@ -230,7 +230,7 @@ $(document).ready(function() {
         });
 
         doc.autoTable({
-            head: [['Date', 'Order ID', 'Payment', 'Customer', 'Total Price', 'Coupon', 'Discount', 'Status', 'Items', 'Total Discount']],
+            head: [['Date', 'Order ID', 'Payment', 'Customer', 'Total Price', 'Coupon', 'Discount', 'Status', 'Items', 'Refunded Amount']],
             body: tableData,
             startY: 50,
             theme: 'grid',
@@ -247,10 +247,10 @@ $(document).ready(function() {
                 3: {cellWidth: 25},
                 4: {cellWidth: 15},
                 5: {cellWidth: 15},
-                6: {cellWidth: 15},
+                6: {cellWidth: 16},
                 7: {cellWidth: 20},
                 8: {cellWidth: 15},
-                9: {cellWidth: 15}
+                9: {cellWidth: 25}
             },
             headStyles: {
                 fillColor: [66, 135, 245],

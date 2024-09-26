@@ -1432,44 +1432,81 @@ def download_invoice(request, item_id):
  
     return HttpResponse("Error generating PDF", status=400)
 
+from django.contrib.auth import update_session_auth_hash
+
 @never_cache
 @require_POST
+@login_required
 def edit_details(request):
     user = request.user
-    profile = Profile.objects.get(user=user)
-
-    username = request.POST.get('username')
-    last_name = request.POST.get('last_name')
-    email = request.POST.get('email')
-    phone_number = request.POST.get('phone_number')
-    current_password = request.POST.get('current_password')
-    new_password = request.POST.get('new_password')
-    confirm_new_password = request.POST.get('confirm_new_password')
     
-    user.username = username
-    user.last_name = last_name
-    user.email = email
-    user.save()
+    try:
+        profile = Profile.objects.get(user=user)
+    except Profile.DoesNotExist:
+        messages.error(request, 'Profile does not exist.')
+        return redirect('home')
     
-    profile.phone = phone_number
-    profile.save()
-    
-    if current_password and new_password and confirm_new_password:
-        if user.check_password(current_password):
-            if new_password == confirm_new_password:
-                user.set_password(new_password)
-                user.save()
-                update_session_auth_hash(request, user) 
-                messages.success(request, 'Your password was successfully updated!')
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        last_name = request.POST.get('last_name')
+        phone_number = request.POST.get('phone_number')
+        current_password = request.POST.get('current_password')
+        new_password = request.POST.get('new_password')
+        confirm_new_password = request.POST.get('confirm_new_password')
+        
+        if not username or not last_name:
+            messages.error(request, 'Username and last name are required.')
+            return redirect(request.META.get('HTTP_REFERER', 'home'))
+        
+        user.username = username
+        user.last_name = last_name
+        user.save()
+        
+        if phone_number:
+            if not phone_number.isdigit():
+                messages.error(request, 'Phone number must contain only digits.')
+                return redirect(request.META.get('HTTP_REFERER', 'home'))
+            elif len(phone_number) != 10:
+                messages.error(request, 'Phone number must be 10 digits long.')
+                return redirect(request.META.get('HTTP_REFERER', 'home'))
             else:
+                profile.phone = phone_number
+                profile.save()
+
+        if current_password and new_password and confirm_new_password:
+            if not user.check_password(current_password):
+                messages.error(request, 'Current password is incorrect.')
+                return redirect(request.META.get('HTTP_REFERER', 'home'))
+            
+            if len(new_password) < 8:
+                messages.error(request, 'New password must be at least 8 characters long.')
+                return redirect(request.META.get('HTTP_REFERER', 'home'))
+            if not re.search(r'[A-Z]', new_password):
+                messages.error(request, 'New password must contain at least one uppercase letter.')
+                return redirect(request.META.get('HTTP_REFERER', 'home'))
+            if not re.search(r'[a-z]', new_password):
+                messages.error(request, 'New password must contain at least one lowercase letter.')
+                return redirect(request.META.get('HTTP_REFERER', 'home'))
+            if not re.search(r'[0-9]', new_password):
+                messages.error(request, 'New password must contain at least one number.')
+                return redirect(request.META.get('HTTP_REFERER', 'home'))
+            if not re.search(r'[\W_]', new_password): 
+                messages.error(request, 'New password must contain at least one special character.')
+                return redirect(request.META.get('HTTP_REFERER', 'home'))
+
+            if new_password != confirm_new_password:
                 messages.error(request, 'New passwords do not match.')
-        else:
-            messages.error(request, 'Current password is incorrect.')
+                return redirect(request.META.get('HTTP_REFERER', 'home'))
 
-    messages.success(request, 'Your profile was successfully updated!')
+            user.set_password(new_password)
+            user.save()
+            update_session_auth_hash(request, user)
+            messages.success(request, 'Your password was successfully updated!')
+
+        messages.success(request, 'Your profile was successfully updated!')
+        return redirect(request.META.get('HTTP_REFERER', 'home'))
     
-    return redirect(request.META.get('HTTP_REFERER', 'home'))
-
+    return redirect('home')
 
 @require_POST
 @transaction.atomic
