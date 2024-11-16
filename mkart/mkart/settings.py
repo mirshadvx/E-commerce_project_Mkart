@@ -1,3 +1,5 @@
+import dj_database_url
+
 import os
 from dotenv import load_dotenv
 from pathlib import Path
@@ -102,6 +104,9 @@ DATABASES = {
         'PORT': '5432',
     }
 }
+
+database_url = os.environ.get('DATABASE_URL')
+DATABASES['default'] = dj_database_url.parse(database_url)
 
 AUTH_PASSWORD_VALIDATORS = [
     {
