@@ -123,7 +123,6 @@
                     {% elif variant.image_3 %}
                         <img class="product-image" src="{{ variant.image_3.url }}" alt="{{ product.name }}" />
                     {% else %}
-                        <!-- Placeholder or leave blank if no images are available -->
                         <img class="product-image" src="{% static 'path/to/placeholder.png' %}" alt="No image available" />
                     {% endif %}
                 {% endwith %}

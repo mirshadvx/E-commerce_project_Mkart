@@ -14,7 +14,7 @@
     <meta name="robots" content="noindex, nofollow">
     <title>Dreams Pos admin template</title>
 
-    <link rel="shortcut icon" type="image/x-icon" href="admin-assets/img/favicon.jpg">
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'admin-assets/img/favicon.jpg' %}">
 
     <link rel="stylesheet" href="{% static 'admin-assets/css/bootstrap.min.css' %}">
 
@@ -254,7 +254,7 @@
                                 <li><a href="productlist.html">Product List</a></li>
                                 <li><a href="addproduct.html">Add Product</a></li>
                                 <li><a href="categorylist.html">Category List</a></li>
-                                <li><a href="addcategory.html">Add Category</a></li>
+                                <li><a href="{% url 'addCategory' %}">Add Category</a></li>
                                 <li><a href="subcategorylist.html">Sub Category List</a></li>
                                 <li><a href="subaddcategory.html">Add Sub Category</a></li>
                                 <li><a href="brandlist.html">Brand List</a></li>

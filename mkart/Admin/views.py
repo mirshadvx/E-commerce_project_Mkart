@@ -339,6 +339,32 @@ def products_list(request):
     return render(request, 'productsList.html', {'products': products, 'offers': offers})
 
 
+@never_cache
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def product_details(request, product_id):
+    product = get_object_or_404(
+        Product.objects.prefetch_related(
+            'variants',
+            'variants__color'
+        ).select_related(
+            'offer',
+            'category',
+            'brand',
+            'gender'
+        ),
+        id=product_id
+    )
+    
+    context = {
+        'product': product,
+        'variants': product.variants.all(),
+    }
+    
+    return render(request, 'productDetails.html', context)
+
+
+
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
 @require_POST
@@ -813,8 +839,11 @@ def get_filtered_sales_data(request):
         start_date = timezone.datetime.strptime(start_date, '%Y-%m-%d').date()
         end_date = timezone.datetime.strptime(end_date, '%Y-%m-%d').date() + timedelta(days=1)
     else:
-        earliest_order = Order.objects.earliest('created_at')
-        start_date = earliest_order.created_at.date() if earliest_order else now.date()
+        try:
+            earliest_order = Order.objects.earliest('created_at')
+            start_date = earliest_order.created_at.date()
+        except Order.DoesNotExist:
+            start_date = now.date()
         end_date = now.date() + timedelta(days=1)
     
     start_date = timezone.make_aware(timezone.datetime.combine(start_date, timezone.datetime.min.time()))

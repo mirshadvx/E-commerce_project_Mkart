@@ -11,8 +11,6 @@
         <meta name="description" content="timexo - Bootstrap eCommerce Template" />
         <meta name="author" content="p-themes" />
         <!-- Favicon -->
-        {% block extra_style %}
-        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         <link rel="apple-touch-icon" sizes="180x180" href="store-assets/assets/images/icons/apple-touch-icon.png" />
         <link rel="mask-icon" href="store-assets/assets/images/icons/safari-pinned-tab.svg" color="#666666" />
         <meta name="apple-mobile-web-app-title" content="timexo" />
@@ -20,14 +18,16 @@
         <meta name="msapplication-TileColor" content="#cc9966" />
         <meta name="msapplication-config" content="store-assets/assets/images/icons/browserconfig.xml" />
         <meta name="theme-color" content="#ffffff" />
-        <!-- Plugins CSS File -->
+        
+        <!-- Core CSS - Always loaded -->
         <link rel="stylesheet" href="{% static 'store-assets/assets/css/bootstrap.min.css' %}" />
         <link rel="stylesheet" href="{% static 'store-assets/assets/css/plugins/owl-carousel/owl.carousel.css' %}" />
         <link rel="stylesheet" href="{% static 'store-assets/assets/css/plugins/magnific-popup/magnific-popup.css' %}" />
-        <!-- Main CSS File -->
         <link rel="stylesheet" href="{% static 'store-assets/assets/css/style.css' %}" />
-
-        {% endblock %}
+        
+        <!-- Extra styles for child templates -->
+        {% block extra_style %}{% endblock %}
+        
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     </head>
 
