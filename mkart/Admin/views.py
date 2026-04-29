@@ -35,6 +35,26 @@ from django.views.decorators.cache import never_cache
 from django.db.models import Sum, F, Count, DecimalField, Case, When, Value , Q
 from django.db.models.functions import Coalesce
 from django.db import transaction
+import cloudinary.uploader
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+def _cloudinary_public_id(image_field):
+    return getattr(image_field, 'public_id', None) or str(image_field)
+
+
+def _delete_cloudinary_image(image_field):
+    if not image_field:
+        return
+    public_id = _cloudinary_public_id(image_field)
+    if not public_id:
+        return
+    try:
+        cloudinary.uploader.destroy(public_id, resource_type='image')
+    except Exception as exc:
+        logger.warning("Cloudinary delete failed for %s: %s", public_id, exc)
 
 
 @never_cache
@@ -179,77 +199,149 @@ def delete_brand(request):
         return JsonResponse({'success': True})
     except Brand.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'Brand not found.'})
+    
 
 @never_cache
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
 def edit_product(request, product_id):
-    product = get_object_or_404(Product, id=product_id)
-    variants = product.variants.all()
-
+    product  = get_object_or_404(Product, id=product_id)
+    variants = product.variants.select_related('color').all()
+ 
     if request.method == 'POST':
-        product.name = request.POST.get('name')
-        product.gender = get_object_or_404(Gender, id=request.POST.get('gender'))
-        product.category = get_object_or_404(Category, id=request.POST.get('category'))
-        product.brand = get_object_or_404(Brand, id=request.POST.get('brand'))
-        product.description = request.POST.get('description')
-        product.save()
-
-        for variant in variants:
-            variant.color = get_object_or_404(Color, id=request.POST.get(f'variant_color_{variant.id}'))
-            variant.price = request.POST.get(f'variant_price_{variant.id}')
-            variant.stock = request.POST.get(f'variant_stock_{variant.id}')
-            variant.is_available = request.POST.get(f'variant_is_available_{variant.id}') == 'True'
-
-            for i in range(1, 4):
-                delete_key = f'delete_image_{variant.id}_{i}'
-                new_image_key = f'new_image_{variant.id}_{i}'
-                
-                if delete_key in request.POST:
-                    image_field = getattr(variant, f'image_{i}')
-                    if image_field:
-                        image_field.delete()
-                        setattr(variant, f'image_{i}', None)
-                
-                if new_image_key in request.POST:
-                    cropped_image = request.POST.get(new_image_key)
-                    if cropped_image:
-                        format, imgstr = cropped_image.split(';base64,')
-                        ext = format.split('/')[-1]
-                        filename = f'product_{product.id}_variant_{variant.id}_image_{i}.{ext}'
-                        image_content = ContentFile(base64.b64decode(imgstr))
-                        getattr(variant, f'image_{i}').save(filename, image_content, save=False)
-
-            variant.save()
-
-        return redirect('productlist')
-
+        try:
+            with transaction.atomic():
+ 
+                product.name        = request.POST.get('name', '').strip()
+                product.gender      = get_object_or_404(Gender,   id=request.POST.get('gender'))
+                product.category    = get_object_or_404(Category, id=request.POST.get('category'))
+                product.brand       = get_object_or_404(Brand,    id=request.POST.get('brand'))
+                product.description = request.POST.get('description', '').strip()
+                product.save()
+ 
+                for variant in variants:
+                    vid = variant.id
+ 
+                    color_id = request.POST.get(f'variant_color_{vid}')
+                    if color_id:
+                        variant.color = get_object_or_404(Color, id=color_id)
+ 
+                    variant.price        = request.POST.get(f'variant_price_{vid}')
+                    variant.stock        = request.POST.get(f'variant_stock_{vid}')
+                    variant.is_available = request.POST.get(f'variant_is_available_{vid}') == 'True'
+ 
+                    for slot in range(1, 4):
+                        image_attr    = f'image_{slot}'
+                        delete_value  = request.POST.get(f'delete_image_{vid}_{slot}', '').strip()
+                        cropped_image = request.POST.get(f'new_image_{vid}_{slot}',    '').strip()
+                        existing      = getattr(variant, image_attr)
+ 
+                        if delete_value == 'true' and existing and not cropped_image:
+                            try:
+                                cloudinary.uploader.destroy(
+                                    str(existing), resource_type='image'
+                                )
+                                logger.info("Deleted Cloudinary image: %s", existing)
+                            except Exception as exc:
+                                logger.warning(
+                                    "Cloudinary delete failed for %s: %s", existing, exc
+                                )
+                            setattr(variant, image_attr, None)
+ 
+                        if cropped_image:
+                            if not cropped_image.startswith('data:image'):
+                                messages.warning(
+                                    request,
+                                    f"Image slot {slot} for variant {vid} was skipped (invalid data)."
+                                )
+                                continue
+ 
+                            if existing:
+                                try:
+                                    cloudinary.uploader.destroy(
+                                        str(existing), resource_type='image'
+                                    )
+                                except Exception as exc:
+                                    logger.warning(
+                                        "Could not delete old image %s before replace: %s",
+                                        existing, exc
+                                    )
+ 
+                            try:
+                                result    = cloudinary.uploader.upload(
+                                    cropped_image,
+                                    folder        = 'products',
+                                    resource_type = 'image',
+                                )
+                                public_id = result.get('public_id')
+                                if public_id:
+                                    setattr(variant, image_attr, public_id)
+                                    logger.info(
+                                        "Uploaded new image to %s for variant %s slot %s",
+                                        public_id, vid, slot
+                                    )
+                            except Exception as exc:
+                                logger.exception(
+                                    "Cloudinary upload failed for variant %s slot %s", vid, slot
+                                )
+                                messages.warning(
+                                    request,
+                                    f"Image {slot} (variant {vid}) failed to upload: {exc}"
+                                )
+ 
+                    variant.save()
+ 
+            messages.success(request, "Product updated successfully.")
+            return redirect('productlist')
+ 
+        except Exception as exc:
+            logger.exception("Product update failed for product_id=%s", product_id)
+            messages.error(request, f"Product update failed: {exc}")
+ 
     context = {
-        'product': product,
-        'variants': variants,
-        'genders': Gender.objects.all(),
+        'product':    product,
+        'variants':   variants,
+        'genders':    Gender.objects.all(),
         'categories': Category.objects.all(),
-        'brands': Brand.objects.all(),
-        'colors': Color.objects.all(),
+        'brands':     Brand.objects.all(),
+        'colors':     Color.objects.all(),
     }
-
     return render(request, 'editProduct.html', context)
+ 
 
 @never_cache
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
 def add_product(request):
     if request.method == 'POST':
+        print("=" * 60)
+        print("ADD PRODUCT POST RECEIVED")
+        print("=" * 60)
+
         name = request.POST.get('name')
         gender_id = request.POST.get('gender')
         category_id = request.POST.get('category')
         brand_id = request.POST.get('brand')
         description = request.POST.get('description')
+        color_id = request.POST.get('color')
+        price = request.POST.get('price')
+        stock = request.POST.get('stock')
+        is_available = request.POST.get('is_available') == 'True'
 
-        gender = Gender.objects.get(id=gender_id)
-        category = Category.objects.get(id=category_id)
-        brand = Brand.objects.get(id=brand_id)
-        
+        for i in range(1, 4):
+            val = request.POST.get(f'cropped_image_{i}', '')
+            print(f"cropped_image_{i} length: {len(val)} | starts_with_data: {val.startswith('data:image') if val else False}")
+
+        try:
+            gender   = Gender.objects.get(id=gender_id)
+            category = Category.objects.get(id=category_id)
+            brand    = Brand.objects.get(id=brand_id)
+            color    = Color.objects.get(id=color_id)
+        except Exception as e:
+            print(f"FK lookup failed: {e}")
+            messages.error(request, f"Invalid selection: {e}")
+            return redirect('addProduct')
+
         base_slug = slugify(name)
         slug = base_slug
         counter = 1
@@ -259,58 +351,58 @@ def add_product(request):
 
         try:
             product = Product.objects.create(
-                name=name,
-                slug=slug,
-                gender=gender,
-                category=category,
-                brand=brand,
-                description=description,
+                name=name, slug=slug, gender=gender,
+                category=category, brand=brand, description=description,
             )
-        except IntegrityError:
+            print(f"Product created: id={product.id}, name={product.name}")
+        except IntegrityError as e:
+            print(f"Product creation IntegrityError: {e}")
             messages.error(request, "Error creating product. Please try again.")
-            return redirect('add_product')
+            return redirect('addProduct')
 
-
-        color_id = request.POST.get('color')
-        price = request.POST.get('price')
-        stock = request.POST.get('stock')
-        
-        is_available = request.POST.get('is_available') == 'True'
-
-        color = Color.objects.get(id=color_id)
-        variant = ProductVariant.objects.create(
-            product=product,
-            color=color,
-            price=price,
-            stock=stock,
-            is_available=is_available  
+        variant = ProductVariant(
+            product=product, color=color,
+            price=price, stock=stock, is_available=is_available,
         )
-
+        variant.save()
+        print(f"Variant created: id={variant.id}")
 
         for i in range(1, 4):
-            cropped_image_field = f'cropped_image_{i}'
-            image_data_url = request.POST.get(cropped_image_field)
-            if image_data_url:
-                format, imgstr = image_data_url.split(';base64,')
-                ext = format.split('/')[-1]
-                img_data = ContentFile(base64.b64decode(imgstr), name=f"{slug}_image_{i}.{ext}")
-
-                if i == 1:
-                    variant.image_1.save(f"{slug}_image_{i}.{ext}", img_data, save=False)
-                elif i == 2:
-                    variant.image_2.save(f"{slug}_image_{i}.{ext}", img_data, save=False)
-                elif i == 3:
-                    variant.image_3.save(f"{slug}_image_{i}.{ext}", img_data, save=False)
+            image_data_url = request.POST.get(f'cropped_image_{i}', '').strip()
+            if not image_data_url:
+                print(f"Image {i}: SKIPPED - empty")
+                continue
+            if not image_data_url.startswith('data:image'):
+                print(f"Image {i}: SKIPPED - not a valid data URL. Got: {image_data_url[:50]}")
+                continue
+            try:
+                print(f"Image {i}: Uploading to Cloudinary...")
+                upload_result = cloudinary.uploader.upload(
+                    image_data_url,
+                    folder='products',
+                    resource_type='image',
+                )
+                public_id = upload_result.get('public_id')
+                secure_url = upload_result.get('secure_url')
+                print(f"Image {i}: Upload SUCCESS | public_id={public_id} | url={secure_url}")
+                setattr(variant, f'image_{i}', public_id)
+            except Exception as e:
+                print(f"Image {i}: Cloudinary UPLOAD FAILED - {e}")
+                messages.warning(request, f"Image {i} failed to upload: {e}")
 
         variant.save()
+        print(f"Variant saved with images: image_1={variant.image_1}, image_2={variant.image_2}, image_3={variant.image_3}")
+        print("=" * 60)
 
+        messages.success(request, "Product added successfully!")
         return redirect(reverse('productlist'))
+
     else:
         context = {
-            'genders': Gender.objects.all(),
+            'genders':    Gender.objects.all(),
             'categories': Category.objects.all(),
-            'brands': Brand.objects.all(),
-            'colors': Color.objects.all(),
+            'brands':     Brand.objects.all(),
+            'colors':     Color.objects.all(),
         }
         return render(request, 'addProduct.html', context)
 
@@ -324,6 +416,7 @@ def superuser_required(view_func):
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
 def products_list(request):
+    logger.info(f"User {request.user.username} is viewing the products list.")
     products = Product.objects.prefetch_related(
         'variants', 
         'variants__color'
@@ -428,10 +521,8 @@ def add_variant(request, id):
         for i in range(1, 4):
             cropped_image = request.POST.get(f'cropped_image_{i}')
             if cropped_image:
-                format, imgstr = cropped_image.split(';base64,')
-                ext = format.split('/')[-1]
-                data = ContentFile(base64.b64decode(imgstr), name=f'product_{product.id}_variant_{i}.{ext}')
-                setattr(variant, f'image_{i}', data)
+                upload_result = cloudinary.uploader.upload(cropped_image, folder='products')
+                setattr(variant, f'image_{i}', upload_result['public_id'])
 
         variant.save()
    

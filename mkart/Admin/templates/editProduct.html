@@ -1,351 +1,670 @@
 {% extends "Base.html" %}
 {% load static %}
 {% load custom_filter %}
+
 {% block title %}Edit Product{% endblock %}
+
 {% block extra_style %}
-    <link rel="stylesheet" href="{% static 'admin-assets/css/bootstrap.min.css' %}" />
-    <link rel="stylesheet" href="{% static 'admin-assets/css/animate.css' %}" />
-    <link rel="stylesheet" href="{% static 'admin-assets/plugins/select2/css/select2.min.css' %}" />
-    <link rel="stylesheet" href="{% static 'admin-assets/css/dataTables.bootstrap4.min.css' %}" />
-    <link rel="stylesheet" href="{% static 'admin-assets/plugins/fontawesome/css/fontawesome.min.css' %}" />
-    <link rel="stylesheet" href="{% static 'admin-assets/plugins/fontawesome/css/all.min.css' %}" />
-    <link rel="stylesheet" href="{% static 'admin-assets/css/style.css' %}" />
-    <link rel="stylesheet" href="https://unpkg.com/cropperjs/dist/cropper.min.css">
-    <style>
-        .cropper-container {
-            max-width: 100%;
-        }
-.image-container {
-            position: relative;
-            display: inline-block;
-            margin-right: 10px;
-            margin-bottom: 10px;
-        }
-        .image-preview {
-            max-width: 100px;
-            max-height: 100px;
-            object-fit: cover;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        .delete-image {
-            position: absolute;
-            top: -10px;
-            right: -10px;
-            background-color: red;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            font-size: 12px;
-            cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .image-upload-label {
-            display: inline-block;
-            padding: 6px 12px;
-            cursor: pointer;
-            background-color: #f8f9fa;
-            border: 1px solid #ced4da;
-            border-radius: 4px;
-        }
-        .cropper-container {
-            max-width: 100%;
-        }
+<link rel="stylesheet" href="{% static 'admin-assets/css/bootstrap.min.css' %}" />
+<link rel="stylesheet" href="{% static 'admin-assets/css/animate.css' %}" />
+<link rel="stylesheet" href="{% static 'admin-assets/plugins/select2/css/select2.min.css' %}" />
+<link rel="stylesheet" href="{% static 'admin-assets/css/dataTables.bootstrap4.min.css' %}" />
+<link rel="stylesheet" href="{% static 'admin-assets/plugins/fontawesome/css/fontawesome.min.css' %}" />
+<link rel="stylesheet" href="{% static 'admin-assets/plugins/fontawesome/css/all.min.css' %}" />
+<link rel="stylesheet" href="{% static 'admin-assets/css/style.css' %}" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css" />
 
- .image-preview-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .image-preview-wrapper {
-            position: relative;
-            width: 100px;
-            height: 100px;
-        }
-        .image-preview {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        .delete-image {
-            position: absolute;
-            top: -10px;
-            right: -10px;
-            background-color: red;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            font-size: 12px;
-            cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-    </style>
+<style>
+  .variant-row {
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    margin-bottom: 24px;
+    padding: 18px 10px 4px;
+  }
+  .variant-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 16px;
+  }
+  .image-slot { margin-bottom: 18px; }
 
+  .slot-box {
+    align-items: center;
+    background: #f8f9fa;
+    border: 2px dashed #ced4da;
+    border-radius: 6px;
+    display: flex;
+    height: 220px;
+    justify-content: center;
+    max-width: 300px;
+    overflow: hidden;
+    position: relative;
+    width: 100%;
+  }
+  .slot-box.has-image { border-style: solid; border-color: #28a745; }
+
+  .slot-preview {
+    cursor: pointer;
+    display: none;
+    height: 100%;
+    left: 0; top: 0;
+    object-fit: cover;
+    position: absolute;
+    width: 100%;
+  }
+  .slot-box.has-image .slot-preview { display: block; }
+
+  .slot-placeholder {
+    color: #8a8f94;
+    font-size: 13px;
+    padding: 12px;
+    pointer-events: none;
+    text-align: center;
+  }
+  .slot-box.has-image .slot-placeholder { display: none; }
+
+  .slot-delete {
+    background: rgba(220, 53, 69, 0.95);
+    border: 0;
+    border-radius: 50%;
+    color: #fff;
+    display: none;
+    font-size: 18px;
+    height: 28px;
+    line-height: 28px;
+    padding: 0;
+    position: absolute;
+    right: 8px;
+    text-align: center;
+    top: 8px;
+    width: 28px;
+    z-index: 2;
+    cursor: pointer;
+  }
+  .slot-box.has-image .slot-delete { display: block; }
+
+  .slot-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+    max-width: 300px;
+  }
+  .slot-actions .btn { flex: 1; }
+
+  .slot-status {
+    font-size: 12px;
+    font-weight: 500;
+    margin-top: 6px;
+    min-height: 18px;
+  }
+  .status-info  { color: #6c757d; }
+  .status-ok    { color: #28a745; }
+  .status-error { color: #dc3545; }
+
+  #cropOverlay {
+    align-items: center;
+    background: rgba(0,0,0,0.75);
+    display: none;
+    inset: 0;
+    justify-content: center;
+    padding: 18px;
+    position: fixed;
+    z-index: 99999;
+  }
+  #cropOverlay.active { display: flex; }
+
+  #cropBox {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 12px 36px rgba(0,0,0,0.35);
+    display: flex;
+    flex-direction: column;
+    max-width: 680px;
+    overflow: hidden;
+    width: 100%;
+  }
+  #cropBoxHeader, #cropBoxFooter {
+    align-items: center;
+    display: flex;
+    padding: 14px 18px;
+  }
+  #cropBoxHeader {
+    border-bottom: 1px solid #dee2e6;
+    justify-content: space-between;
+  }
+  #cropBoxHeader h5 { font-size: 16px; margin: 0; }
+  #cropClose {
+    background: transparent;
+    border: 0;
+    color: #495057;
+    cursor: pointer;
+    font-size: 24px;
+    line-height: 1;
+    padding: 0;
+  }
+  #cropClose:hover { color: #dc3545; }
+  #cropImgWrapper {
+    background: #222;
+    height: min(62vh, 460px);
+    width: 100%;
+  }
+  #cropTarget { display: block; max-height: 100%; max-width: 100%; }
+  #cropBoxFooter {
+    border-top: 1px solid #dee2e6;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="page-wrapper">
-    <div class="content container-fluid">
-        <div class="page-header">
-            <div class="row">
-                <div class="col-sm-12">
-                    <h3 class="page-title">Edit Product</h3>
-                    <ul class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="#">Dashboard</a></li>
-                        <li class="breadcrumb-item active">Edit Product</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-        <form method="post" enctype="multipart/form-data">
-            {% csrf_token %}
-            <div class="card">
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="name">Product Name <span class="text-danger">*</span></label>
-                                <input type="text" name="name" class="form-control" value="{{ product.name }}" required />
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="gender">Gender <span class="text-danger">*</span></label>
-                                <select name="gender" class="form-control select" required>
-                                    {% for gender in genders %}
-                                    <option value="{{ gender.id }}" {% if gender == product.gender %}selected{% endif %}>{{ gender.name }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="category">Category <span class="text-danger">*</span></label>
-                                <select name="category" class="form-control select" required>
-                                    {% for category in categories %}
-                                    <option value="{{ category.id }}" {% if category == product.category %}selected{% endif %}>{{ category.name }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="brand">Brand <span class="text-danger">*</span></label>
-                                <select name="brand" class="form-control select" required>
-                                    {% for brand in brands %}
-                                    <option value="{{ brand.id }}" {% if brand == product.brand %}selected{% endif %}>{{ brand.name }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-12">
-                            <div class="form-group">
-                                <label for="description">Description <span class="text-danger">*</span></label>
-                                <textarea name="description" class="form-control" rows="4" required>{{ product.description }}</textarea>
-                            </div>
-                        </div>
-                        
-                    <!-- Product Variants -->
-                        <div class="col-md-12">
-                            <h4>Product Variants</h4>
-                            {% for variant in variants %}
-                            <div class="row variant-row">
-                                <div class="col-md-3">
-                                    <div class="form-group">
-                                        <label>Color</label>
-                                        <select name="variant_color_{{ variant.id }}" class="form-control select">
-                                            {% for color in colors %}
-                                            <option value="{{ color.id }}" {% if color == variant.color %}selected{% endif %}>{{ color.name }}</option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="form-group">
-                                        <label>Price</label>
-                                        <input type="number" step="0.01" name="variant_price_{{ variant.id }}" class="form-control" value="{{ variant.price }}" required />
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="form-group">
-                                        <label>Stock</label>
-                                        <input type="number" name="variant_stock_{{ variant.id }}" class="form-control" value="{{ variant.stock }}" required />
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="form-group">
-                                        <label>Available</label>
-                                        <select name="variant_is_available_{{ variant.id }}" class="form-control select">
-                                            <option value="True" {% if variant.is_available %}selected{% endif %}>Yes</option>
-                                            <option value="False" {% if not variant.is_available %}selected{% endif %}>No</option>
-                                        </select>
-                                    </div>
-                                </div>
-<div class="col-md-12">
-    <div class="form-group">
-        <label>Images</label>
-        <div class="image-preview-container" id="image-preview-container-{{ variant.id }}">
-            {% for i in '123'|make_list %}
-                {% with image=variant|get_image_attribute:i %}
-                    {% if image %}
-                        <div class="image-preview-wrapper" id="image-preview-{{ variant.id }}-{{ i }}">
-                            <img src="{{ image.url }}" alt="Current Image {{ i }}" class="image-preview" />
-                            <button type="button" class="delete-image" onclick="deleteImage({{ variant.id }}, {{ i }})">×</button>
-                        </div>
-                    {% endif %}
-                {% endwith %}
-            {% endfor %}
-        </div>
-        <label for="variant_image_{{ variant.id }}" class="image-upload-label mt-2">
-            Upload Image
-        </label>
-        <input type="file" id="variant_image_{{ variant.id }}" name="variant_image_{{ variant.id }}" class="form-control-file image-input" accept="image/*" data-variant-id="{{ variant.id }}" style="display: none;" multiple />
-    </div>
-</div>
-                            </div>
-                            <hr>
-                            {% endfor %}
-                        </div>
-                        <div class="col-md-12">
-                            <div class="text-right mt-4">
-                                <button type="submit" class="btn btn-primary">Update Product</button>
-                                <a href="{% url 'productlist' %}" class="btn btn-secondary">Cancel</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </form>
-    </div>
-</div>                     
+  <div class="content container-fluid">
 
-<!-- Modal for Image Cropping -->
-<div id="cropModal" class="modal fade" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Crop Image</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <img id="imageToCrop" src="" alt="Image to crop" style="max-width: 100%" />
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary" id="cropImage">Crop</button>
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-            </div>
+    <div class="page-header">
+      <div class="row">
+        <div class="col-sm-12">
+          <h3 class="page-title">Edit Product</h3>
+          <ul class="breadcrumb">
+            <li class="breadcrumb-item"><a href="#">Dashboard</a></li>
+            <li class="breadcrumb-item active">Edit Product</li>
+          </ul>
         </div>
+      </div>
     </div>
+
+    {% if messages %}
+    <div class="row">
+      <div class="col-12">
+        {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'warning' %}warning{% else %}success{% endif %} alert-dismissible">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <form id="editProductForm" method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="card">
+        <div class="card-body">
+          <div class="row">
+
+            <div class="col-md-6">
+              <div class="form-group">
+                <label>Product Name <span class="text-danger">*</span></label>
+                <input type="text" name="name" class="form-control" value="{{ product.name }}" required />
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="form-group">
+                <label>Gender <span class="text-danger">*</span></label>
+                <select name="gender" class="form-control select" required>
+                  {% for gender in genders %}
+                  <option value="{{ gender.id }}" {% if gender == product.gender %}selected{% endif %}>{{ gender.name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="form-group">
+                <label>Category <span class="text-danger">*</span></label>
+                <select name="category" class="form-control select" required>
+                  {% for category in categories %}
+                  <option value="{{ category.id }}" {% if category == product.category %}selected{% endif %}>{{ category.name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="form-group">
+                <label>Brand <span class="text-danger">*</span></label>
+                <select name="brand" class="form-control select" required>
+                  {% for brand in brands %}
+                  <option value="{{ brand.id }}" {% if brand == product.brand %}selected{% endif %}>{{ brand.name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+
+            <div class="col-md-12">
+              <div class="form-group">
+                <label>Description <span class="text-danger">*</span></label>
+                <textarea name="description" class="form-control" rows="4" required>{{ product.description }}</textarea>
+              </div>
+            </div>
+
+            <!-- Variants -->
+            <div class="col-md-12">
+              <h4 class="mb-3">Product Variants</h4>
+
+              {% for variant in variants %}
+              <div class="variant-row">
+                <p class="variant-title">Variant {{ forloop.counter }}</p>
+
+                <div class="row">
+                  <div class="col-md-3">
+                    <div class="form-group">
+                      <label>Color <span class="text-danger">*</span></label>
+                      <select name="variant_color_{{ variant.id }}" class="form-control select" required>
+                        {% for color in colors %}
+                        <option value="{{ color.id }}" {% if color.id == variant.color_id %}selected{% endif %}>{{ color.name }}</option>
+                        {% endfor %}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="col-md-3">
+                    <div class="form-group">
+                      <label>Price <span class="text-danger">*</span></label>
+                      <input type="number" step="0.01" name="variant_price_{{ variant.id }}"
+                             class="form-control" value="{{ variant.price }}" required />
+                    </div>
+                  </div>
+
+                  <div class="col-md-3">
+                    <div class="form-group">
+                      <label>Stock <span class="text-danger">*</span></label>
+                      <input type="number" name="variant_stock_{{ variant.id }}"
+                             class="form-control" value="{{ variant.stock }}" required />
+                    </div>
+                  </div>
+
+                  <div class="col-md-3">
+                    <div class="form-group">
+                      <label>Available</label>
+                      <select name="variant_is_available_{{ variant.id }}" class="form-control select">
+                        <option value="True"  {% if variant.is_available %}selected{% endif %}>Yes</option>
+                        <option value="False" {% if not variant.is_available %}selected{% endif %}>No</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Images -->
+                <div class="col-md-12 mt-2">
+                  <label>Images</label>
+                  <div class="row">
+                    {% for slot in '123'|make_list %}
+                    {% with img_url=variant|get_image_url:slot %}
+                    <div class="col-md-4 image-slot">
+
+                      <div class="slot-box {% if img_url %}has-image{% endif %}"
+                           id="slotBox_{{ variant.id }}_{{ slot }}"
+                           data-variant-id="{{ variant.id }}"
+                           data-slot="{{ slot }}">
+
+                        <div class="slot-placeholder">&#128247;<br>No image selected</div>
+
+                        <img class="slot-preview"
+                             id="slotPreview_{{ variant.id }}_{{ slot }}"
+                             src="{% if img_url %}{{ img_url }}{% endif %}"
+                             alt="Variant {{ variant.id }} image {{ slot }}" />
+
+                        <button type="button" class="slot-delete"
+                                data-variant-id="{{ variant.id }}"
+                                data-slot="{{ slot }}">&times;</button>
+                      </div>
+
+                      <div class="slot-actions">
+                        <button type="button" class="btn btn-outline-secondary btn-sm"
+                                data-select-image
+                                data-variant-id="{{ variant.id }}"
+                                data-slot="{{ slot }}">
+                          &#128247; Choose Image {{ slot }}
+                        </button>
+                      </div>
+
+                      <input type="file"
+                             id="fileInput_{{ variant.id }}_{{ slot }}"
+                             class="d-none"
+                             accept="image/jpeg,image/png,image/webp"
+                             data-variant-id="{{ variant.id }}"
+                             data-slot="{{ slot }}" />
+
+                      <!-- New cropped image data -->
+                      <input type="hidden"
+                             id="newImage_{{ variant.id }}_{{ slot }}"
+                             name="new_image_{{ variant.id }}_{{ slot }}" />
+
+                      <!-- Flag: mark existing image for deletion -->
+                      <input type="hidden"
+                             id="deleteImage_{{ variant.id }}_{{ slot }}"
+                             name="delete_image_{{ variant.id }}_{{ slot }}"
+                             value=""
+                             {% if not img_url %}disabled{% endif %} />
+
+                      <!-- Track whether a real existing Cloudinary image is present -->
+                      <input type="hidden"
+                             id="hasExisting_{{ variant.id }}_{{ slot }}"
+                             value="{% if img_url %}1{% else %}0{% endif %}" />
+
+                      <div id="slotStatus_{{ variant.id }}_{{ slot }}"
+                           class="slot-status status-info">
+                        {% if img_url %}Current image{% else %}Empty slot{% endif %}
+                      </div>
+                    </div>
+                    {% endwith %}
+                    {% endfor %}
+                  </div>
+                </div><!-- /images -->
+
+              </div><!-- /variant-row -->
+              {% endfor %}
+            </div><!-- /variants -->
+
+            <div class="col-md-12">
+              <div class="text-right mt-4">
+                <button type="submit" class="btn btn-primary">Update Product</button>
+                <a href="{% url 'productlist' %}" class="btn btn-secondary">Cancel</a>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </form>
+
+  </div>
+</div>
+
+<!-- Crop Overlay -->
+<div id="cropOverlay" aria-hidden="true">
+  <div id="cropBox">
+    <div id="cropBoxHeader">
+      <h5>Crop Image</h5>
+      <button type="button" id="cropClose" aria-label="Close">&times;</button>
+    </div>
+    <div id="cropImgWrapper">
+      <img id="cropTarget" src="" alt="Crop target" />
+    </div>
+    <div id="cropBoxFooter">
+      <button type="button" class="btn btn-secondary btn-sm" id="cropCancel">Cancel</button>
+      <button type="button" class="btn btn-primary btn-sm" id="cropSave" disabled>&#9986;&nbsp;Crop &amp; Use</button>
+    </div>
+  </div>
 </div>
 {% endblock %}
+
+
 {% block extra_js %}
-<script src="https://unpkg.com/cropperjs/dist/cropper.min.js"></script>
+<script src="{% static 'admin-assets/js/jquery-3.6.0.min.js' %}"></script>
+<script src="{% static 'admin-assets/js/feather.min.js' %}"></script>
+<script src="{% static 'admin-assets/js/jquery.slimscroll.min.js' %}"></script>
+<script src="{% static 'admin-assets/js/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'admin-assets/js/dataTables.bootstrap4.min.js' %}"></script>
+<script src="{% static 'admin-assets/js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'admin-assets/plugins/select2/js/select2.min.js' %}"></script>
+<script src="{% static 'admin-assets/plugins/sweetalert/sweetalert2.all.min.js' %}"></script>
+<script src="{% static 'admin-assets/plugins/sweetalert/sweetalerts.min.js' %}"></script>
+<script src="{% static 'admin-assets/js/script.js' %}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    let cropper;
-    let currentImageInput;
-    let currentVariantId;
-    let currentImageSlot;
+(function () {
+  'use strict';
 
-    document.querySelectorAll('.image-input').forEach(input => {
-        input.addEventListener('change', function (e) {
-            const files = e.target.files;
-            currentVariantId = input.dataset.variantId;
-            
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function (event) {
-                        document.getElementById('imageToCrop').src = event.target.result;
-                        $('#cropModal').modal('show');
-                        currentImageInput = input;
-                        currentImageSlot = findNextAvailableImageSlot(currentVariantId);
-                    };
-                    reader.readAsDataURL(file);
-                }
-            }
+  /* ── Config ─────────────────────────────────────── */
+  var OUTPUT_SIZE    = 900;
+  var OUTPUT_TYPE    = 'image/webp';
+  var OUTPUT_QUALITY = 0.82;
+  var MAX_SIZE_MB    = 5;
+
+  /* ── State ──────────────────────────────────────── */
+  var cropper        = null;
+  var activeVariantId = null;
+  var activeSlot      = null;
+
+  /* ── DOM refs ───────────────────────────────────── */
+  var overlay    = document.getElementById('cropOverlay');
+  var cropTarget = document.getElementById('cropTarget');
+  var cropSave   = document.getElementById('cropSave');
+  var cropCancel = document.getElementById('cropCancel');
+  var cropClose  = document.getElementById('cropClose');
+
+  /* ── Helpers ────────────────────────────────────── */
+  function $id(id) { return document.getElementById(id); }
+
+  function sid(prefix, vId, slot) { return prefix + '_' + vId + '_' + slot; }
+
+  function setStatus(vId, slot, msg, type) {
+    var el = $id(sid('slotStatus', vId, slot));
+    if (!el) return;
+    el.textContent = msg;
+    el.className = 'slot-status status-' + type;
+  }
+
+  /* ── Cropper lifecycle ──────────────────────────── */
+  function destroyCropper() {
+    if (cropper) { cropper.destroy(); cropper = null; }
+    cropSave.disabled    = true;
+    cropSave.textContent = '✂ Crop & Use';
+  }
+
+  function closeCropper() {
+    destroyCropper();
+    /* Reset img src AFTER destroying cropper to avoid flicker */
+    setTimeout(function () { cropTarget.src = ''; }, 50);
+    overlay.classList.remove('active');
+    overlay.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    activeVariantId = null;
+    activeSlot      = null;
+  }
+
+  function openCropper(vId, slot, imageSrc) {
+    activeVariantId = String(vId);
+    activeSlot      = String(slot);
+
+    destroyCropper();
+
+    /* Show overlay first so the img has real dimensions */
+    overlay.classList.add('active');
+    overlay.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+
+    cropTarget.onload  = null;
+    cropTarget.onerror = null;
+    cropTarget.src     = '';
+
+    /* Give browser a frame to paint the overlay before loading the image */
+    requestAnimationFrame(function () {
+      cropTarget.onerror = function () {
+        setStatus(activeVariantId, activeSlot, 'Could not load image', 'error');
+        closeCropper();
+      };
+
+      cropTarget.onload = function () {
+        cropper = new Cropper(cropTarget, {
+          aspectRatio      : 1,
+          viewMode         : 1,
+          autoCropArea     : 0.9,
+          responsive       : true,
+          movable          : true,
+          zoomable         : true,
+          scalable         : false,
+          cropBoxResizable : true,
+          background       : false,
+          ready: function () {
+            cropSave.disabled = false;
+          }
         });
+      };
+
+      cropTarget.src = imageSrc;
+    });
+  }
+
+  /* ── Crop & save ────────────────────────────────── */
+  cropSave.addEventListener('click', function () {
+    if (!cropper || activeVariantId === null || activeSlot === null) return;
+
+    cropSave.disabled    = true;
+    cropSave.textContent = 'Processing…';
+
+    var canvas = cropper.getCroppedCanvas({
+      width                 : OUTPUT_SIZE,
+      height                : OUTPUT_SIZE,
+      imageSmoothingEnabled : true,
+      imageSmoothingQuality : 'high'
     });
 
-    document.getElementById('cropImage').addEventListener('click', function () {
-        const canvas = cropper.getCroppedCanvas();
-        const croppedImage = canvas.toDataURL();
-        
-        const newImagePreview = document.createElement('div');
-        newImagePreview.className = 'image-preview-wrapper';
-        newImagePreview.id = `image-preview-${currentVariantId}-${currentImageSlot}`;
-        newImagePreview.innerHTML = `
-            <img src="${croppedImage}" alt="New Image" class="image-preview" />
-            <button type="button" class="delete-image" onclick="deleteImage(${currentVariantId}, ${currentImageSlot})">×</button>
-            <input type="hidden" name="new_image_${currentVariantId}_${currentImageSlot}" value="${croppedImage}" />
-        `;
-        
-        document.getElementById(`image-preview-container-${currentVariantId}`).appendChild(newImagePreview);
-        
-        $('#cropModal').modal('hide');
-    });
-
-    $('#cropModal').on('shown.bs.modal', function () {
-        cropper = new Cropper(document.getElementById('imageToCrop'), {
-            aspectRatio: 1,
-            viewMode: 1
-        });
-    }).on('hidden.bs.modal', function () {
-        cropper.destroy();
-        cropper = null;
-    });
-
-    // Initialize Select2
-    $('.select').select2();
-});
-
-function deleteImage(variantId, imageNumber) {
-    const container = document.getElementById(`image-preview-${variantId}-${imageNumber}`);
-    if (container) {
-        container.remove();
-        
-        // Add a hidden input to mark this image for deletion in the backend
-        const hiddenInput = document.createElement('input');
-        hiddenInput.type = 'hidden';
-        hiddenInput.name = `delete_image_${variantId}_${imageNumber}`;
-        hiddenInput.value = 'true';
-        document.querySelector('form').appendChild(hiddenInput);
+    if (!canvas) {
+      setStatus(activeVariantId, activeSlot, 'Crop failed — try again', 'error');
+      cropSave.disabled    = false;
+      cropSave.textContent = '✂ Crop & Use';
+      return;
     }
-}
 
-function findNextAvailableImageSlot(variantId) {
-    for (let i = 1; i <= 3; i++) {
-        if (!document.getElementById(`image-preview-${variantId}-${i}`)) {
-            return i;
+    var dataUrl = canvas.toDataURL(OUTPUT_TYPE, OUTPUT_QUALITY);
+    applyCroppedImage(dataUrl, activeVariantId, activeSlot);
+    closeCropper();
+  });
+
+  /* ── Apply result to slot ───────────────────────── */
+  function applyCroppedImage(dataUrl, vId, slot) {
+    var box       = $id(sid('slotBox',     vId, slot));
+    var preview   = $id(sid('slotPreview', vId, slot));
+    var newInput  = $id(sid('newImage',    vId, slot));
+    var delInput  = $id(sid('deleteImage', vId, slot));
+    var fileInput = $id(sid('fileInput',   vId, slot));
+
+    preview.removeAttribute('crossorigin');
+    preview.src = dataUrl;
+    box.classList.add('has-image');
+
+    newInput.value    = dataUrl;
+    delInput.value    = '';          /* clear any pending delete */
+    delInput.disabled = true;
+    fileInput.value   = '';
+
+    setStatus(vId, slot, '✔ Ready to save', 'ok');
+  }
+
+  /* ── Delete image from slot ─────────────────────── */
+  function deleteImage(vId, slot) {
+    var box        = $id(sid('slotBox',       vId, slot));
+    var preview    = $id(sid('slotPreview',   vId, slot));
+    var newInput   = $id(sid('newImage',      vId, slot));
+    var delInput   = $id(sid('deleteImage',   vId, slot));
+    var hasExInput = $id(sid('hasExisting',   vId, slot));
+    var fileInput  = $id(sid('fileInput',     vId, slot));
+
+    var hadExisting = hasExInput && hasExInput.value === '1';
+
+    preview.src = '';
+    box.classList.remove('has-image');
+    newInput.value  = '';
+    fileInput.value = '';
+
+    if (hadExisting) {
+      /* Tell the server to remove the Cloudinary image */
+      delInput.value    = 'true';
+      delInput.disabled = false;
+      setStatus(vId, slot, 'Marked for deletion', 'ok');
+    } else {
+      delInput.value    = '';
+      delInput.disabled = true;
+      setStatus(vId, slot, 'Empty slot', 'info');
+    }
+  }
+
+  /* ── File validation + read ─────────────────────── */
+  function validateFile(file, vId, slot) {
+    if (!file.type.match(/^image\/(jpeg|png|webp)$/)) {
+      setStatus(vId, slot, 'Use JPEG, PNG or WebP only', 'error');
+      return false;
+    }
+    if (file.size > MAX_SIZE_MB * 1024 * 1024) {
+      setStatus(vId, slot, 'Max file size is ' + MAX_SIZE_MB + ' MB', 'error');
+      return false;
+    }
+    return true;
+  }
+
+  function readFileForCrop(file, vId, slot) {
+    if (!validateFile(file, vId, slot)) return;
+    setStatus(vId, slot, 'Loading…', 'info');
+    var reader = new FileReader();
+    reader.onload  = function (e) { openCropper(vId, slot, e.target.result); };
+    reader.onerror = function ()  { setStatus(vId, slot, 'Could not read file', 'error'); };
+    reader.readAsDataURL(file);
+  }
+
+  /* ── Close handlers ─────────────────────────────── */
+  cropCancel.addEventListener('click', closeCropper);
+  cropClose.addEventListener('click',  closeCropper);
+  overlay.addEventListener('click', function (e) {
+    if (e.target === overlay) closeCropper();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && overlay.classList.contains('active')) closeCropper();
+  });
+
+  /* ── DOMContentLoaded ───────────────────────────── */
+  document.addEventListener('DOMContentLoaded', function () {
+
+    /* Select2 */
+    if (window.jQuery && $.fn.select2) {
+      $('.select').select2();
+    }
+
+    /* "Choose Image" buttons */
+    document.querySelectorAll('[data-select-image]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        $id(sid('fileInput', btn.dataset.variantId, btn.dataset.slot)).click();
+      });
+    });
+
+    /* File inputs */
+    document.querySelectorAll('input[type="file"][data-variant-id]').forEach(function (input) {
+      input.addEventListener('change', function () {
+        if (input.files && input.files[0]) {
+          readFileForCrop(input.files[0], input.dataset.variantId, input.dataset.slot);
         }
-    }
-    return null; // All slots are filled
-}
+      });
+    });
 
+    /* Delete buttons */
+    document.querySelectorAll('.slot-delete').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        deleteImage(btn.dataset.variantId, btn.dataset.slot);
+      });
+    });
+
+    /* Click preview to re-crop */
+    document.querySelectorAll('.slot-preview').forEach(function (preview) {
+      preview.addEventListener('click', function () {
+        if (!preview.src || preview.src === window.location.href) return;
+        var box = preview.closest('.slot-box');
+        openCropper(box.dataset.variantId, box.dataset.slot, preview.src);
+      });
+    });
+
+    /* Drag & drop */
+    document.querySelectorAll('.slot-box').forEach(function (box) {
+      box.addEventListener('dragover', function (e) {
+        e.preventDefault();
+        box.style.borderColor = '#007bff';
+      });
+      box.addEventListener('dragleave', function () {
+        box.style.borderColor = '';
+      });
+      box.addEventListener('drop', function (e) {
+        e.preventDefault();
+        box.style.borderColor = '';
+        var file = e.dataTransfer.files[0];
+        if (file) readFileForCrop(file, box.dataset.variantId, box.dataset.slot);
+      });
+    });
+
+  });
+})();
 </script>
-        <script src="{% static 'admin-assets/js/jquery-3.6.0.min.js' %}"></script>
-        <script src="{% static 'admin-assets/js/bootstrap.bundle.min.js' %}"></script>
-        <script src="{% static 'admin-assets/plugins/select2/js/select2.min.js' %}"></script>
-        <script src="{% static 'admin-assets/js/feather.min.js' %}"></script>
-        <script src="{% static 'admin-assets/js/jquery.slimscroll.min.js' %}"></script>
-        <script src="{% static 'admin-assets/js/jquery.dataTables.min.js' %}"></script>
-        <script src="{% static 'admin-assets/js/dataTables.bootstrap4.min.js' %}"></script>
-        <script src="{% static 'admin-assets/js/bootstrap.bundle.min.js' %}"></script>
-        <script src="{% static 'admin-assets/plugins/select2/js/select2.min.js' %}"></script>
-        <script src="{% static 'admin-assets/plugins/sweetalert/sweetalert2.all.min.js' %}"></script>
-        <script src="{% static 'admin-assets/plugins/sweetalert/sweetalerts.min.js' %}"></script>
-        <script src="{% static 'admin-assets/js/script.js' %}"></script>
 {% endblock %}

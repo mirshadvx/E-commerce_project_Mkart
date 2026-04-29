@@ -107,7 +107,8 @@ Product list
                                         {% if product.variants.first.image_1 %}
                                         <img src="{{ product.variants.first.image_1.url }}" alt="{{ product.name }}" />
                                         {% else %}
-                                        <img src="{% static 'path/to/default/image.jpg' %}" alt="{{ product.name }}" />
+                                        <img src="{% static 'admin-assets/img/product/noimage.png' %}"
+                                            alt="{{ product.name }}" />
                                         {% endif %}
                                     </a>
                                     <a href="{% url 'product_details' product.id %}">{{ product.name }}</a>

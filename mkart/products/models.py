@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from Admin.models import *
 from django.utils import timezone as django_timezone
+from cloudinary.models import CloudinaryField
 
 class Gender(models.Model):
     name = models.CharField(max_length=100, unique=True)
@@ -69,9 +70,9 @@ class ProductVariant(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     stock = models.PositiveIntegerField(default=0)
     is_available = models.BooleanField(default=True)
-    image_1 = models.ImageField(upload_to='product_images/', blank=True, null=True)
-    image_2 = models.ImageField(upload_to='product_images/', blank=True, null=True)
-    image_3 = models.ImageField(upload_to='product_images/', blank=True, null=True)
+    image_1 = CloudinaryField('image', blank=True, null=True)
+    image_2 = CloudinaryField('image', blank=True, null=True)
+    image_3 = CloudinaryField('image', blank=True, null=True)
 
     def __str__(self):
         return f"{self.product.name} - {self.color.name}"
