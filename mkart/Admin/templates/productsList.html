@@ -1,102 +1,59 @@
 {% extends "Base.html" %}
 {% load static %}
 
-{% block title %}
-Product list
-{% endblock %}
+{% block title %}Product List{% endblock %}
 
 {% block extra_style %}
 <link rel="shortcut icon" type="image/x-icon" href="{% static 'admin-assets/img/favicon.jpg' %}" />
 
 <link rel="stylesheet" href="{% static 'admin-assets/css/bootstrap.min.css' %}" />
-
 <link rel="stylesheet" href="{% static 'admin-assets/css/animate.css' %}" />
-
-<link rel="stylesheet" href="{% static 'admin-assets/plugins/select2/css/select2.min.css' %}" />
-
+<link rel="stylesheet" href="{% static 'admin-assets/css/style.css' %}" />
 <link rel="stylesheet" href="{% static 'admin-assets/css/dataTables.bootstrap4.min.css' %}" />
-
-<link rel="stylesheet" href="{% static 'admin-assets/plugins/fontawesome/css/fontawesome.min.css' %}" />
+<link rel="stylesheet" href="{% static 'admin-assets/plugins/select2/css/select2.min.css' %}" />
 <link rel="stylesheet" href="{% static 'admin-assets/plugins/fontawesome/css/all.min.css' %}" />
 
-<link rel="stylesheet" href="{% static 'admin-assets/css/style.css' %}" />
 <style>
-    .status-toggle.btn-success {
-        background-color: #1ca61c;
-        color: white;
-        width: 100px;
-    }
-
-    .status-toggle.btn-danger {
-        background-color: #dc3545;
-        color: white;
-    }
-
-    .offer-select {
-        width: 150px;
-    }
-
-    .table .table-sm {
-        margin-bottom: 0;
-    }
-
-    .table .table-sm th,
-    .table .table-sm td {
-        padding: 0.3rem;
-        font-size: 0.875rem;
-    }
-
-    .table .table-sm .btn-sm {
-        padding: 0.1rem 0.3rem;
-        font-size: 0.75rem;
-    }
+    .status-toggle.btn-success { background-color: #1ca61c; color: white; }
+    .status-toggle.btn-danger { background-color: #dc3545; color: white; }
+    .offer-select { width: 160px; }
+    .table .table-sm { margin-bottom: 0; }
+    .variant-row td { padding: 0.4rem 0.5rem !important; font-size: 0.875rem; }
+    .action-btn { padding: 4px 8px; font-size: 0.8rem; }
+    .delete-btn { color: #dc3545; }
+    .delete-btn:hover { color: #c82333; }
 </style>
 {% endblock %}
 
-
 {% block content %}
 <div class="page-wrapper">
-    <div class="content">
+    <div class="content container-fluid">
         <div class="page-header">
             <div class="page-title">
                 <h4>Product List</h4>
-                <h6>Manage your products</h6>
+                <h6>Manage your products and variants</h6>
             </div>
             <div class="page-btn">
-                <a href="{% url 'addProduct' %}" class="btn btn-added"><img
-                        src="{% static 'admin-assets/img/icons/plus.svg' %}" alt="img" class="me-1" />Add New
-                    Product</a>
+                <a href="{% url 'addProduct' %}" class="btn btn-added">
+                    <img src="{% static 'admin-assets/img/icons/plus.svg' %}" alt="img" class="me-1" /> 
+                    Add New Product
+                </a>
             </div>
         </div>
 
         <div class="card">
             <div class="card-body">
-                <div class="table-top">
-                    <div class="search-set">
-                        <div class="search-path">
-                            <a class="btn btn-filter" id="filter_search">
-                                <img src="{% static 'admin-assets/img/icons/filter.svg' %}" alt="img" />
-                                <span><img src="{% static 'admin-assets/img/icons/closes.svg' %}" alt="img" /></span>
-                            </a>
-                        </div>
-                        <div class="search-input">
-                            <a class="btn btn-searchset"><img
-                                    src="{% static 'admin-assets/img/icons/search-white.svg' %}" alt="img" /></a>
-                        </div>
-                    </div>
-                </div>
-
                 <div class="table-responsive">
-                    <table class="table datanew">
+                    <table class="table datanew table-hover">
                         <thead>
                             <tr>
-                                <th>Product Name</th>
+                                <th>Product</th>
                                 <th>Category</th>
                                 <th>Gender</th>
                                 <th>Brand</th>
                                 <th>Variants</th>
                                 <th>Offer</th>
-                                <th>Action</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -104,11 +61,10 @@ Product list
                             <tr>
                                 <td class="productimgname">
                                     <a href="{% url 'product_details' product.id %}" class="product-img">
-                                        {% if product.variants.first.image_1 %}
-                                        <img src="{{ product.variants.first.image_1.url }}" alt="{{ product.name }}" />
+                                        {% if product.variants.first and product.variants.first.image_1 %}
+                                            <img src="{{ product.variants.first.image_1.url }}" alt="{{ product.name }}" />
                                         {% else %}
-                                        <img src="{% static 'admin-assets/img/product/noimage.png' %}"
-                                            alt="{{ product.name }}" />
+                                            <img src="{% static 'admin-assets/img/product/noimage.png' %}" alt="{{ product.name }}" />
                                         {% endif %}
                                     </a>
                                     <a href="{% url 'product_details' product.id %}">{{ product.name }}</a>
@@ -116,58 +72,110 @@ Product list
                                 <td>{{ product.category.name }}</td>
                                 <td>{{ product.gender.name }}</td>
                                 <td>{{ product.brand.name }}</td>
+                                
+                                <!-- Variants -->
                                 <td>
-                                    <table class="table table-sm">
+                                    <table class="table table-sm variant-row">
                                         <thead>
                                             <tr>
                                                 <th>Color</th>
                                                 <th>Price</th>
-                                                <th>Qty</th>
+                                                <th>Stock</th>
                                                 <th>Status</th>
+                                                <th style="width: 40px;"></th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {% for variant in product.variants.all %}
                                             <tr>
                                                 <td>{{ variant.color.name }}</td>
-                                                <td>{{ variant.price }}</td>
+                                                <td>₹{{ variant.price }}</td>
                                                 <td>{{ variant.stock }}</td>
                                                 <td>
-                                                    <button
-                                                        class="btn btn-sm status-toggle {% if variant.is_available %}btn-success{% else %}btn-danger{% endif %}"
-                                                        data-variant-id="{{ variant.id }}">
-                                                        {% if variant.is_available %}Available{% else %}Not Available{% endif %}
+                                                    <button class="btn btn-sm status-toggle {% if variant.is_available %}btn-success{% else %}btn-danger{% endif %}"
+                                                            data-variant-id="{{ variant.id }}">
+                                                        {% if variant.is_available %}Available{% else %}Not{% endif %}
+                                                    </button>
+                                                </td>
+                                                <td>
+                                                    <button class="btn btn-sm delete-btn action-btn" 
+                                                            onclick="deleteVariant({{ variant.id }}, '{{ variant.color.name }}', '{{ product.name|escapejs }}')">
+                                                        <i class="fas fa-trash"></i>
                                                     </button>
                                                 </td>
                                             </tr>
+                                            {% empty %}
+                                            <tr><td colspan="5" class="text-muted">No variants</td></tr>
                                             {% endfor %}
                                         </tbody>
                                     </table>
                                 </td>
+
                                 <td>
-                                    <select style="height: 2em;" class="offer-select"
-                                        data-product-id="{{ product.id }}">
-                                        <option value="">Select offer</option>
+                                    <select class="offer-select form-control form-control-sm" data-product-id="{{ product.id }}">
+                                        <option value="">No Offer</option>
                                         {% for offer in offers %}
                                         <option value="{{ offer.id }}" {% if product.offer_id == offer.id %}selected{% endif %}>
-                                            <strong>{{ offer.name }} | {{ offer.discount }}%</strong>
+                                            {{ offer.name }} ({{ offer.discount }}%)
                                         </option>
                                         {% endfor %}
                                     </select>
                                 </td>
+
                                 <td>
-                                    <a class="me-3" href="{% url 'edit_product' product.id %}">
-                                        <img src="{% static 'admin-assets/img/icons/edit.svg' %}" alt="img" />
+                                    <a href="{% url 'edit_product' product.id %}" class="me-2" title="Edit Product">
+                                        <i class="fas fa-edit text-primary"></i>
                                     </a>
-                                    <a href="{% url 'add_variant' product.id %}">
-                                        <button class="btn btn-sm btn-primary">add variant</button>
+                                    <a href="{% url 'add_variant' product.id %}" class="me-3" title="Add Variant">
+                                        <i class="fas fa-plus-circle text-success"></i>
                                     </a>
+                                    <button onclick="deleteProduct({{ product.id }}, '{{ product.name|escapejs }}')" 
+                                            class="btn btn-sm btn-danger action-btn" title="Delete Product">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
                                 </td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Pagination -->
+                {% if products.has_other_pages %}
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <nav aria-label="Product pagination">
+                            <ul class="pagination justify-content-center">
+                                {% if products.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page=1">« First</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ products.previous_page_number }}">Previous</a>
+                                    </li>
+                                {% endif %}
+
+                                {% for num in products.paginator.page_range %}
+                                    {% if products.number == num %}
+                                        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                                    {% elif num > products.number|add:"-2" and num < products.number|add:"2" %}
+                                        <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if products.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ products.next_page_number }}">Next</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ products.paginator.num_pages }}">Last »</a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -176,98 +184,179 @@ Product list
 
 {% block extra_js %}
 <script src="{% static 'admin-assets/js/jquery-3.6.0.min.js' %}"></script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="{% static 'admin-assets/js/bootstrap.bundle.min.js' %}"></script>
 <script src="{% static 'admin-assets/js/feather.min.js' %}"></script>
-
 <script src="{% static 'admin-assets/js/jquery.slimscroll.min.js' %}"></script>
-
 <script src="{% static 'admin-assets/js/jquery.dataTables.min.js' %}"></script>
 <script src="{% static 'admin-assets/js/dataTables.bootstrap4.min.js' %}"></script>
-
-<script src="{% static 'admin-assets/js/bootstrap.bundle.min.js' %}"></script>
-
 <script src="{% static 'admin-assets/plugins/select2/js/select2.min.js' %}"></script>
-
 <script src="{% static 'admin-assets/plugins/sweetalert/sweetalert2.all.min.js' %}"></script>
 <script src="{% static 'admin-assets/plugins/sweetalert/sweetalerts.min.js' %}"></script>
-
 <script src="{% static 'admin-assets/js/script.js' %}"></script>
 
-<script>
-    $(document).ready(function () {
-        $('.offer-select').on('change', function () {
-            var select = $(this);
-            var productId = select.data('product-id');
-            var offerId = select.val();
-
-            $.ajax({
-                url: '{% url "update_product_offer" %}',
-                type: 'POST',
-                data: {
-                    'product_id': productId,
-                    'offer_id': offerId,
-                    'csrfmiddlewaretoken': '{{ csrf_token }}'
-                },
-                success: function (response) {
-                    if (response.success) {
-                        const Toast = Swal.mixin({
-                            toast: true,
-                            position: "top-end",
-                            showConfirmButton: false,
-                            timer: 4000,
-                            timerProgressBar: true,
-                            didOpen: (toast) => {
-                                toast.onmouseenter = Swal.stopTimer;
-                                toast.onmouseleave = Swal.resumeTimer;
-                            }
-                        });
-                        Toast.fire({
-                            icon: "success",
-                            title: "Offer updated successfully"
-                        });
-
-                        // Update the offer display for all variants of this product
-                        var offerText = offerId ? select.find('option:selected').text() : 'No offer';
-                        $('tr[data-product-id="' + productId + '"] td:nth-child(9)').text(offerText);
-                    } else {
-                        alert('Failed to update offer');
-                    }
-                },
-                error: function () {
-                    alert('An error occurred while updating the offer');
-                }
-            });
-        });
-    });
-</script>
-
+<!-- External Libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-    $(document).ready(function () {
-        $('.status-toggle').on('click', function () {
-            var button = $(this);
-            var variantId = button.data('variant-id');
-
-            $.ajax({
-                url: '{% url "toggle_variant_availability" %}',
-                type: 'POST',
-                data: {
-                    'variant_id': variantId,
-                    'csrfmiddlewaretoken': '{{ csrf_token }}'
-                },
-                success: function (response) {
-                    if (response.success) {
-                        button.text(response.status_text);
-                        button.toggleClass('btn-success btn-danger');
-                    } else {
-                        alert('Failed to update status');
-                    }
-                },
-                error: function () {
-                    alert('An error occurred while updating the status');
+// ==================== DELETE PRODUCT WITH LOADING ====================
+function deleteProduct(productId, productName) {
+    Swal.fire({
+        title: 'Are you sure?',
+        text: `You are about to delete "${productName}" and ALL its variants. This action cannot be undone!`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes, delete everything'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            
+            // Show Loading SweetAlert
+            Swal.fire({
+                title: 'Deleting...',
+                text: 'Please wait while we delete the product and its variants.',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
                 }
             });
+
+            $.ajax({
+                url: "{% url 'delete_product' 999 %}".replace('999', productId),
+                type: 'POST',
+                data: {
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Deleted!',
+                            text: 'Product and all variants have been successfully deleted.',
+                            timer: 2000,
+                            showConfirmButton: false
+                        }).then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire('Error!', response.error || 'Failed to delete product.', 'error');
+                    }
+                },
+                error: function() {
+                    Swal.fire('Error!', 'Server error occurred while deleting.', 'error');
+                }
+            });
+        }
+    });
+}
+
+// ==================== DELETE VARIANT WITH LOADING ====================
+function deleteVariant(variantId, colorName, productName) {
+    Swal.fire({
+        title: 'Delete Variant?',
+        text: `Delete "${colorName}" variant from "${productName}"?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        confirmButtonText: 'Yes, delete variant'
+    }).then((result) => {
+        if (result.isConfirmed) {
+
+            // Show Loading
+            Swal.fire({
+                title: 'Deleting...',
+                text: 'Please wait...',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            $.ajax({
+                url: "{% url 'delete_variant' 999 %}".replace('999', variantId),
+                type: 'POST',
+                data: { 
+                    'csrfmiddlewaretoken': '{{ csrf_token }}' 
+                },
+                success: function(response) {
+                    if (response.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Deleted!',
+                            text: response.message || 'Variant deleted successfully.',
+                            timer: 1800,
+                            showConfirmButton: false
+                        }).then(() => location.reload());
+                    } else {
+                        Swal.fire('Failed!', response.error || 'Could not delete variant.', 'error');
+                    }
+                },
+                error: function() {
+                    Swal.fire('Error!', 'Something went wrong on the server.', 'error');
+                }
+            });
+        }
+    });
+}
+
+// ==================== Other Scripts ====================
+$(document).ready(function () {
+    // Offer Update
+    $('.offer-select').on('change', function () {
+        var select = $(this);
+        var productId = select.data('product-id');
+        var offerId = select.val();
+
+        $.ajax({
+            url: '{% url "update_product_offer" %}',
+            type: 'POST',
+            data: {
+                'product_id': productId,
+                'offer_id': offerId,
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
+            },
+            success: function (response) {
+                if (response.success) {
+                    Swal.fire({
+                        icon: "success",
+                        title: "Offer updated",
+                        toast: true,
+                        position: "top-end",
+                        showConfirmButton: false,
+                        timer: 3000
+                    });
+                }
+            }
         });
     });
+
+    // Status Toggle
+    $('.status-toggle').on('click', function () {
+        var button = $(this);
+        var variantId = button.data('variant-id');
+
+        $.ajax({
+            url: '{% url "toggle_variant_availability" %}',
+            type: 'POST',
+            data: {
+                'variant_id': variantId,
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
+            },
+            success: function (response) {
+                if (response.success) {
+                    button.text(response.status_text);
+                    button.toggleClass('btn-success btn-danger');
+                }
+            }
+        });
+    });
+});
 </script>
 {% endblock %}

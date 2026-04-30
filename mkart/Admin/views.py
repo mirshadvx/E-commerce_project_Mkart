@@ -37,6 +37,7 @@ from django.db.models.functions import Coalesce
 from django.db import transaction
 import cloudinary.uploader
 import logging
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 logger = logging.getLogger(__name__)
 
@@ -416,20 +417,30 @@ def superuser_required(view_func):
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
 def products_list(request):
-    logger.info(f"User {request.user.username} is viewing the products list.")
     products = Product.objects.prefetch_related(
-        'variants', 
-        'variants__color'
+        'variants', 'variants__color'
     ).select_related(
-        'offer', 
-        'category', 
-        'brand', 
-        'gender'
-    ).all()
+        'offer', 'category', 'brand', 'gender'
+    ).all().order_by('-created_at')
+
+    paginator = Paginator(products, 10)
+    page_number = request.GET.get('page')
     
+    try:
+        page_obj = paginator.get_page(page_number)
+    except PageNotAnInteger:
+        page_obj = paginator.get_page(1)
+    except EmptyPage:
+        page_obj = paginator.get_page(paginator.num_pages)
+
     offers = Offer.objects.filter(is_active=True)
-    
-    return render(request, 'productsList.html', {'products': products, 'offers': offers})
+
+    context = {
+        'products': page_obj,
+        'offers': offers,
+        'paginator': paginator,
+    }
+    return render(request, 'productsList.html', context)
 
 
 @never_cache
@@ -451,7 +462,7 @@ def product_details(request, product_id):
     
     context = {
         'product': product,
-        'variants': product.variants.all(),
+        'variants': product.variants.all().order_by('color__name'),
     }
     
     return render(request, 'productDetails.html', context)
