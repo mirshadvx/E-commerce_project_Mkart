@@ -497,45 +497,67 @@ def toggle_user_status(request):
         return JsonResponse({'success': True})
     except User.DoesNotExist:
         return JsonResponse({'success': False}, status=404)
-    
+
 @never_cache
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
 def add_variant(request, id):
     product = get_object_or_404(Product, id=id)
-    
+
     if request.method == 'POST':
-        color_id = request.POST.get('color')
-        stock = request.POST.get('stock')
-        price = request.POST.get('price')
-        is_available = request.POST.get('is_available') == 'True'
+        try:
+            with transaction.atomic():
+                color_id = request.POST.get('color')
+                if not color_id:
+                    messages.error(request, "Color is required.")
+                    return render(request, 'addVariant.html', get_context(product))
 
-        variant = ProductVariant(
-            product=product,
-            color_id=color_id,
-            stock=stock,
-            price=price,
-        )
+                if ProductVariant.objects.filter(product=product, color_id=color_id).exists():
+                    messages.warning(request, f"A variant with color '{Color.objects.get(id=color_id).name}' already exists for this product.")
+                    return render(request, 'addVariant.html', get_context(product))
 
-        
-        for i in range(1, 4):
-            cropped_image = request.POST.get(f'cropped_image_{i}')
-            if cropped_image:
-                upload_result = cloudinary.uploader.upload(cropped_image, folder='products')
-                setattr(variant, f'image_{i}', upload_result['public_id'])
+                variant = ProductVariant(
+                    product=product,
+                    color_id=color_id,
+                    stock=request.POST.get('stock'),
+                    price=request.POST.get('price'),
+                    is_available=request.POST.get('is_available') == 'True'
+                )
 
-        variant.save()
-   
-        return render(request,'addVariant.html')
+                for i in range(1, 4):
+                    cropped_data = request.POST.get(f'cropped_image_{i}')
+                    if cropped_data and cropped_data.startswith('data:image'):
+                        try:
+                            result = cloudinary.uploader.upload(
+                                cropped_data,
+                                folder='products',
+                                resource_type='image'
+                            )
+                            setattr(variant, f'image_{i}', result['public_id'])
+                        except Exception as e:
+                            logger.warning(f"Image {i} upload failed for variant: {e}")
+                            messages.warning(request, f"Image {i} failed to upload.")
 
-    context = {
-        'product': product,
-        'genders': Gender.objects.all(),
-        'categories': Category.objects.all(),
-        'brands': Brand.objects.all(),
-        'colors': Color.objects.all(),
-    }
+                variant.save()
+
+                messages.success(request, "Variant added successfully!")
+                return redirect('productlist') 
+
+        except Exception as exc:
+            logger.exception("Failed to add variant for product %s", id)
+            messages.error(request, f"Failed to add variant: {exc}")
+
+    context = get_context_colors(product)
     return render(request, 'addVariant.html', context)
+
+
+def get_context_colors(product):
+    used_colors = ProductVariant.objects.filter(product=product).values_list('color_id', flat=True)
+    available_colors = Color.objects.exclude(id__in=used_colors)
+    return {
+        'product': product,
+        'colors': available_colors,      
+    }
 
 
 @never_cache
