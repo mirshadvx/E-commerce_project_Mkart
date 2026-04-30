@@ -120,28 +120,44 @@ def toggle_category_status(request, category_id):
     return JsonResponse({'status': category.status})
 
 
+@never_cache
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
 def delete_category(request, category_id):
-    category = Category.objects.get(id=category_id)
-    category.delete()
-    return redirect('categorylist')
+    if request.method == 'POST':
+        category = get_object_or_404(Category, id=category_id)
+        try:
+            category.delete()
+            return JsonResponse({
+                'success': True,
+                'message': f'Category "{category.name}" deleted successfully.'
+            })
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': 'Error deleting category.'
+            }, status=500)
+    return JsonResponse({'success': False}, status=400)
+
 
 @never_cache
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
 def edit_category(request, category_id):
     category = get_object_or_404(Category, id=category_id)
-    if request.method == 'POST':
-        category.name = request.POST.get('name')
-        category.description = request.POST.get('description')
 
-        if not category.slug:
-            category.slug = slugify(category.name)
-            
-        category.save()
-        messages.success(request, 'Category updated successfully.')
-        return redirect('categorylist')
+    if request.method == 'POST':
+        category.name = request.POST.get('name', '').strip()
+        category.description = request.POST.get('description', '').strip()
+
+        if not category.name:
+            messages.error(request, "Category name cannot be empty.")
+        else:
+            if not category.slug or category.name != category.name:
+                category.slug = slugify(category.name)
+            category.save()
+            messages.success(request, 'Category updated successfully.')
+            return redirect('categorylist')
 
     return render(request, 'editCategory.html', {'category': category})
 
@@ -468,6 +484,66 @@ def product_details(request, product_id):
     return render(request, 'productDetails.html', context)
 
 
+@never_cache
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def delete_product(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    
+    if request.method == 'POST':
+        try:
+            with transaction.atomic():
+                for variant in product.variants.all():
+                    for i in range(1, 4):
+                        image_field = getattr(variant, f'image_{i}')
+                        if image_field:
+                            try:
+                                cloudinary.uploader.destroy(str(image_field), resource_type='image')
+                            except:
+                                pass
+                product.delete()
+                
+            messages.success(request, f"Product '{product.name}' and all its variants have been deleted successfully.")
+            return JsonResponse({'success': True})
+            
+        except Exception as e:
+            logger.exception("Error deleting product %s", product_id)
+            return JsonResponse({'success': False, 'error': str(e)}, status=500)
+    
+    return JsonResponse({'success': False, 'error': 'Invalid request'}, status=400)
+
+
+@never_cache
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def delete_variant(request, variant_id):
+    variant = get_object_or_404(ProductVariant, id=variant_id)
+    product_name = variant.product.name
+    color_name = variant.color.name
+    
+    if request.method == 'POST':
+        try:
+            with transaction.atomic():
+                for i in range(1, 4):
+                    image_field = getattr(variant, f'image_{i}')
+                    if image_field:
+                        try:
+                            cloudinary.uploader.destroy(str(image_field), resource_type='image')
+                        except:
+                            pass
+                
+                variant.delete()
+                
+            return JsonResponse({
+                'success': True,
+                'message': f"Variant ({color_name}) deleted from {product_name}."
+            })
+            
+        except Exception as e:
+            logger.exception("Error deleting variant %s", variant_id)
+            return JsonResponse({'success': False, 'error': str(e)}, status=500)
+    
+    return JsonResponse({'success': False}, status=400)
 
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
@@ -896,43 +972,86 @@ def update_product_offer(request):
         'message': f"Offer updated successfully for product: {product.name}"
     })
 
+# @require_POST
+# @login_required
+# @user_passes_test(lambda u: u.is_superuser)
+# def update_category_offer(request):
+#     category_id = request.POST.get('category_id')
+#     offer_id = request.POST.get('offer_id')
+#     action = request.POST.get('action')
+
+#     try:
+#         category = get_object_or_404(Category, id=category_id)
+
+#         if action == 'update':
+#             offer = get_object_or_404(Offer, id=offer_id)
+#             category.offer = offer
+#             category.save()
+#             message = f'Offer "{offer.name}" has been successfully applied to category "{category.name}".'
+#         elif action == 'remove':
+#             old_offer_name = category.offer.name if category.offer else "No offer"
+#             category.offer = None
+#             category.save()
+#             message = f'Offer has been successfully removed from category "{category.name}". Previous offer was "{old_offer_name}".'
+#         else:
+#             return JsonResponse({
+#                 'success': False,
+#                 'message': 'Invalid action specified.'
+#             }, status=400)
+
+#         return JsonResponse({
+#             'success': True,
+#             'message': message
+#         })
+#     except Exception as e:
+#         return JsonResponse({
+#             'success': False,
+#             'message': f'An error occurred: {str(e)}'
+#         }, status=400)
 @require_POST
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
 def update_category_offer(request):
     category_id = request.POST.get('category_id')
     offer_id = request.POST.get('offer_id')
-    action = request.POST.get('action')
+
+    if not category_id:
+        return JsonResponse({
+            'success': False,
+            'message': 'Category ID is required.'
+        }, status=400)
 
     try:
         category = get_object_or_404(Category, id=category_id)
 
-        if action == 'update':
+        if offer_id and offer_id.strip():   # Offer selected → Apply offer
             offer = get_object_or_404(Offer, id=offer_id)
             category.offer = offer
-            category.save()
             message = f'Offer "{offer.name}" has been successfully applied to category "{category.name}".'
-        elif action == 'remove':
-            old_offer_name = category.offer.name if category.offer else "No offer"
+        else:                               # No offer selected → Remove offer
             category.offer = None
-            category.save()
-            message = f'Offer has been successfully removed from category "{category.name}". Previous offer was "{old_offer_name}".'
-        else:
-            return JsonResponse({
-                'success': False,
-                'message': 'Invalid action specified.'
-            }, status=400)
+            message = f'Offer has been removed from category "{category.name}".'
+
+        category.save()
 
         return JsonResponse({
             'success': True,
             'message': message
         })
+
+    except Offer.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'message': 'Selected offer does not exist.'
+        }, status=404)
+
     except Exception as e:
         return JsonResponse({
             'success': False,
             'message': f'An error occurred: {str(e)}'
         }, status=400)
-        
+    
+
 @never_cache
 @never_cache
 @login_required

@@ -45,4 +45,6 @@ urlpatterns = [
     path('sales_report/',views.show_sales_details,name='sales_report'),
     path('sales_report/', views.show_sales_details, name='sales_report'),
     path('sales-report-data/', views.get_filtered_sales_data, name='sales_report_data'),
+    path('delete-product/<int:product_id>/', views.delete_product, name='delete_product'),
+    path('delete-variant/<int:variant_id>/', views.delete_variant, name='delete_variant'),
 ]
