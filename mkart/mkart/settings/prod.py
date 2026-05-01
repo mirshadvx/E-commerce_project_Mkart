@@ -60,7 +60,6 @@ INSTALLED_APPS = [
     "products",
     "Admin",
     "widget_tweaks",
-    "debug_toolbar",
     "razorpay",
     "social_django",
 ]
@@ -77,7 +76,6 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "debug_toolbar.middleware.DebugToolbarMiddleware",
     "social_django.middleware.SocialAuthExceptionMiddleware",
 ]
 
