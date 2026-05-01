@@ -1,9 +1,12 @@
-from django.urls import path 
+from django.urls import path
 from . import views
 from django.contrib.auth.decorators import login_required
 
+app_name = "Admin"
+name = "admin_panel"
+
 urlpatterns = [
-    path('',login_required(views.dashboard), name='dashboard'),
+    path('', login_required(views.dashboard), name='admin_panel'),
     path('productlist/', views.products_list, name='productlist'),
     path('product-details/\u003cint:product_id\u003e/', views.product_details, name='product_details'),
     path('toggle-variant-availability/', views.toggle_variant_availability, name='toggle_variant_availability'),

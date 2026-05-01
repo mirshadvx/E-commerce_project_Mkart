@@ -172,9 +172,9 @@
                         </button>
                     </div>
                     <div class="col-md-6 col-lg-4 mb-3">
-                        <button class="btn btn-secondary btn-block" onclick="window.location.href='/admin_panel/'">
+                        <a href="{% url 'Admin:admin_panel' %}" class="btn btn-secondary btn-block">
                             <h6 class="mb-0">Go to Admin Panel</h6>
-                        </button>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -205,4 +205,3 @@
     </script>
     {% endif %}
 {% endblock %}
-
