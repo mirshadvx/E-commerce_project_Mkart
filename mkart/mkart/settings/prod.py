@@ -14,7 +14,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 #STATIC_URL = '/static/'
 FORCE_SCRIPT_NAME = '/timexo'
 STATIC_URL = '/timexo/static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+# STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Cloudinary is used for media storage — no local MEDIA_ROOT needed
 CLOUDINARY_STORAGE = {
