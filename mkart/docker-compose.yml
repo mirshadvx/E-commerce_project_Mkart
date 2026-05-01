@@ -13,7 +13,7 @@ services:
     depends_on:
       - timexo-db
     environment:
-      DJANGO_SETTINGS_MODULE: mkart.settings.dev
+      DJANGO_SETTINGS_MODULE: mkart.settings.prod
     expose:
       - "8000"
     restart: always
