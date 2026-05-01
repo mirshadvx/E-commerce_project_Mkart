@@ -1,69 +1,76 @@
+# ----------------------
 # Python
+# ----------------------
 __pycache__/
 *.py[cod]
 *$py.class
-*.pyc
 
+# ----------------------
 # Django
+# ----------------------
 *.log
-local_settings.py
 db.sqlite3
 db.sqlite3-journal
 
-# Media and static files
+# Static & Media
 /media/
-# */static/  # Avoid ignoring the static folder if you manage static files in production
+/staticfiles/
 
+# ----------------------
 # Environment
+# ----------------------
 .env
-/mvenv/
-/.venv/
-.env/
-.env.local
-/env/
+.env.*
+venv/
+.venv/
+env/
 
+# ----------------------
 # IDE
+# ----------------------
 .vscode/
 .idea/
-*.swp
-*.swo
 
-# OS generated files
+# ----------------------
+# OS files
+# ----------------------
 .DS_Store
 Thumbs.db
 
+# ----------------------
 # Project-specific
+# ----------------------
 client_secret*.json
 
-# Temporary files
+# ----------------------
+# Temp files
+# ----------------------
 *.bak
 *.tmp
 
+# ----------------------
 # Database backups
+# ----------------------
 *.sql
 *.sqlite3-backup
 
-# Coverage reports
+# ----------------------
+# Testing / coverage
+# ----------------------
 .coverage
 htmlcov/
-
-# Pytest cache
 .pytest_cache/
-
-# mypy cache
 .mypy_cache/
 
-# Package files
+# ----------------------
+# Build / packaging
+# ----------------------
 *.egg
 *.egg-info/
 dist/
 build/
-eggs/
-parts/
-var/
-sdist/
-develop-eggs/
-.installed.cfg
 
-# Node.js (if applicable)
+# ----------------------
+# Node (if used)
+# ----------------------
 node_modules/
