@@ -155,8 +155,8 @@ def register(request):
             from_email = settings.EMAIL_HOST_USER
             recipient_list = [email]
             send_mail(subject, message, from_email, recipient_list)
-        except:
-            None
+        except Exception as e:
+            logger.error("Email otp sending erro :", e)
      
         stored_data = request.session.get('registration_data')
        
@@ -1432,7 +1432,6 @@ def download_invoice(request, item_id):
  
     return HttpResponse("Error generating PDF", status=400)
 
-from django.contrib.auth import update_session_auth_hash
 
 @never_cache
 @require_POST
