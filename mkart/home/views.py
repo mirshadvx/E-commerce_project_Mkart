@@ -33,7 +33,8 @@ from xhtml2pdf import pisa
 from io import BytesIO
 from django.shortcuts import get_object_or_404
 from django.db import transaction
-from django.db.models import Min
+from django.db.models import Min, Sum, IntegerField
+from django.db.models.functions import Coalesce
 import json
 import logging
 logger = logging.getLogger('registration')
@@ -311,7 +312,24 @@ def home(request):
         cart_items = CartItem.objects.filter(cart=cart)
         cart_total = cart.get_total_price()
 
-    all_products = Product.objects.filter(category__status=True)
+    all_products = (
+        Product.objects
+        .filter(
+            category__status=True,
+            variants__is_available=True,
+            variants__stock__gt=0
+        )
+        .annotate(
+            total_bought=Coalesce(
+                Sum('variants__order_items__quantity'),
+                0,
+                output_field=IntegerField()
+            )
+        )
+        .order_by('-total_bought')
+        .distinct()[:8]
+    )
+
     categories = Category.objects.filter(status=True)
     genders = Gender.objects.all()
     brands = Brand.objects.all()

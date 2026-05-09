@@ -6,671 +6,402 @@
 {% block content %}
 <main class="main">
     <div class="intro-slider-container">
-        <div class="intro-slider owl-carousel owl-theme owl-nav-inside owl-light" data-toggle="owl" data-owl-options='{
-                        "dots": false,
-                        "nav": false, 
-                        "responsive": {
-                            "992": {
-                                "nav": true
-                            }
-                        }
-                    }'>
+        <div class="intro-slider owl-carousel owl-theme owl-nav-inside owl-light"
+            data-toggle="owl"
+            data-owl-options='{
+                "dots": false,
+                "nav": false,
+                "responsive": {
+                    "992": {
+                        "nav": true
+                    }
+                }
+            }'>
 
+            <div class="intro-slide"
+                style="background-image: url({% static 'my_shop_images/slider_3.webp' %});">
 
-
-            <div class="intro-slide" style="background-image: url( {% static " my_shop_images\slider_3.webp" %} );">
                 <div class="caption"
-                    style="    position: absolute; bottom: 100px; z-index: 1; color: #fff; max-width: 550px; left: 100px; }">
-                    <h2 style="color: white;     margin-left: 57px;">Modern mastery with vintage roots: Breguet
-                        Tradition Retrograde Seconds </h2>
-                    <span style="margin-left: 57px;"> Discover now
-                    </span>
+                    style="position:absolute; bottom:100px; z-index:1; color:#fff; max-width:550px; left:100px;">
+
+                    <h2 style="color:white;">
+                        Modern mastery with vintage roots:
+                        Breguet Tradition Retrograde Seconds
+                    </h2>
+
+                    <span>Discover now</span>
                 </div>
-            </div><!-- End .intro-slide -->
-            <div class="intro-slide" style="background-image: url( {% static " my_shop_images\slider_2.webp" %} );">
+            </div>
+
+            <div class="intro-slide"
+                style="background-image: url({% static 'my_shop_images/slider_2.webp' %});">
+
                 <div class="container intro-content text-center">
-                    <h3 class="intro-subtitle text-white">You're Looking Good</h3><!-- End .h3 intro-subtitle -->
-                    <h1 class="intro-title text-white">New Lookbook</h1><!-- End .intro-title -->
+
+                    <h3 class="intro-subtitle text-white">
+                        You're Looking Good
+                    </h3>
+
+                    <h1 class="intro-title text-white">
+                        New Lookbook
+                    </h1>
 
                     <a href="category.html" class="btn btn-outline-white-4">
                         <span>Discover More</span>
                     </a>
-                </div><!-- End .intro-content -->
-            </div><!-- End .intro-slide -->
 
-            <div class="intro-slide" style="background-image: url({% static " my_shop_images\slider_1.webp" %}">
-                <div class="container intro-content text-center">
-                    {% comment %} <h3 class="intro-subtitle text-white">Don’t Miss</h3><!-- End .h3 intro-subtitle -->
-                    <h1 class="intro-title text-white">Mysrety Deals</h1><!-- End .intro-title --> {% endcomment %}
+                </div>
+            </div>
 
-                    {% comment %} <a href="category.html" class="btn btn-outline-white-4">
-                        <span>Discover More</span> {% endcomment %}
-                    </a>
-                </div><!-- End .intro-content -->
-            </div><!-- End .intro-slide -->
+            <div class="intro-slide"
+                style="background-image: url({% static 'my_shop_images/slider_1.webp' %});">
 
-        </div><!-- End .intro-slider owl-carousel owl-theme -->
+                <div class="container intro-content text-center"></div>
 
+            </div>
 
-        <span class="slider-loader"></span><!-- End .slider-loader -->
-    </div><!-- End .intro-slider-container -->
+        </div>
+
+        <span class="slider-loader"></span>
+    </div>
 
     <div class="pt-2 pb-3">
         <div class="container">
+
             <div class="row">
+
                 <div class="col-sm-6">
+
                     <div class="banner banner-overlay">
+
                         <a href="#">
-                            <img src="{% static 'my_shop_images/women_banner_og.jpg' %}" style="width: 100%;"
+                            <img src="{% static 'my_shop_images/women_banner_og.jpg' %}"
+                                style="width:100%;"
                                 alt="Banner">
                         </a>
 
                         <div class="banner-content banner-content-center">
-                            <h4 class="banner-subtitle text-white"><a href="{% url "womens_items" %}">New in</a></h4>
-                            <!-- End .banner-subtitle -->
-                            <h3 class="banner-title text-white"><a href="{% url "womens_items"
-                                    %}"><strong>Women’s</strong></h3><!-- End .banner-title -->
-                            <a href="{% url "womens_items" %}" class="btn btn-outline-white banner-link underline">Shop
-                                Now</a>
-                        </div><!-- End .banner-content -->
-                    </div><!-- End .banner -->
-                </div><!-- End .col-sm-6 -->
+
+                            <h4 class="banner-subtitle text-white">
+                                <a href="{% url 'womens_items' %}">
+                                    New in
+                                </a>
+                            </h4>
+
+                            <h3 class="banner-title text-white">
+                                <a href="{% url 'womens_items' %}">
+                                    <strong>Women’s</strong>
+                                </a>
+                            </h3>
+
+                            <a href="{% url 'womens_items' %}"
+                                class="btn btn-outline-white banner-link underline">
+
+                                Shop Now
+
+                            </a>
+
+                        </div>
+                    </div>
+                </div>
 
                 <div class="col-sm-6">
+
                     <div class="banner banner-overlay">
+
                         <a href="#">
-                            <img src="{% static 'my_shop_images/men_banner.jpg' %}" alt="Banner">
+                            <img src="{% static 'my_shop_images/men_banner.jpg' %}"
+                                alt="Banner">
                         </a>
 
                         <div class="banner-content banner-content-center">
-                            <h4 class="banner-subtitle text-white"><a href="{% url "mens_items" %}">New in</a></h4>
-                            <!-- End .banner-subtitle -->
-                            <h3 class="banner-title text-white"><a href="{% url "mens_items"
-                                    %}"><strong>Men’s</strong></a></h3><!-- End .banner-title -->
-                            <a href="{% url "mens_items" %}" class="btn btn-outline-white banner-link underline">Shop
-                                Now</a>
-                        </div><!-- End .banner-content -->
-                    </div><!-- End .banner -->
-                </div><!-- End .col-sm-6 -->
-            </div><!-- End .row -->
-            <hr class="mt-0 mb-0">
-        </div><!-- End .container -->
-    </div><!-- End .bg-gray -->
 
-    <div class="mb-5"></div><!-- End .mb-5 -->
-    <div class="container">
-        <div class="heading heading-center mb-3">
-            <h2 class="title">Trending</h2><!-- End .title -->
+                            <h4 class="banner-subtitle text-white">
+                                <a href="{% url 'mens_items' %}">
+                                    New in
+                                </a>
+                            </h4>
 
-            <ul class="nav nav-pills justify-content-center" role="tablist">
-                <li class="nav-item">
-                    <a class="nav-link active" id="trending-all-link" data-toggle="tab" href="#trending-all-tab"
-                        role="tab" aria-controls="trending-all-tab" aria-selected="true">All</a>
-                </li>
-            </ul>
-        </div><!-- End .heading -->
+                            <h3 class="banner-title text-white">
+                                <a href="{% url 'mens_items' %}">
+                                    <strong>Men’s</strong>
+                                </a>
+                            </h3>
 
-        <div class="tab-content tab-content-carousel">
-            <div class="tab-pane p-0 fade show active" id="trending-all-tab" role="tabpanel"
-                aria-labelledby="trending-all-link">
-                <div class="owl-carousel owl-simple carousel-equal-height carousel-with-shadow" data-toggle="owl"
-                    data-owl-options='{
-                                "nav": false, 
-                                "dots": true,
-                                "margin": 20,
-                                "loop": false,
-                                "responsive": {
-                                    "0": {
-                                        "items":2
-                                    },
-                                    "480": {
-                                        "items":2
-                                    },
-                                    "768": {
-                                        "items":3
-                                    },
-                                    "992": {
-                                        "items":4
-                                    },
-                                    "1200": {
-                                        "items":4,
-                                        "nav": true,
-                                        "dots": false
-                                    }
-                                }
-                            }'>
+                            <a href="{% url 'mens_items' %}"
+                                class="btn btn-outline-white banner-link underline">
 
-                    {% for product in products %}
-                    <div class="product product-7 text-center">
-                        <figure class="product-media">
-                            <a href="{% url 'product_info' product.id %}">
-                                {% with product.variants.first as variant %}
-                                {% if variant.image_1 %}
-                                <img src="{{ variant.image_1.url }}" alt="{{ product.name }}" class="product-image">
-                                {% elif variant.image_2 %}
-                                <img src="{{ variant.image_2.url }}" alt="{{ product.name }}" class="product-image">
-                                {% elif variant.image_3 %}
-                                <img src="{{ variant.image_3.url }}" alt="{{ product.name }}" class="product-image">
-                                {% else %}
-                                <img src="{% static 'store-assets/assets/images/placeholder.jpg' %}"
-                                    alt="No image available" class="product-image">
-                                {% endif %}
+                                Shop Now
 
-                                {% if variant.image_2 %}
-                                <img src="{{ variant.image_2.url }}" alt="{{ product.name }}"
-                                    class="product-image-hover">
-                                {% elif variant.image_3 %}
-                                <img src="{{ variant.image_3.url }}" alt="{{ product.name }}"
-                                    class="product-image-hover">
-                                {% elif variant.image_1 %}
-                                <img src="{{ variant.image_1.url }}" alt="{{ product.name }}"
-                                    class="product-image-hover">
-                                {% else %}
-                                <img src="{% static 'store-assets/assets/images/placeholder-hover.jpg' %}"
-                                    alt="No hover image available" class="product-image-hover">
-                                {% endif %}
-                                {% endwith %}
                             </a>
 
-                            {% if product.get_discount_percentage %}
-                            <span class="product-label label-sale">{{ product.get_discount_percentage }}% off</span>
-                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <hr class="mt-0 mb-0">
+
+        </div>
+    </div>
+
+    <div class="mb-5"></div>
+
+    <div class="container">
+
+        <div class="heading heading-center mb-3">
+
+            <h2 class="title">
+                Trending
+            </h2>
+
+            <ul class="nav nav-pills justify-content-center" role="tablist">
+
+                <li class="nav-item">
+
+                    <a class="nav-link active"
+                        id="trending-all-link"
+                        data-toggle="tab"
+                        href="#trending-all-tab"
+                        role="tab"
+                        aria-controls="trending-all-tab"
+                        aria-selected="true">
+
+                        All
+
+                    </a>
+
+                </li>
+
+            </ul>
+
+        </div>
+
+        <div class="tab-content tab-content-carousel">
+
+            <div class="tab-pane p-0 fade show active"
+                id="trending-all-tab"
+                role="tabpanel"
+                aria-labelledby="trending-all-link">
+
+                <div class="owl-carousel owl-simple carousel-equal-height carousel-with-shadow"
+                    data-toggle="owl"
+                    data-owl-options='{
+                        "nav": false,
+                        "dots": true,
+                        "margin": 20,
+                        "loop": false,
+                        "responsive": {
+                            "0": {
+                                "items":2
+                            },
+                            "480": {
+                                "items":2
+                            },
+                            "768": {
+                                "items":3
+                            },
+                            "992": {
+                                "items":4
+                            },
+                            "1200": {
+                                "items":4,
+                                "nav": true,
+                                "dots": false
+                            }
+                        }
+                    }'>
+
+                    {% for product in products %}
+
+                    {% with product.variants.first as variant %}
+
+                    <div class="product product-7 text-center">
+
+                        <figure class="product-media">
+
+                            <a href="{% url 'product_info' product.id %}">
+
+                                {% if variant %}
+
+                                    {% if variant.image_1 %}
+                                        <img src="{{ variant.image_1.url }}"
+                                            alt="{{ product.name }}"
+                                            class="product-image">
+                                    {% elif variant.image_2 %}
+                                        <img src="{{ variant.image_2.url }}"
+                                            alt="{{ product.name }}"
+                                            class="product-image">
+                                    {% elif variant.image_3 %}
+                                        <img src="{{ variant.image_3.url }}"
+                                            alt="{{ product.name }}"
+                                            class="product-image">
+                                    {% else %}
+                                        <img src="{% static 'store-assets/assets/images/placeholder.jpg' %}"
+                                            alt="No image available"
+                                            class="product-image">
+                                    {% endif %}
+
+                                    {% if variant.image_2 %}
+                                        <img src="{{ variant.image_2.url }}"
+                                            alt="{{ product.name }}"
+                                            class="product-image-hover">
+                                    {% elif variant.image_3 %}
+                                        <img src="{{ variant.image_3.url }}"
+                                            alt="{{ product.name }}"
+                                            class="product-image-hover">
+                                    {% elif variant.image_1 %}
+                                        <img src="{{ variant.image_1.url }}"
+                                            alt="{{ product.name }}"
+                                            class="product-image-hover">
+                                    {% endif %}
+
+                                {% endif %}
+
+                            </a>
 
                             <div class="product-action-vertical">
-                                <form method="POST" action="{% url 'add_wishlist' product.id %}">
+
+                                {% if variant %}
+                                <form method="POST"
+                                    action="{% url 'add_wishlist' product.id %}">
+
                                     {% csrf_token %}
-                                    <input type="hidden" name="variant_id" value="{{ product.variants.first.id }}">
-                                    <button type="submit" class="btn-product-icon btn-wishlist btn-expandable"><span>Add
-                                            to wishlist</span></button>
+
+                                    <input type="hidden"
+                                        name="variant_id"
+                                        value="{{ variant.id }}">
+
+                                    <button type="submit"
+                                        class="btn-product-icon btn-wishlist btn-expandable">
+
+                                        <span>Add to wishlist</span>
+
+                                    </button>
+
                                 </form>
+                                {% endif %}
+
                             </div>
 
-                            <div class="product-action" style="justify-content: center;">
-                                <form method="POST" action="{% url 'add_to_cart' product.variants.first.id %}">
+                            <div class="product-action"
+                                style="justify-content:center;">
+
+                                {% if variant %}
+                                <form method="POST"
+                                    action="{% url 'add_to_cart' variant.id %}">
+
                                     {% csrf_token %}
-                                    <input type="hidden" name="variant_id" value="{{ product.variants.first.id }}">
-                                    <button type="submit" style="	background: none;
-	color: inherit;
-	border: none;
-	cursor: pointer;" class="btn-product btn-cart"><span>Add to cart</span></button>
+
+                                    <button type="submit"
+                                        style="background:none;
+                                        color:inherit;
+                                        border:none;
+                                        cursor:pointer;"
+                                        class="btn-product btn-cart">
+
+                                        <span>Add to cart</span>
+
+                                    </button>
+
                                 </form>
+                                {% endif %}
+
                             </div>
-                        </figure><!-- End .product-media -->
+
+                        </figure>
 
                         <div class="product-body">
-                            <div class="product-cat">
-                                <a href="#">{{ product.category.name }}</a>
-                                {% if product.gender %}
-                                <a>/ {{ product.gender.name }}</a>
-                                {% endif %}
-                            </div><!-- End .product-cat -->
 
-                            <h3 class="product-title"><a href="{% url 'product_info' product.id %}">{{ product.name
-                                    }}</a></h3><!-- End .product-title -->
+                            <div class="product-cat">
+
+                                <a href="#">
+                                    {{ product.category.name }}
+                                </a>
+
+                                {% if product.gender %}
+                                    <a href="#">
+                                        / {{ product.gender.name }}
+                                    </a>
+                                {% endif %}
+
+                            </div>
+
+                            <h3 class="product-title">
+
+                                <a href="{% url 'product_info' product.id %}">
+                                    {{ product.name }}
+                                </a>
+
+                            </h3>
 
                             <div class="product-price">
-                                {% if product.get_discounted_price %}
-                                <span class="new-price">{{ product.get_discounted_price|floatformat:2 }}</span>
-                                <span class="old-price"><s>{{ product.variants.first.price|floatformat:2 }}</s></span>
-                                {% else %}
-                                <span class="price">{{ product.variants.first.price|floatformat:2 }}</span>
+
+                                {% if variant %}
+
+                                    <span class="new-price">
+                                        ₹{{ product.get_discounted_price|floatformat:2 }}
+                                    </span>
+
+                                    <span class="old-price">
+                                        <s>
+                                            ₹{{ variant.price|floatformat:2 }}
+                                        </s>
+                                    </span>
+
                                 {% endif %}
-                            </div><!-- End .product-price -->
+
+                            </div>
+
                             <div class="product-nav product-nav-thumbs">
-                                {% with product.variants.first as variant %}
-                                {% if variant.image_1 %}
-                                <a href="#" class="active">
-                                    <img src="{{ variant.image_1.url }}" alt="{{ product.name }}">
-                                </a>
+
+                                {% if variant %}
+
+                                    {% if variant.image_1 %}
+                                    <a href="#" class="active">
+                                        <img src="{{ variant.image_1.url }}"
+                                            alt="{{ product.name }}">
+                                    </a>
+                                    {% endif %}
+
+                                    {% if variant.image_2 %}
+                                    <a href="#">
+                                        <img src="{{ variant.image_2.url }}"
+                                            alt="{{ product.name }}">
+                                    </a>
+                                    {% endif %}
+
+                                    {% if variant.image_3 %}
+                                    <a href="#">
+                                        <img src="{{ variant.image_3.url }}"
+                                            alt="{{ product.name }}">
+                                    </a>
+                                    {% endif %}
+
                                 {% endif %}
-                                {% if variant.image_2 %}
-                                <a href="#">
-                                    <img src="{{ variant.image_2.url }}" alt="{{ product.name }}">
-                                </a>
-                                {% endif %}
-                                {% if variant.image_3 %}
-                                <a href="#">
-                                    <img src="{{ variant.image_3.url }}" alt="{{ product.name }}">
-                                </a>
-                                {% endif %}
-                                {% endwith %}
-                            </div><!-- End .product-nav -->
-                        </div><!-- End .product-body -->
-                    </div><!-- End .product -->
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    {% endwith %}
 
                     {% endfor %}
 
+                </div>
 
-                </div><!-- End .owl-carousel -->
-            </div><!-- .End .tab-pane -->
+            </div>
 
-        </div><!-- End .tab-content -->
-    </div><!-- End .container -->
+        </div>
 
-    <div class="mb-5"></div><!-- End .mb-5 -->
+    </div>
 
-    <div class="pt-4 pb-3" style="background-color: #222;">
-        <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-lg-3 col-sm-6">
-                    <div class="icon-box text-center">
-                        <span class="icon-box-icon">
-                            <i class="icon-truck"></i>
-                        </span>
-                        <div class="icon-box-content">
-                            <h3 class="icon-box-title">Payment & Delivery</h3><!-- End .icon-box-title -->
-                            <p>Free shipping for orders over $50</p>
-                        </div><!-- End .icon-box-content -->
-                    </div><!-- End .icon-box -->
-                </div><!-- End .col-lg-3 col-sm-6 -->
+</main>
 
-                <div class="col-lg-3 col-sm-6">
-                    <div class="icon-box text-center">
-                        <span class="icon-box-icon">
-                            <i class="icon-rotate-left"></i>
-                        </span>
-                        <div class="icon-box-content">
-                            <h3 class="icon-box-title">Return & Refund</h3><!-- End .icon-box-title -->
-                            <p>Free 100% money back guarantee</p>
-                        </div><!-- End .icon-box-content -->
-                    </div><!-- End .icon-box -->
-                </div><!-- End .col-lg-3 col-sm-6 -->
-
-                <div class="col-lg-3 col-sm-6">
-                    <div class="icon-box text-center">
-                        <span class="icon-box-icon">
-                            <i class="icon-unlock"></i>
-                        </span>
-                        <div class="icon-box-content">
-                            <h3 class="icon-box-title">Secure Payment</h3><!-- End .icon-box-title -->
-                            <p>100% secure payment</p>
-                        </div><!-- End .icon-box-content -->
-                    </div><!-- End .icon-box -->
-                </div><!-- End .col-lg-3 col-sm-6 -->
-
-                <div class="col-lg-3 col-sm-6">
-                    <div class="icon-box text-center">
-                        <span class="icon-box-icon">
-                            <i class="icon-headphones"></i>
-                        </span>
-                        <div class="icon-box-content">
-                            <h3 class="icon-box-title">Quality Support</h3><!-- End .icon-box-title -->
-                            <p>Alway online feedback 24/7</p>
-                        </div><!-- End .icon-box-content -->
-                    </div><!-- End .icon-box -->
-                </div><!-- End .col-lg-3 col-sm-6 -->
-            </div><!-- End .row -->
-        </div><!-- End .container -->
-    </div><!-- End .bg-light pt-2 pb-2 -->
-
-    <div class="mb-6"></div><!-- End .mb-5 -->
-
-    {% comment %} <div class="container">
-        <h2 class="title text-center mb-4">New Arrivals</h2><!-- End .title text-center -->
-
-        <div class="products">
-            <div class="row justify-content-center">
-                <div class="col-6 col-md-4 col-lg-3">
-                    <div class="product product-7 text-center">
-                        <figure class="product-media">
-                            <span class="product-label label-sale">Sale</span>
-                            <a href="product.html">
-                                <img src="{% static 'store-assets/assets/images/demos/demo-6/products/product-5-1.jpg' %}"
-                                    alt="Product image" class="product-image">
-                                <img src="{% static 'store-assets/assets/images/demos/demo-6/products/product-5-2.jpg' %}"
-                                    alt="Product image" class="product-image-hover">
-                            </a>
-
-                            <div class="product-action-vertical">
-                                <a href="#" class="btn-product-icon btn-wishlist btn-expandable"><span>add to
-                                        wishlist</span></a>
-                            </div><!-- End .product-action-vertical -->
-
-                            <div class="product-action">
-                                <a href="#" class="btn-product btn-cart"><span>add to cart</span></a>
-                            </div><!-- End .product-action -->
-                        </figure><!-- End .product-media -->
-
-                        <div class="product-body">
-                            <div class="product-cat">
-                                <a href="#">Clothing</a>
-                            </div><!-- End .product-cat -->
-                            <h3 class="product-title"><a href="product.html">Tie-detail top</a></h3>
-                            <!-- End .product-title -->
-                            <div class="product-price">
-                                <span class="new-price">Now $3.99</span>
-                                <span class="old-price">Was $6.99</span>
-                            </div><!-- End .product-price -->
-                        </div><!-- End .product-body -->
-                    </div><!-- End .product -->
-                </div><!-- End .col-sm-6 col-md-4 col-lg-3 -->
-
-                <div class="col-6 col-md-4 col-lg-3">
-                    <div class="product product-7 text-center">
-                        <figure class="product-media">
-                            <a href="product.html">
-                                <img src="{% static 'store-assets/assets/images/demos/demo-6/products/product-6-1.jpg' %}"
-                                    alt="Product image" class="product-image">
-                                <img src="{% static 'store-assets/assets/images/demos/demo-6/products/product-6-2.jpg' %}"
-                                    alt="Product image" class="product-image-hover">
-                            </a>
-
-                            <div class="product-action-vertical">
-                                <a href="#" class="btn-product-icon btn-wishlist btn-expandable"><span>add to
-                                        wishlist</span></a>
-                            </div><!-- End .product-action-vertical -->
-
-                            <div class="product-action">
-                                <a href="#" class="btn-product btn-cart"><span>add to cart</span></a>
-                            </div><!-- End .product-action -->
-                        </figure><!-- End .product-media -->
-
-                        <div class="product-body">
-                            <div class="product-cat">
-                                <a href="#">Shoes</a>
-                            </div><!-- End .product-cat -->
-                            <h3 class="product-title"><a href="product.html">Sandals</a></h3><!-- End .product-title -->
-                            <div class="product-price">
-                                $12.99
-                            </div><!-- End .product-price -->
-                        </div><!-- End .product-body -->
-                    </div><!-- End .product -->
-                </div><!-- End .col-sm-6 col-md-4 col-lg-3 -->
-
-                <div class="col-6 col-md-4 col-lg-3">
-                    <div class="product product-7 text-center">
-                        <figure class="product-media">
-                            <a href="product.html">
-                                <img src="{% static 'store-assets/assets/images/demos/demo-6/products/product-7-1.jpg' %}"
-                                    alt="Product image" class="product-image">
-                                <img src="{% static 'store-assets/assets/images/demos/demo-6/products/product-7-2.jpg' %}"
-                                    alt="Product image" class="product-image-hover">
-                            </a>
-
-                            <div class="product-action-vertical">
-                                <a href="#" class="btn-product-icon btn-wishlist btn-expandable"><span>add to
-                                        wishlist</span></a>
-                            </div><!-- End .product-action-vertical -->
-
-                            <div class="product-action">
-                                <a href="#" class="btn-product btn-cart"><span>add to cart</span></a>
-                            </div><!-- End .product-action -->
-                        </figure><!-- End .product-media -->
-
-                        <div class="product-body">
-                            <div class="product-cat">
-                                <a href="#">Bags</a>
-                            </div><!-- End .product-cat -->
-                            <h3 class="product-title"><a href="product.html">Small bucket bag</a></h3>
-                            <!-- End .product-title -->
-                            <div class="product-price">
-                                $14.99
-                            </div><!-- End .product-price -->
-
-                            <div class="product-nav product-nav-thumbs">
-                                <a href="#" class="active">
-                                    <img src="{% static 'store-assets/assets/images/demos/demo-6/products/product-7-thumb.jpg' %}"
-                                        alt="product desc">
-                                </a>
-                                <a href="#">
-                                    <img src="{% static 'store-assets/assets/images/demos/demo-6/products/product-7-2-thumb.jpg' %}"
-                                        alt="product desc">
-                                </a>
-                            </div><!-- End .product-nav -->
-                        </div><!-- End .product-body -->
-                    </div><!-- End .product -->
-                </div><!-- End .col-sm-6 col-md-4 col-lg-3 -->
-
-                <div class="col-6 col-md-4 col-lg-3">
-                    <div class="product product-7 text-center">
-                        <figure class="product-media">
-                            <a href="product.html">
-                                <img src="{% static 'store-assets/assets/images/demos/demo-6/products/product-8-1.jpg' %}"
-                                    alt="Product image" class="product-image">
-                                <img src="{% static 'store-assets/assets/images/demos/demo-6/products/product-8-2.jpg' %}"
-                                    alt="Product image" class="product-image-hover">
-                            </a>
-
-                            <div class="product-action-vertical">
-                                <a href="#" class="btn-product-icon btn-wishlist btn-expandable"><span>add to
-                                        wishlist</span></a>
-                            </div><!-- End .product-action-vertical -->
-
-                            <div class="product-action">
-                                <a href="#" class="btn-product btn-cart"><span>add to cart</span></a>
-                            </div><!-- End .product-action -->
-                        </figure><!-- End .product-media -->
-
-                        <div class="product-body">
-                            <div class="product-cat">
-                                <a href="#">Clothing</a>
-                            </div><!-- End .product-cat -->
-                            <h3 class="product-title"><a href="product.html">Denim jacket</a></h3>
-                            <!-- End .product-title -->
-                            <div class="product-price">
-                                $34.99
-                            </div><!-- End .product-price -->
-                        </div><!-- End .product-body -->
-                    </div><!-- End .product -->
-                </div><!-- End .col-sm-6 col-md-4 col-lg-3 -->
-
-                <div class="col-6 col-md-4 col-lg-3">
-                    <div class="product product-7 text-center">
-                        <figure class="product-media">
-                            <a href="product.html">
-                                <img src="{% static 'store-assets/assets/images/demos/demo-6/products/product-9-1.jpg' %}"
-                                    alt="Product image" class="product-image">
-                                <img src="{% static 'store-assets/assets/images/demos/demo-6/products/product-9-2.jpg' %}"
-                                    alt="Product image" class="product-image-hover">
-                            </a>
-
-                            <div class="product-action-vertical">
-                                <a href="#" class="btn-product-icon btn-wishlist btn-expandable"><span>add to
-                                        wishlist</span></a>
-                            </div><!-- End .product-action-vertical -->
-
-                            <div class="product-action">
-                                <a href="#" class="btn-product btn-cart"><span>add to cart</span></a>
-                            </div><!-- End .product-action -->
-                        </figure><!-- End .product-media -->
-
-                        <div class="product-body">
-                            <div class="product-cat">
-                                <a href="#">Clothing</a>
-                            </div><!-- End .product-cat -->
-                            <h3 class="product-title"><a href="product.html">BShort wrap dress</a></h3>
-                            <!-- End .product-title -->
-                            <div class="product-price">
-                                $17.99
-                            </div><!-- End .product-price -->
-                        </div><!-- End .product-body -->
-                    </div><!-- End .product -->
-                </div><!-- End .col-sm-6 col-md-4 col-lg-3 -->
-
-                <div class="col-6 col-md-4 col-lg-3">
-                    <div class="product product-7 text-center">
-                        <figure class="product-media">
-                            <a href="product.html">
-                                <img src="{% static 'store-assets/assets/images/demos/demo-6/products/product-10-1.jpg' %}"
-                                    alt="Product image" class="product-image">
-                                <img src="{% static 'store-assets/assets/images/demos/demo-6/products/product-10-2.jpg' %}"
-                                    alt="Product image" class="product-image-hover">
-                            </a>
-
-                            <div class="product-action-vertical">
-                                <a href="#" class="btn-product-icon btn-wishlist btn-expandable"><span>add to
-                                        wishlist</span></a>
-                            </div><!-- End .product-action-vertical -->
-
-                            <div class="product-action">
-                                <a href="#" class="btn-product btn-cart"><span>add to cart</span></a>
-                            </div><!-- End .product-action -->
-                        </figure><!-- End .product-media -->
-
-                        <div class="product-body">
-                            <div class="product-cat">
-                                <a href="#">Clothing</a>
-                            </div><!-- End .product-cat -->
-                            <h3 class="product-title"><a href="product.html">Biker jacket</a></h3>
-                            <!-- End .product-title -->
-                            <div class="product-price">
-                                $34.99
-                            </div><!-- End .product-price -->
-
-                            <div class="product-nav product-nav-thumbs">
-                                <a href="#" class="active">
-                                    <img src="{% static 'store-assets/assets/images/demos/demo-6/products/product-10-thumb.jpg' %}"
-                                        alt="product desc">
-                                </a>
-                                <a href="#">
-                                    <img src="{% static 'store-assets/assets/images/demos/demo-6/products/product-10-2-thumb.jpg' %}"
-                                        alt="product desc">
-                                </a>
-                            </div><!-- End .product-nav -->
-                        </div><!-- End .product-body -->
-                    </div><!-- End .product -->
-                </div><!-- End .col-sm-6 col-md-4 col-lg-3 -->
-
-                <div class="col-6 col-md-4 col-lg-3">
-                    <div class="product product-7 text-center">
-                        <figure class="product-media">
-                            <a href="product.html">
-                                <img src="{% static 'store-assets/assets/images/demos/demo-6/products/product-11-1.jpg' %}"
-                                    alt="Product image" class="product-image">
-                                <img src="{% static 'store-assets/assets/images/demos/demo-6/products/product-11-2.jpg' %}"
-                                    alt="Product image" class="product-image-hover">
-                            </a>
-
-                            <div class="product-action-vertical">
-                                <a href="#" class="btn-product-icon btn-wishlist btn-expandable"><span>add to
-                                        wishlist</span></a>
-                            </div><!-- End .product-action-vertical -->
-
-                            <div class="product-action">
-                                <a href="#" class="btn-product btn-cart"><span>add to cart</span></a>
-                            </div><!-- End .product-action -->
-                        </figure><!-- End .product-media -->
-
-                        <div class="product-body">
-                            <div class="product-cat">
-                                <a href="#">Shoes</a>
-                            </div><!-- End .product-cat -->
-                            <h3 class="product-title"><a href="product.html">Loafers</a></h3><!-- End .product-title -->
-                            <div class="product-price">
-                                $9.99
-                            </div><!-- End .product-price -->
-                        </div><!-- End .product-body -->
-                    </div><!-- End .product -->
-                </div><!-- End .col-sm-6 col-md-4 col-lg-3 -->
-
-                <div class="col-6 col-md-4 col-lg-3">
-                    <div class="product product-7 text-center">
-                        <figure class="product-media">
-                            <span class="product-label label-sale">sale</span>
-                            <a href="product.html">
-                                <img src="{% static 'store-assets/assets/images/demos/demo-6/products/product-12-1.jpg' %}"
-                                    alt="Product image" class="product-image">
-                                <img src="{% static 'store-assets/assets/images/demos/demo-6/products/product-12-2.jpg' %}"
-                                    alt="Product image" class="product-image-hover">
-                            </a>
-
-                            <div class="product-action-vertical">
-                                <a href="#" class="btn-product-icon btn-wishlist btn-expandable"><span>add to
-                                        wishlist</span></a>
-                            </div><!-- End .product-action-vertical -->
-
-                            <div class="product-action">
-                                <a href="#" class="btn-product btn-cart"><span>add to cart</span></a>
-                            </div><!-- End .product-action -->
-                        </figure><!-- End .product-media -->
-
-                        <div class="product-body">
-                            <div class="product-cat">
-                                <a href="#">Clothing</a>
-                            </div><!-- End .product-cat -->
-                            <h3 class="product-title"><a href="product.html">Super Skinny High Jeggings</a></h3>
-                            <!-- End .product-title -->
-                            <div class="product-price">
-                                <span class="new-price">Now $12.99</span>
-                                <span class="old-price">Was $17.99</span>
-                            </div><!-- End .product-price -->
-                        </div><!-- End .product-body -->
-                    </div><!-- End .product -->
-                </div><!-- End .col-sm-6 col-md-4 col-lg-3 -->
-            </div><!-- End .row -->
-        </div><!-- End .products -->
-
-        <div class="more-container text-center mt-2">
-            <a href="#" class="btn btn-outline-dark-2 btn-more"><span>show more</span></a>
-        </div><!-- End .more-container -->
-    </div><!-- End .container --> {% endcomment %}
-
-    <div class="pb-3">
-        <div class="container brands pt-5 pt-lg-7 ">
-
-            <h2 class="title text-center mb-4">shop by brands</h2><!-- End .title text-center -->
-
-            <div class="owl-carousel owl-simple" data-toggle="owl" data-owl-options='{
-                            "nav": false, 
-                            "dots": false,
-                            "margin": 30,
-                            "loop": false,
-                            "responsive": {
-                                "0": {
-                                    "items":2
-                                },
-                                "420": {
-                                    "items":3
-                                },
-                                "600": {
-                                    "items":4
-                                },
-                                "900": {
-                                    "items":5
-                                },
-                                "1024": {
-                                    "items":6
-                                }
-                            }
-                        }'>
-                <a href="#" class="brand">
-                    <img src="{% static 'store-assets/assets/images/brands/1.png' %}" alt="Brand Name">
-                </a>
-
-                <a href="#" class="brand">
-                    <img src="{% static 'store-assets/assets/images/brands/2.png' %}" alt="Brand Name">
-                </a>
-
-                <a href="#" class="brand">
-                    <img src="{% static 'store-assets/assets/images/brands/3.png' %}" alt="Brand Name">
-                </a>
-
-                <a href="#" class="brand">
-                    <img src="{% static 'store-assets/assets/images/brands/4.png' %}" alt="Brand Name">
-                </a>
-
-                <a href="#" class="brand">
-                    <img src="{% static 'store-assets/assets/images/brands/5.png' %}" alt="Brand Name">
-                </a>
-
-                <a href="#" class="brand">
-                    <img src="{% static 'store-assets/assets/images/brands/6.png' %}" alt="Brand Name">
-                </a>
-
-                <a href="#" class="brand">
-                    <img src="{% static 'store-assets/assets/images/brands/7.png' %}" alt="Brand Name">
-                </a>
-            </div><!-- End .owl-carousel -->
-        </div><!-- End .container -->
-
-        <div class="mb-5 mb-lg-7"></div><!-- End .mb-5 -->
-    </div><!-- End .bg-gray -->
-
-    <div class="mb-2"></div><!-- End .mb-5 -->
-
-    <div class="container">
-    </div><!-- End .container -->
-</main><!-- End .main -->{% endblock %}
+{% endblock %}
 
 <footer class="footer">
     <div class="footer-middle">

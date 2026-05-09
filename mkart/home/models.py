@@ -178,7 +178,7 @@ class OrderItem(models.Model):
         ('return','Return'),
     ]
     order = models.ForeignKey(Order,related_name='ordered_items', on_delete=models.SET_NULL, blank=True, null=True)
-    product_variant = models.ForeignKey('products.ProductVariant', on_delete=models.CASCADE)
+    product_variant = models.ForeignKey('products.ProductVariant',related_name='order_items', on_delete=models.CASCADE)
     quantity = models.IntegerField(default=0, null=True, blank=True)
     date_added = models.DateTimeField(auto_now_add=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
