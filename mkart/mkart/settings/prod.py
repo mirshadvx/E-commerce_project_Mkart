@@ -10,13 +10,15 @@ SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# ===================== STATIC & MEDIA =====================
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 STATICFILES_DIRS = [
-    BASE_DIR / "static",
+    BASE_DIR / "static",           # Points to mkart/static
 ]
 
+# WhiteNoise + Django 5.0 compatible configuration
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
@@ -26,8 +28,7 @@ STORAGES = {
     },
 }
 
-# STATICFILES_STORAGE = "whitenoise.middleware.CompressedStaticFilesStorage"
-
+# Cloudinary (Media files)
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
     'API_KEY': os.environ.get('CLOUDINARY_API_KEY'),
@@ -36,24 +37,21 @@ CLOUDINARY_STORAGE = {
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 MEDIA_URL = '/media/'
 
-# SECURITY WARNING: keep the secret key used in production secret!
+# ===================== SECURITY =====================
 SECRET_KEY = os.environ.get("SECRET_KEY")
-
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
+ALLOWED_HOSTS = ["*"]
 
-#ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 CSRF_TRUSTED_ORIGINS = [
     "https://timexo.onrender.com",
 ]
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
-ALLOWED_HOSTS = ["*"]
 
+# ===================== DJANGO SETTINGS =====================
 USE_TZ = True
 TIME_ZONE = "Asia/Kolkata"
-# TIME_ZONE = 'UTC'
 
 INSTALLED_APPS = [
     "django.contrib.sites",
@@ -63,7 +61,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "cloudinary_storage",
+    "cloudinary_storage",      # Must be before cloudinary
     "cloudinary",
     "home",
     "products",
@@ -73,12 +71,11 @@ INSTALLED_APPS = [
     "social_django",
 ]
 
-
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",   # Right after SecurityMiddleware
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -88,19 +85,13 @@ MIDDLEWARE = [
     "social_django.middleware.SocialAuthExceptionMiddleware",
 ]
 
-
-ACCOUNT_DEFAULT_HTTP_PROTOCOL = "http"
-SOCIALACCOUNT_STORE_TOKENS = True
-
-
 ROOT_URLCONF = "mkart.urls"
-LOGIN_URL = "login"
-LOGOUT_REDIRECT_URL = "/"
+WSGI_APPLICATION = "mkart.wsgi.application"
 
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "Admin" / "templates", "templates"],
+        "DIRS": [BASE_DIR / "Admin" / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -115,43 +106,26 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "mkart.wsgi.application"
-
-
 DATABASES = {
     'default': dj_database_url.parse(
         os.environ.get("DATABASE_URL")
     )
 }
 
-# database_url = os.environ.get("DATABASE_URL")
-# DATABASES["default"] = dj_database_url.parse(database_url)
-
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
-    },
+    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
-
 
 LANGUAGE_CODE = "en-us"
 USE_I18N = True
-USE_TZ = True
-
-LOGIN_URL = "login"
 
 SITE_ID = 1
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# ===================== EMAIL =====================
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
@@ -159,11 +133,8 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
 
-SESSION_ENGINE = "django.contrib.sessions.backends.db"
-
-INTERNAL_IPS = [
-    "127.0.0.1",
-]
+# ===================== OTHER APPS =====================
+INTERNAL_IPS = ["127.0.0.1"]
 
 RAZORPAY_KEY_ID = os.environ.get("RAZORPAY_KEY_ID")
 RAZORPAY_KEY_SECRET = os.environ.get("RAZORPAY_KEY_SECRET")
@@ -171,18 +142,22 @@ RAZORPAY_KEY_SECRET = os.environ.get("RAZORPAY_KEY_SECRET")
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.environ.get("SOCIAL_AUTH_GOOGLE_OAUTH2_KEY")
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.environ.get("SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET")
 
+LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "home"
+LOGOUT_REDIRECT_URL = "/"
 ACCOUNT_LOGOUT_REDIRECT_URL = "login"
 
 AUTHENTICATION_BACKENDS = [
     "social_core.backends.google.GoogleOAuth2",
     "django.contrib.auth.backends.ModelBackend",
 ]
+
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_AUTHENTICATION_METHOD = "email"
 ACCOUNT_EMAIL_VERIFICATION = "optional"
 
+# ===================== LOGGING =====================
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -216,26 +191,10 @@ LOGGING = {
         },
     },
     "loggers": {
-        "django": {
-            "handlers": ["console", "file"],
-            "level": "INFO",
-            "propagate": True,
-        },
-        "Admin": {
-            "handlers": ["console", "file"],
-            "level": "DEBUG",
-            "propagate": True,
-        },
-        "products": {
-            "handlers": ["console", "file"],
-            "level": "DEBUG",
-            "propagate": True,
-        },
-        "home": {
-            "handlers": ["console", "file"],
-            "level": "DEBUG",
-            "propagate": True,
-        },
+        "django": {"handlers": ["console", "file"], "level": "INFO", "propagate": True},
+        "Admin": {"handlers": ["console", "file"], "level": "DEBUG", "propagate": True},
+        "products": {"handlers": ["console", "file"], "level": "DEBUG", "propagate": True},
+        "home": {"handlers": ["console", "file"], "level": "DEBUG", "propagate": True},
         "registration": {
             "handlers": ["file_registration_errors", "console"],
             "level": "ERROR",
@@ -243,4 +202,3 @@ LOGGING = {
         },
     },
 }
-
