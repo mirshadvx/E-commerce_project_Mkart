@@ -47,6 +47,8 @@ FROM python:3.11-slim
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
+ENV DJANGO_SETTINGS_MODULE=mkart.settings.prod
+
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y \
@@ -54,15 +56,13 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-COPY mkart/requirements.txt .
+COPY requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-WORKDIR /app/mkart
-
-RUN python manage.py collectstatic --noinput
+RUN python manage.py collectstatic --noinput --settings=mkart.settings.prod
 
 EXPOSE 8000
 

@@ -9,7 +9,7 @@ services:
       - .:/app
       - static_volume:/app/staticfiles
     env_file:
-      - .env
+      - ./mkart/.env
     depends_on:
       - timexo-db
     environment:
