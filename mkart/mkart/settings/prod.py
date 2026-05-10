@@ -5,25 +5,22 @@ from pathlib import Path
 
 load_dotenv()
 
-
 SECURE_REFERRER_POLICY = "no-referrer-when-downgrade"
 SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"
 
 
+from pathlib import Path
 
-# BASE_DIR = Path(__file__).resolve().parent.parent.parent
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 STATIC_URL = '/static/'
 
-# STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATIC_ROOT = Path("/app/mkart/staticfiles")
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 STATICFILES_DIRS = [
-    Path("/app/static")
+    BASE_DIR / 'static'
 ]
 
-# Cloudinary is used for media storage — no local MEDIA_ROOT needed
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
     'API_KEY': os.environ.get('CLOUDINARY_API_KEY'),
