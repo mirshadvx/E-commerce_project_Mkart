@@ -10,10 +10,16 @@ SECURE_REFERRER_POLICY = "no-referrer-when-downgrade"
 SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"
 
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+
 STATIC_URL = '/static/'
-# STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+STATICFILES_DIRS = [
+    BASE_DIR / 'static'
+]
 
 # Cloudinary is used for media storage — no local MEDIA_ROOT needed
 CLOUDINARY_STORAGE = {
@@ -23,11 +29,6 @@ CLOUDINARY_STORAGE = {
 }
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 MEDIA_URL = '/media/'
-
-
-STATICFILES_DIRS = [
-    BASE_DIR.parent / "static"
-]
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get("SECRET_KEY")
