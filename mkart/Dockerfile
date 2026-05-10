@@ -42,7 +42,8 @@
 
 # CMD ["sh", "-c", "python manage.py migrate && python manage.py collectstatic --noinput && gunicorn mkart.wsgi:application --bind 0.0.0.0:8000"]
 
-# Better version (recommended)
+# Collectstatic with dummy DB (good practice)
+
 FROM python:3.11-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -51,22 +52,19 @@ ENV DJANGO_SETTINGS_MODULE=mkart.settings.prod
 
 WORKDIR /app
 
-# Install system dependencies
 RUN apt-get update && apt-get install -y \
     gcc \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt .
+COPY mkart/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy project
 COPY . .
 
-# Collectstatic with dummy DB (good practice)
+# Collectstatic
 RUN DATABASE_URL=sqlite:///dummy.db python mkart/manage.py collectstatic --noinput --clear
 
 EXPOSE 8000
 
-# Use gunicorn with reasonable settings for free tier
 CMD ["gunicorn", "mkart.mkart.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "2", "--timeout", "120"]
