@@ -48,7 +48,7 @@ FROM python:3.11-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
-ENV DJANGO_SETTINGS_MODULE=mkart.settings.prod
+ENV DJANGO_SETTINGS_MODULE=mkart.mkart.settings.prod   # ← Fixed
 
 WORKDIR /app
 
