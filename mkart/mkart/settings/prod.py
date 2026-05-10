@@ -11,14 +11,16 @@ SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"
 
 
 
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
+# BASE_DIR = Path(__file__).resolve().parent.parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 STATIC_URL = '/static/'
 
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+# STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_ROOT = Path("/app/mkart/staticfiles")
 
 STATICFILES_DIRS = [
-    BASE_DIR / 'static'
+    Path("/app/static")
 ]
 
 # Cloudinary is used for media storage — no local MEDIA_ROOT needed
