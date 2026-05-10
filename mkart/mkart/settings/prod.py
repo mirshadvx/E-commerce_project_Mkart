@@ -10,34 +10,33 @@ SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# ===================== STATIC & MEDIA =====================
+# ===================== STATIC FILES =====================
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 STATICFILES_DIRS = [
-    BASE_DIR / "static",           # Points to mkart/static
+    BASE_DIR / "static",           # mkart/static
 ]
 
-# WhiteNoise + Django 5.0 compatible configuration
+# WhiteNoise for Static Files (Django 5.0+)
 STORAGES = {
-    "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
-    },
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
 }
 
-# Cloudinary (Media files)
+# ===================== MEDIA / CLOUDINARY =====================
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
     'API_KEY': os.environ.get('CLOUDINARY_API_KEY'),
     'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET'),
 }
+
+# Important: Keep DEFAULT_FILE_STORAGE for Cloudinary (don't put in STORAGES)
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 MEDIA_URL = '/media/'
 
-# ===================== SECURITY =====================
+# ===================== SECURITY & BASIC =====================
 SECRET_KEY = os.environ.get("SECRET_KEY")
 DEBUG = False
 
@@ -49,10 +48,10 @@ CSRF_TRUSTED_ORIGINS = [
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
 
-# ===================== DJANGO SETTINGS =====================
 USE_TZ = True
 TIME_ZONE = "Asia/Kolkata"
 
+# ===================== INSTALLED APPS =====================
 INSTALLED_APPS = [
     "django.contrib.sites",
     "django.contrib.admin",
@@ -61,7 +60,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "cloudinary_storage",      # Must be before cloudinary
+    "cloudinary_storage",   # Must come before cloudinary
     "cloudinary",
     "home",
     "products",
@@ -73,9 +72,10 @@ INSTALLED_APPS = [
 
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
 
+# ===================== MIDDLEWARE =====================
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",   # Right after SecurityMiddleware
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -85,6 +85,7 @@ MIDDLEWARE = [
     "social_django.middleware.SocialAuthExceptionMiddleware",
 ]
 
+# ===================== TEMPLATES & URLS =====================
 ROOT_URLCONF = "mkart.urls"
 WSGI_APPLICATION = "mkart.wsgi.application"
 
@@ -106,12 +107,14 @@ TEMPLATES = [
     },
 ]
 
+# ===================== DATABASE =====================
 DATABASES = {
     'default': dj_database_url.parse(
         os.environ.get("DATABASE_URL")
     )
 }
 
+# ===================== AUTH & OTHER =====================
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
@@ -121,11 +124,10 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 USE_I18N = True
-
 SITE_ID = 1
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# ===================== EMAIL =====================
+# Email
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
@@ -133,9 +135,7 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
 
-# ===================== OTHER APPS =====================
-INTERNAL_IPS = ["127.0.0.1"]
-
+# Payment & Social
 RAZORPAY_KEY_ID = os.environ.get("RAZORPAY_KEY_ID")
 RAZORPAY_KEY_SECRET = os.environ.get("RAZORPAY_KEY_SECRET")
 
@@ -162,21 +162,11 @@ LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
-        "verbose": {
-            "format": "[{asctime}] {levelname} [{name}:{lineno}] {message}",
-            "style": "{",
-        },
-        "simple": {
-            "format": "{levelname} {message}",
-            "style": "{",
-        },
+        "verbose": {"format": "[{asctime}] {levelname} [{name}:{lineno}] {message}", "style": "{"},
+        "simple": {"format": "{levelname} {message}", "style": "{"},
     },
     "handlers": {
-        "console": {
-            "level": "DEBUG",
-            "class": "logging.StreamHandler",
-            "formatter": "simple",
-        },
+        "console": {"level": "DEBUG", "class": "logging.StreamHandler", "formatter": "simple"},
         "file": {
             "level": "DEBUG",
             "class": "logging.FileHandler",
@@ -195,10 +185,6 @@ LOGGING = {
         "Admin": {"handlers": ["console", "file"], "level": "DEBUG", "propagate": True},
         "products": {"handlers": ["console", "file"], "level": "DEBUG", "propagate": True},
         "home": {"handlers": ["console", "file"], "level": "DEBUG", "propagate": True},
-        "registration": {
-            "handlers": ["file_registration_errors", "console"],
-            "level": "ERROR",
-            "propagate": False,
-        },
+        "registration": {"handlers": ["file_registration_errors", "console"], "level": "ERROR", "propagate": False},
     },
 }
