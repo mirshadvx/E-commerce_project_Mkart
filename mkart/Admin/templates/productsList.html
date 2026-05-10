@@ -34,7 +34,7 @@
                 <h6>Manage your products and variants</h6>
             </div>
             <div class="page-btn">
-                <a href="{% url 'addProduct' %}" class="btn btn-added">
+                <a href="{% url 'Admin:addProduct' %}" class="btn btn-added">
                     <img src="{% static 'admin-assets/img/icons/plus.svg' %}" alt="img" class="me-1" /> 
                     Add New Product
                 </a>
@@ -60,14 +60,14 @@
                             {% for product in products %}
                             <tr>
                                 <td class="productimgname">
-                                    <a href="{% url 'product_details' product.id %}" class="product-img">
+                                    <a href="{% url 'Admin:product_details' product.id %}" class="product-img">
                                         {% if product.variants.first and product.variants.first.image_1 %}
                                             <img src="{{ product.variants.first.image_1.url }}" alt="{{ product.name }}" />
                                         {% else %}
                                             <img src="{% static 'admin-assets/img/product/noimage.png' %}" alt="{{ product.name }}" />
                                         {% endif %}
                                     </a>
-                                    <a href="{% url 'product_details' product.id %}">{{ product.name }}</a>
+                                    <a href="{% url 'Admin:product_details' product.id %}">{{ product.name }}</a>
                                 </td>
                                 <td>{{ product.category.name }}</td>
                                 <td>{{ product.gender.name }}</td>
@@ -123,10 +123,10 @@
                                 </td>
 
                                 <td>
-                                    <a href="{% url 'edit_product' product.id %}" class="me-2" title="Edit Product">
+                                    <a href="{% url 'Admin:edit_product' product.id %}" class="me-2" title="Edit Product">
                                         <i class="fas fa-edit text-primary"></i>
                                     </a>
-                                    <a href="{% url 'add_variant' product.id %}" class="me-3" title="Add Variant">
+                                    <a href="{% url 'Admin:add_variant' product.id %}" class="me-3" title="Add Variant">
                                         <i class="fas fa-plus-circle text-success"></i>
                                     </a>
                                     <button onclick="deleteProduct({{ product.id }}, '{{ product.name|escapejs }}')" 
@@ -227,7 +227,7 @@ function deleteProduct(productId, productName) {
             });
 
             $.ajax({
-                url: "{% url 'delete_product' 999 %}".replace('999', productId),
+                url: "{% url 'Admin:delete_product' 999 %}".replace('999', productId),
                 type: 'POST',
                 data: {
                     'csrfmiddlewaretoken': '{{ csrf_token }}'
@@ -280,7 +280,7 @@ function deleteVariant(variantId, colorName, productName) {
             });
 
             $.ajax({
-                url: "{% url 'delete_variant' 999 %}".replace('999', variantId),
+                url: "{% url 'Admin:delete_variant' 999 %}".replace('999', variantId),
                 type: 'POST',
                 data: { 
                     'csrfmiddlewaretoken': '{{ csrf_token }}' 
@@ -315,7 +315,7 @@ $(document).ready(function () {
         var offerId = select.val();
 
         $.ajax({
-            url: '{% url "update_product_offer" %}',
+            url: '{% url "Admin:update_product_offer" %}',
             type: 'POST',
             data: {
                 'product_id': productId,
@@ -343,7 +343,7 @@ $(document).ready(function () {
         var variantId = button.data('variant-id');
 
         $.ajax({
-            url: '{% url "toggle_variant_availability" %}',
+            url: '{% url "Admin:toggle_variant_availability" %}',
             type: 'POST',
             data: {
                 'variant_id': variantId,

@@ -412,7 +412,7 @@ def add_product(request):
         print("=" * 60)
 
         messages.success(request, "Product added successfully!")
-        return redirect(reverse('productlist'))
+        return redirect(reverse('Admin:productlist'))
 
     else:
         context = {

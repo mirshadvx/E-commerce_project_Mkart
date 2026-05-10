@@ -191,7 +191,7 @@
         var endDate = $('#end_date').val();
 
         $.ajax({
-            url: '{% url "sales_report_data" %}',
+            url: '{% url "Admin:sales_report_data" %}',
             data: {
                 report_type: reportType,
                 start_date: startDate,

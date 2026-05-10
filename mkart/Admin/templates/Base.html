@@ -39,7 +39,7 @@
         <div class="header">
 
             <div class="header-left active">
-                <a href="{% url "dashboard" %}" class="logo">
+                <a href="{% url "Admin:admin_panel" %}" class="logo">
                     <img src="{% static 'my_shop_images/shop_logo.jpg' %}" alt="">
                 </a>
                 <a href="index.html" class="logo-small">
@@ -103,48 +103,48 @@
                 <div id="sidebar-menu" class="sidebar-menu">
                     <ul>
                         <li class="active">
-                            <a  href="{% url "dashboard" %}"><img src="{% static 'admin-assets/img/icons/dashboard.svg' %}" alt="img"><span>
+                            <a  href="{% url "Admin:admin_panel" %}"><img src="{% static 'admin-assets/img/icons/dashboard.svg' %}" alt="img"><span>
                                     Dashboard</span> </a>
                         </li>
                         <li class="submenu">
                             <a href="javascript:void(0);"><img src="{% static 'admin-assets/img/icons/product.svg' %}" alt="img"><span>
                                     Product</span> <span class="menu-arrow"></span></a>
                             <ul>
-                                <li><a href="{% url "productlist" %}">Product List</a></li>
-                                <li><a href="{% url "addProduct" %}">Add Product</a></li>
-                                <li><a href="{% url "categorylist" %}">Category List</a></li>
-                                <li><a href="{% url "addCategory" %}">Add Category</a></li>
-                                <li><a href="{% url "brandlist" %}">Brand List</a></li>
+                                <li><a href="{% url "Admin:productlist" %}">Product List</a></li>
+                                <li><a href="{% url "Admin:addProduct" %}">Add Product</a></li>
+                                <li><a href="{% url "Admin:categorylist" %}">Category List</a></li>
+                                <li><a href="{% url "Admin:addCategory" %}">Add Category</a></li>
+                                <li><a href="{% url "Admin:brandlist" %}">Brand List</a></li>
                             </ul>
                         </li>
                         <li class="submenu">
                             <a href="javascript:void(0);"><img src="{% static 'admin-assets/img/icons/users1.svg' %}" alt="img"><span>
                                     Users</span> <span class="menu-arrow"></span></a>
                             <ul>
-                                <li><a href="{% url "userlist" %}">Users List</a></li>
+                                <li><a href="{% url "Admin:userlist" %}">Users List</a></li>
                             </ul>
                         </li>
                         <li class="submenu">
                             <a><img src="{% static 'admin-assets/img/icons/sales1.svg' %}" alt="img"><span>
                                     Orders</span> <span class="menu-arrow"></span></a>
                             <ul>
-                                <li><a href="{% url "order_list" %}">Orders List</a></li>
+                                <li><a href="{% url "Admin:order_list" %}">Orders List</a></li>
                             </ul>
                         </li>   
                         <li class="submenu">
                             <a><i style="font-size: 19px; color: black;" class="fas fa-ticket-alt coupon-icon"></i><span>
                                     Coupon / Offer</span> <span class="menu-arrow"></span></a>
                             <ul>
-                                <li><a href="{% url "coupon_list" %}">Coupon list</a></li>
-                                <li><a href="{% url "add_coupon" %}">Add coupon</a></li>
-                                <li><a href="{% url "offer" %}">Offer</a></li>
+                                <li><a href="{% url "Admin:coupon_list" %}">Coupon list</a></li>
+                                <li><a href="{% url "Admin:add_coupon" %}">Add coupon</a></li>
+                                <li><a href="{% url "Admin:offer" %}">Offer</a></li>
                             </ul>
                         </li> 
                         <li class="submenu">
                             <a><img src="{% static "my_shop_images/report_og.png" %}" style="width: 23px;" alt=""><span>
                                     Sales Report</span> <span class="menu-arrow"></span></a>
                             <ul>
-                                <li><a href="{% url "sales_report" %}">Sales List</a></li>
+                                <li><a href="{% url "Admin:sales_report" %}">Sales List</a></li>
                             </ul>
                         </li>
                         <li class="submenu">

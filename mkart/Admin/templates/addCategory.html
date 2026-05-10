@@ -93,7 +93,7 @@
                     var categoryName = $(this).val();
                     if (categoryName) {
                         $.ajax({
-                            url: '{% url "check_category" %}',
+                            url: '{% url "Admin:check_category" %}',
                             data: {
                                 name: categoryName,
                             },

@@ -198,7 +198,7 @@ $(document).ready(function () {
         }).then((result) => {
             if (result.isConfirmed) {
                 $.ajax({
-                    url: '{% url "update_category_offer" %}',
+                    url: '{% url "Admin:update_category_offer" %}',
                     method: 'POST',
                     data: {
                         category_id: categoryId,

@@ -190,7 +190,7 @@ $(document).ready(function() {
         var newStatus = !isCurrentlyActive;
         
         $.ajax({
-            url: '{% url "toggle_user_status" %}',
+            url: '{% url "Admin:toggle_user_status" %}',
             type: 'POST',
             data: {
                 'user_id': userId,

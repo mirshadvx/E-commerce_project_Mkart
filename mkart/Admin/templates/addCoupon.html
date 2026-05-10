@@ -166,7 +166,7 @@
 
             if (couponCode) {
                 $.ajax({
-                    url: '{% url "coupon_exists" %}',
+                    url: '{% url "Admin:coupon_exists" %}',
                     data: {
                         'code': couponCode
                     },

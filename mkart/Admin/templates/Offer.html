@@ -401,7 +401,7 @@ $(document).ready(function() {
             var formData = $(this).serialize();
             
             $.ajax({
-                url: '{% url "add_offer" %}',
+                url: '{% url "Admin:add_offer" %}',
                 type: 'POST',
                 data: formData,
                 success: function(response) {

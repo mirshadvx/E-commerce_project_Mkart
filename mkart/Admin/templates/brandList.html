@@ -175,7 +175,7 @@
                 var brandName = $brandInput.val();
                 var brandId = $('#brandId').val();
                 $.ajax({
-                    url: '{% url "check_brand_exists" %}',
+                    url: '{% url "Admin:check_brand_exists" %}',
                     type: 'GET',
                     data: {'name': brandName, 'id': brandId},
                     success: function(response) {
@@ -198,7 +198,7 @@
                 var brandId = $('#brandId').val();
                 if (!$brandInput.hasClass('is-invalid') && brandName) {
                     $.ajax({
-                        url: brandId ? '{% url "edit_brand" %}' : '{% url "add_brand" %}',
+                        url: brandId ? '{% url "Admin:edit_brand" %}' : '{% url "Admin:add_brand" %}',
                         type: 'POST',
                         data: $brandForm.serialize(),
                         success: function(response) {
@@ -238,7 +238,7 @@
         function confirmDelete(brandId) {
             if (confirm('Are you sure you want to delete this brand?')) {
                 $.ajax({
-                    url: '{% url "delete_brand" %}',
+                    url: '{% url "Admin:delete_brand" %}',
                     type: 'POST',
                     data: {
                         'id': brandId,

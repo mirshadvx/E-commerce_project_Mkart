@@ -331,7 +331,7 @@
         var initialStatus = $dropdown.data('initial-status'); 
 
         $.ajax({
-            url: '{% url "update_order_item_status" %}',
+            url: '{% url "Admin:update_order_item_status" %}',
             type: 'POST',
             data: {
                 'item_id': itemId,
@@ -377,7 +377,7 @@
         var newStatus = $(this).val();
         
         $.ajax({
-            url: '{% url "update_order_item_status" %}',
+            url: '{% url "Admin:update_order_item_status" %}',
             type: 'POST',
             data: {
                 'item_id': itemId,
@@ -418,7 +418,7 @@
         var newStatus = $(this).val();
         
         $.ajax({
-            url: '{% url "update_order_item_status" %}',  // You'll need to create this URL
+            url: '{% url "Admin:update_order_item_status" %}',  // You'll need to create this URL
             type: 'POST',
             data: {
                 'item_id': itemId,

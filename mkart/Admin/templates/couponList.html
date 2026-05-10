@@ -207,7 +207,7 @@ $('.status-toggle').on('change', function() {
     var statusText = $(this).siblings('label').find('.status-text');
 
     $.ajax({
-        url: '{% url "control_c_status" %}',
+        url: '{% url "Admin:control_c_status" %}',
         type: 'POST',
         data: {
             id: couponId,
@@ -238,7 +238,7 @@ $(document).ready(function() {
   $('.edit-coupon').on('click', function() {
     var id = $(this).data('id');
     $.ajax({
-      url: '{% url "get_coupon_details" %}',
+      url: '{% url "Admin:get_coupon_details" %}',
       type: 'GET',
       data: { id: id },
       success: function(data) {
@@ -264,7 +264,7 @@ $(document).ready(function() {
     e.preventDefault();
     var formData = $(this).serialize();
     $.ajax({
-      url: '{% url "edit_coupon" %}',
+      url: '{% url "Admin:edit_coupon" %}',
       type: 'POST',
       data: formData,
       success: function(response) {
@@ -301,7 +301,7 @@ $(document).ready(function() {
             if (result.isConfirmed) {
               
                 $.ajax({
-                    url: '{% url "delete_coupon" %}',
+                    url: '{% url "Admin:delete_coupon" %}',
                     type: 'POST',
                     data: {
                         id: id,
@@ -343,7 +343,7 @@ $(document).ready(function() {
         var id = $(this).data('id');
         if (confirm('Are you sure you want to delete this coupon?')) {
             $.ajax({
-                url: '{% url "delete_coupon" %}',
+                url: '{% url "Admin:delete_coupon" %}',
                 type: 'POST',
                 data: {
                     id: id,
