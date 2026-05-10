@@ -24,8 +24,9 @@ CLOUDINARY_STORAGE = {
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 MEDIA_URL = '/media/'
 
+
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR.parent, "static")
+    BASE_DIR.parent / "static"
 ]
 
 # SECURITY WARNING: keep the secret key used in production secret!
