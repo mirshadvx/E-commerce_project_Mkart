@@ -484,7 +484,6 @@ def show_products(request):
 
     return render(request, 'store/products_home.html', context)
 
-
 @never_cache
 def mens_items(request):
     user_wishlist_count = 0
@@ -493,7 +492,6 @@ def mens_items(request):
 
     if request.user.is_authenticated:
         user_wishlist_count = Wishlist.objects.filter(user=request.user).count()
-        
         try:
             user_cart = Cart.objects.get(user=request.user)
             user_cart_count = CartItem.objects.filter(cart=user_cart).count()
@@ -525,7 +523,10 @@ def mens_items(request):
     if selected_colors:
         products = products.filter(variants__color__name__in=selected_colors).distinct()
     if min_price and max_price:
-        products = products.filter(variants__price__gte=min_price, variants__price__lte=max_price).distinct()
+        products = products.filter(
+            variants__price__gte=min_price,
+            variants__price__lte=max_price
+        ).distinct()
 
     sort_by = request.GET.get('sortby')
     if sort_by:
@@ -550,12 +551,36 @@ def mens_items(request):
             else:
                 product.discount_percentage = None
 
+    paginator = Paginator(products, 4)
+    page_number = request.GET.get('page', 1)
+    try:
+        products_page = paginator.page(page_number)
+    except (PageNotAnInteger, EmptyPage):
+        products_page = paginator.page(1)
+
+    current = products_page.number
+    total = paginator.num_pages
+    delta = 2
+    page_range = []
+    for i in range(1, total + 1):
+        if i == 1 or i == total or (current - delta <= i <= current + delta):
+            if page_range and page_range[-1] is not None and i - page_range[-1] > 1:
+                page_range.append(None)
+            page_range.append(i)
+
+    filter_params = request.GET.copy()
+    filter_params.pop('page', None)
+    filter_query_string = filter_params.urlencode()
+
     all_categories = Category.objects.filter(status=True)
     all_brands = Brand.objects.all()
     all_colors = Color.objects.all()
 
     context = {
-        'products': products,
+        'products': products_page,
+        'paginator': paginator,
+        'page_range': page_range,
+        'filter_query_string': filter_query_string,
         'categories': all_categories,
         'brands': all_brands,
         'colors': all_colors,
@@ -572,6 +597,8 @@ def mens_items(request):
     }
 
     return render(request, 'store/mens_items.html', context)
+
+
 @never_cache
 def womens_items(request):
     user_wishlist_count = 0
