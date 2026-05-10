@@ -1,120 +1,183 @@
-{% extends 'store/main_base.html' %} {% load static %} {% block title %}OTP validation{% endblock %} {% block extra_style %}
-<link rel="apple-touch-icon" sizes="180x180" href="store-assets/assets/images/icons/apple-touch-icon.png" />
-<link rel="mask-icon" href="store-assets/assets/images/icons/safari-pinned-tab.svg" color="#666666" />
+{% extends 'store/main_base.html' %} {% load static %} {% block title %}OTP
+validation{% endblock %} {% block extra_style %}
+
+<link
+  rel="mask-icon"
+  href="store-assets/assets/images/icons/safari-pinned-tab.svg"
+  color="#666666"
+/>
 <meta name="apple-mobile-web-app-title" content="timexo" />
 <meta name="application-name" content="timexo" />
 <meta name="msapplication-TileColor" content="#cc9966" />
-<meta name="msapplication-config" content="store-assets/assets/images/icons/browserconfig.xml" />
+<meta
+  name="msapplication-config"
+  content="store-assets/assets/images/icons/browserconfig.xml"
+/>
 <meta name="theme-color" content="#ffffff" />
 <!-- Plugins CSS File -->
-<link rel="stylesheet" href="{% static 'store-assets/assets/css/bootstrap.min.css' %}" />
+<link
+  rel="stylesheet"
+  href="{% static 'store-assets/assets/css/bootstrap.min.css' %}"
+/>
 <!-- Main CSS File -->
-<link rel="stylesheet" href="{% static 'store-assets/assets/css/style.css' %}" />
-
+<link
+  rel="stylesheet"
+  href="{% static 'store-assets/assets/css/style.css' %}"
+/>
 
 <style>
-    #timer {
-        font-size: 1.2em;
-        font-weight: bold;
-        color: #ff0000;
-        margin-top: 15px;
-    }
+  #timer {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #ff0000;
+    margin-top: 15px;
+  }
 </style>
-{% endblock %} {% block content %}
-{% comment %} <main class="main">
-    <div
-        class="login-page bg-image pt-8 pb-8 pt-md-12 pb-md-12 pt-lg-17 pb-lg-17"
-        style="background-image: url('{% static '\shop_img\background.jpg' %}')" >
-        <div class="container">
-            <div class="form-box">
-                <div class="form-tab">
-                    <ul class="nav nav-pills nav-fill" role="tablist">
-                        <li class="nav-item">
-                            <a class="nav-link" id="signin-tab-2">OTP</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'register' %}">Back to Register</a>
-                        </li>
-                    </ul>
-                    <div class="tab-content">
-                        <div class="tab-pane fade show active" id="signin-2" role="tabpanel" aria-labelledby="signin-tab-2">
-                            <form action="{% url 'validate_otp' %}" method="post">
-                                {% csrf_token %}
-                                <div class="form-group">
-                                    <label for="otp">Enter your OTP</label>
-                                    <input type="text" class="form-control" id="otp" name="otp" required="" />
-                                </div>
-                                <div class="form-footer">
-                                    <button type="submit" class="btn btn-outline-primary-2 col-12">
-                                        <span>Submit</span>
-                                        <i class="icon-long-arrow-right"></i>
-                                    </button>
-                                </div>
-                            </form>
-                            <form action="{% url 'resend_otp' %}" method="post">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-secondary">Resend OTP</button>
-                            </form>
-                        </div>
-                        <!-- .End .tab-pane -->
-                    </div>
-                    <!-- End .tab-content -->
+{% endblock %} {% block content %} {% comment %}
+<main class="main">
+  <div
+    class="login-page bg-image pt-8 pb-8 pt-md-12 pb-md-12 pt-lg-17 pb-lg-17"
+    style="
+      background-image: url(&quot;{% static &quot;\shop_img\background.jpg&quot; %}&quot;);
+    "
+  >
+    <div class="container">
+      <div class="form-box">
+        <div class="form-tab">
+          <ul class="nav nav-pills nav-fill" role="tablist">
+            <li class="nav-item">
+              <a class="nav-link" id="signin-tab-2">OTP</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'register' %}"
+                >Back to Register</a
+              >
+            </li>
+          </ul>
+          <div class="tab-content">
+            <div
+              class="tab-pane fade show active"
+              id="signin-2"
+              role="tabpanel"
+              aria-labelledby="signin-tab-2"
+            >
+              <form action="{% url 'validate_otp' %}" method="post">
+                {% csrf_token %}
+                <div class="form-group">
+                  <label for="otp">Enter your OTP</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="otp"
+                    name="otp"
+                    required=""
+                  />
                 </div>
-                <!-- End .form-tab -->
+                <div class="form-footer">
+                  <button
+                    type="submit"
+                    class="btn btn-outline-primary-2 col-12"
+                  >
+                    <span>Submit</span>
+                    <i class="icon-long-arrow-right"></i>
+                  </button>
+                </div>
+              </form>
+              <form action="{% url 'resend_otp' %}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-secondary">
+                  Resend OTP
+                </button>
+              </form>
             </div>
-            <!-- End .form-box -->
+            <!-- .End .tab-pane -->
+          </div>
+          <!-- End .tab-content -->
         </div>
-        <!-- End .container -->
+        <!-- End .form-tab -->
+      </div>
+      <!-- End .form-box -->
     </div>
-    <!-- End .login-page section-bg -->
-</main> {% endcomment %}
+    <!-- End .container -->
+  </div>
+  <!-- End .login-page section-bg -->
+</main>
+{% endcomment %}
 
 <main class="main">
-    <div class="login-page bg-image pt-8 pb-8 pt-md-12 pb-md-12 pt-lg-17 pb-lg-17"
-        style="background-image: url('{% static '\shop_img\background.jpg' %}')">
-        <div class="container">
-            <div class="form-box">
-                <div class="form-tab">
-                    <ul class="nav nav-pills nav-fill" role="tablist">
-                        <li class="nav-item">
-                            <a class="nav-link" id="signin-tab-2">OTP</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'register' %}">Back to Register</a>
-                        </li>
-                    </ul>
-                    <div class="tab-content">
-                        <div class="tab-pane fade show active" id="signin-2" role="tabpanel" aria-labelledby="signin-tab-2">
-                            
-                            <form action="{% url 'validate_otp' %}" method="post">
-                                {% csrf_token %}
-                                <div class="form-group">
-                                    <label for="otp">Enter your OTP</label>
-                                    <input type="text" class="form-control" id="otp" name="otp" required />
-                                    <div id="timer">Time remaining: 5:00</div>
-                                </div>
-                                <div class="form-footer">
-                                    <button type="submit" class="btn btn-outline-primary-2 col-12">
-                                        <span>Submit</span>
-                                        <i class="icon-long-arrow-right"></i>
-                                    </button>
-                                </div>
-                            </form>
-                            <form action="{% url 'resend_otp' %}" method="post" id="resendForm">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-secondary" id="resendButton" disabled>Resend OTP</button>
-                            </form>
-                        </div>
-                    </div>
+  <div
+    class="login-page bg-image pt-8 pb-8 pt-md-12 pb-md-12 pt-lg-17 pb-lg-17"
+    style="
+      background-image: url(&quot;{% static &quot;\shop_img\background.jpg&quot; %}&quot;);
+    "
+  >
+    <div class="container">
+      <div class="form-box">
+        <div class="form-tab">
+          <ul class="nav nav-pills nav-fill" role="tablist">
+            <li class="nav-item">
+              <a class="nav-link" id="signin-tab-2">OTP</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'register' %}"
+                >Back to Register</a
+              >
+            </li>
+          </ul>
+          <div class="tab-content">
+            <div
+              class="tab-pane fade show active"
+              id="signin-2"
+              role="tabpanel"
+              aria-labelledby="signin-tab-2"
+            >
+              <form action="{% url 'validate_otp' %}" method="post">
+                {% csrf_token %}
+                <div class="form-group">
+                  <label for="otp">Enter your OTP</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="otp"
+                    name="otp"
+                    required
+                  />
+                  <div id="timer">Time remaining: 5:00</div>
                 </div>
+                <div class="form-footer">
+                  <button
+                    type="submit"
+                    class="btn btn-outline-primary-2 col-12"
+                  >
+                    <span>Submit</span>
+                    <i class="icon-long-arrow-right"></i>
+                  </button>
+                </div>
+              </form>
+              <form
+                action="{% url 'resend_otp' %}"
+                method="post"
+                id="resendForm"
+              >
+                {% csrf_token %}
+                <button
+                  type="submit"
+                  class="btn btn-secondary"
+                  id="resendButton"
+                  disabled
+                >
+                  Resend OTP
+                </button>
+              </form>
             </div>
+          </div>
         </div>
+      </div>
     </div>
+  </div>
 </main>
 <!-- End .main -->
-{% endblock %} 
-
-{% block extra_js %}
+{% endblock %} {% block extra_js %}
 <script src="{% static 'store-assets/assets/js/jquery.min.js' %}"></script>
 <script src="{% static 'store-assets/assets/js/bootstrap.bundle.min.js' %}"></script>
 <script src="{% static 'store-assets/assets/js/jquery.hoverIntent.min.js' %}"></script>
@@ -128,25 +191,25 @@
 <!-- Main JS File -->
 <script src="{% static 'store-assets/assets/js/main.js' %}"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        let timeLeft = {{ time_left }};
-        const timerDisplay = document.getElementById('timer');
-        const resendButton = document.getElementById('resendButton');
+  document.addEventListener('DOMContentLoaded', function() {
+      let timeLeft = {{ time_left }};
+      const timerDisplay = document.getElementById('timer');
+      const resendButton = document.getElementById('resendButton');
 
-        function updateTimer() {
-            if (timeLeft > 0) {
-                const minutes = Math.floor(timeLeft / 60);
-                const seconds = timeLeft % 60;
-                timerDisplay.textContent = `Time remaining: ${minutes}:${seconds.toString().padStart(2, '0')}`;
-                timeLeft--;
-                setTimeout(updateTimer, 1000);
-            } else {
-                timerDisplay.textContent = 'OTP expired';
-                resendButton.disabled = false;
-            }
-        }
+      function updateTimer() {
+          if (timeLeft > 0) {
+              const minutes = Math.floor(timeLeft / 60);
+              const seconds = timeLeft % 60;
+              timerDisplay.textContent = `Time remaining: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+              timeLeft--;
+              setTimeout(updateTimer, 1000);
+          } else {
+              timerDisplay.textContent = 'OTP expired';
+              resendButton.disabled = false;
+          }
+      }
 
-        updateTimer();
-    });
+      updateTimer();
+  });
 </script>
 {% endblock %}
