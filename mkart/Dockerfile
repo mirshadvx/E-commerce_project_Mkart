@@ -55,18 +55,14 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt .
+COPY mkart/requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-# WORKDIR /app/mkart
-
-# RUN python manage.py collectstatic --noinput
 RUN python mkart/manage.py collectstatic --noinput
 
 EXPOSE 8000
 
-# CMD ["gunicorn", "mkart.wsgi:application", "--bind", "0.0.0.0:8000"]
-CMD ["gunicorn", "mkart.mkart.wsgi:application", "--bind", "0.0.0.0:8000"]
+CMD ["gunicorn", "mkart.wsgi:application", "--bind", "0.0.0.0:8000"]
