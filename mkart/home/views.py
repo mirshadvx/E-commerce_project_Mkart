@@ -37,6 +37,8 @@ from django.db.models import Min, Sum, IntegerField
 from django.db.models.functions import Coalesce
 import json
 import logging
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+
 logger = logging.getLogger('registration')
 
 def custom_404(request, exception):
@@ -362,9 +364,12 @@ def show_products(request):
         except Cart.DoesNotExist:
             pass
 
-    products = Product.objects.filter(category__status=True)
 
-    search_query = request.GET.get('search', '')
+    products = Product.objects.filter(category__status=True).prefetch_related(
+        'variants', 'variants__color'
+    ).select_related('category', 'brand', 'gender')
+
+    search_query = request.GET.get('search', '').strip()
     if search_query:
         products = products.filter(
             Q(name__icontains=search_query) |
@@ -389,8 +394,10 @@ def show_products(request):
     if selected_colors:
         products = products.filter(variants__color__name__in=selected_colors).distinct()
     if min_price and max_price:
-        products = products.filter(variants__price__gte=min_price, variants__price__lte=max_price).distinct()
-
+        products = products.filter(
+            variants__price__gte=min_price, 
+            variants__price__lte=max_price
+        ).distinct()
 
     sort_by = request.GET.get('sortby')
     if sort_by:
@@ -404,32 +411,68 @@ def show_products(request):
             products = products.order_by('name')
         elif sort_by == 'zZ-aA':
             products = products.order_by('-name')
+    else:
+        products = products.order_by('-created_at')
 
-    for product in products:
+    paginator = Paginator(products, 10)
+    page_number = request.GET.get('page')
+
+    try:
+        page_obj = paginator.get_page(page_number)
+    except PageNotAnInteger:
+        page_obj = paginator.get_page(1)
+    except EmptyPage:
+        page_obj = paginator.get_page(paginator.num_pages)
+
+    page_range = []
+    current = page_obj.number
+    total = paginator.num_pages
+
+    if total <= 7:
+        page_range = list(range(1, total + 1))
+    else:
+        page_range = [1]
+        if current > 4:
+            page_range.append(None)
+        start = max(2, current - 2)
+        end = min(total - 1, current + 2)
+        page_range.extend(range(start, end + 1))
+        if current < total - 3:
+            page_range.append(None)
+        if total not in page_range:
+            page_range.append(total)
+
+    filter_params = request.GET.copy()
+    filter_params.pop('page', None)
+    filter_query_string = filter_params.urlencode()
+
+    for product in page_obj:
         variant = product.variants.first()
         if variant:
             product.display_price = variant.price
             product.discounted_price = product.get_discounted_price()
-            if product.discounted_price < variant.price:
+            if product.discounted_price and product.discounted_price < variant.price:
                 product.discount_percentage = round(100 * (1 - product.discounted_price / variant.price), 2)
             else:
                 product.discount_percentage = None
 
-    all_categories = Category.objects.filter(status=True)
-    all_genders = Gender.objects.all()
-    all_brands = Brand.objects.all()
-    all_colors = Color.objects.all()
-
     context = {
-        'products': products,
-        'categories': all_categories,
-        'genders': all_genders,
-        'brands': all_brands,
-        'colors': all_colors,
+        'products': page_obj,
+        'paginator': paginator,
+        'page_obj': page_obj,
+        'page_range': page_range,
+        'filter_query_string': filter_query_string,
+
+        'categories': Category.objects.filter(status=True),
+        'genders': Gender.objects.all(),
+        'brands': Brand.objects.all(),
+        'colors': Color.objects.all(),
+
         'sort_by': sort_by,
         'wishlist_count': user_wishlist_count,
         'cart_count': user_cart_count,
         'cart_total': cart_total,
+
         'selected_categories': selected_categories,
         'selected_genders': selected_genders,
         'selected_brands': selected_brands,
@@ -440,6 +483,7 @@ def show_products(request):
     }
 
     return render(request, 'store/products_home.html', context)
+
 
 @never_cache
 def mens_items(request):
