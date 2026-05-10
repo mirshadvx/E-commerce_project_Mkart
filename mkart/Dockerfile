@@ -60,10 +60,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-# manage.py is inside the mkart/ subdirectory
-RUN python mkart/manage.py collectstatic --noinput --settings=mkart.settings.prod
+# DATABASE_URL isn't available at build time, so we pass a dummy value
+# just to get past settings import — collectstatic doesn't need the DB
+RUN DATABASE_URL=sqlite:///dummy.db python mkart/manage.py collectstatic --noinput
 
 EXPOSE 8000
 
-# gunicorn must also run from repo root, pointing into mkart package
-CMD ["gunicorn", "mkart.mkart.wsgi:application", "--bind", "0.0.0.0:8000"]
+CMD ["gunicorn", "mkart.mkart.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "2"]
