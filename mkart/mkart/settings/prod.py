@@ -109,15 +109,21 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "mkart.wsgi.application"
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': os.environ.get('POSTGRES_DB'),
+#         'USER': os.environ.get('POSTGRES_USER'),
+#         'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
+#         'HOST': os.environ.get('POSTGRES_HOST'),
+#         'PORT': os.environ.get('POSTGRES_PORT'),
+#     }
+# }
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('POSTGRES_DB'),
-        'USER': os.environ.get('POSTGRES_USER'),
-        'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
-        'HOST': os.environ.get('POSTGRES_HOST'),
-        'PORT': os.environ.get('POSTGRES_PORT'),
-    }
+    'default': dj_database_url.parse(
+        os.environ.get("DATABASE_URL")
+    )
 }
 
 # database_url = os.environ.get("DATABASE_URL")
