@@ -8,9 +8,6 @@ load_dotenv()
 SECURE_REFERRER_POLICY = "no-referrer-when-downgrade"
 SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"
 
-
-from pathlib import Path
-
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 STATIC_URL = '/static/'
@@ -238,8 +235,4 @@ LOGGING = {
     },
 }
 
-# STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
-STATICFILES_STORAGE = (
-    'whitenoise.storage.CompressedStaticFilesStorage'
-)
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
