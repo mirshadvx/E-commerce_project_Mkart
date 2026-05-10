@@ -10,16 +10,18 @@ SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# ===================== STATIC FILES =====================
+# ===================== STATIC FILES (WhiteNoise) =====================
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 STATICFILES_DIRS = [
-    BASE_DIR / "static",           # mkart/static
+    BASE_DIR / "static",
 ]
 
-# WhiteNoise for Static Files (Django 5.0+)
 STORAGES = {
+    "default": {
+        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+    },
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
@@ -31,20 +33,14 @@ CLOUDINARY_STORAGE = {
     'API_KEY': os.environ.get('CLOUDINARY_API_KEY'),
     'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET'),
 }
-
-# Important: Keep DEFAULT_FILE_STORAGE for Cloudinary (don't put in STORAGES)
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 MEDIA_URL = '/media/'
 
-# ===================== SECURITY & BASIC =====================
+# ===================== BASIC SETTINGS =====================
 SECRET_KEY = os.environ.get("SECRET_KEY")
 DEBUG = False
 
 ALLOWED_HOSTS = ["*"]
-
-CSRF_TRUSTED_ORIGINS = [
-    "https://timexo.onrender.com",
-]
+CSRF_TRUSTED_ORIGINS = ["https://timexo.onrender.com"]
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
 
@@ -60,7 +56,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "cloudinary_storage",   # Must come before cloudinary
+    "cloudinary_storage",   # Important: before cloudinary
     "cloudinary",
     "home",
     "products",
@@ -69,8 +65,6 @@ INSTALLED_APPS = [
     "razorpay",
     "social_django",
 ]
-
-SESSION_ENGINE = "django.contrib.sessions.backends.db"
 
 # ===================== MIDDLEWARE =====================
 MIDDLEWARE = [
@@ -85,7 +79,7 @@ MIDDLEWARE = [
     "social_django.middleware.SocialAuthExceptionMiddleware",
 ]
 
-# ===================== TEMPLATES & URLS =====================
+# ===================== OTHER CORE SETTINGS =====================
 ROOT_URLCONF = "mkart.urls"
 WSGI_APPLICATION = "mkart.wsgi.application"
 
@@ -107,14 +101,10 @@ TEMPLATES = [
     },
 ]
 
-# ===================== DATABASE =====================
 DATABASES = {
-    'default': dj_database_url.parse(
-        os.environ.get("DATABASE_URL")
-    )
+    'default': dj_database_url.parse(os.environ.get("DATABASE_URL"))
 }
 
-# ===================== AUTH & OTHER =====================
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
@@ -127,7 +117,7 @@ USE_I18N = True
 SITE_ID = 1
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# Email
+# ===================== EMAIL, PAYMENT, SOCIAL =====================
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
@@ -135,7 +125,6 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
 
-# Payment & Social
 RAZORPAY_KEY_ID = os.environ.get("RAZORPAY_KEY_ID")
 RAZORPAY_KEY_SECRET = os.environ.get("RAZORPAY_KEY_SECRET")
 
