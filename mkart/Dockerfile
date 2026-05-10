@@ -46,7 +46,6 @@ FROM python:3.11-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
-
 ENV DJANGO_SETTINGS_MODULE=mkart.settings.prod
 
 WORKDIR /app
@@ -57,13 +56,14 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
-
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-RUN python manage.py collectstatic --noinput --settings=mkart.settings.prod
+# manage.py is inside the mkart/ subdirectory
+RUN python mkart/manage.py collectstatic --noinput --settings=mkart.settings.prod
 
 EXPOSE 8000
 
-CMD ["gunicorn", "mkart.wsgi:application", "--bind", "0.0.0.0:8000"]
+# gunicorn must also run from repo root, pointing into mkart package
+CMD ["gunicorn", "mkart.mkart.wsgi:application", "--bind", "0.0.0.0:8000"]
