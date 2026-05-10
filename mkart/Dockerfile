@@ -61,7 +61,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-RUN python mkart/manage.py collectstatic --noinput
+WORKDIR /app/mkart
+
+RUN python manage.py collectstatic --noinput
 
 EXPOSE 8000
 
