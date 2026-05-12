@@ -42,3 +42,4 @@ pyphen==0.16.0
 pypng==0.20220715.0
 social-auth-app-django==5.4.0
 whitenoise==6.6.0
+xhtml2pdf==0.2.11
