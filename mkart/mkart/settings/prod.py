@@ -5,48 +5,37 @@ from pathlib import Path
 
 load_dotenv()
 
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR.parent, "static"),
+    os.path.join(BASE_DIR, "home", "static"),
+    os.path.join(BASE_DIR, "Admin", "static"),
+]
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+
+
+# ALLOWED_HOSTS = ["timexo.onrender.com", "localhost", "127.0.0.1"]  # Replace "*" with your domain
+CSRF_TRUSTED_ORIGINS = ["https://timexo.onrender.com"]
+SECURE_SSL_REDIRECT = True 
+
 SECURE_REFERRER_POLICY = "no-referrer-when-downgrade"
 SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"
 
-BASE_DIR = Path(__file__).resolve().parent.parent
 
-# ===================== STATIC FILES (WhiteNoise) =====================
-STATIC_URL = "/static/"
-STATIC_ROOT = BASE_DIR / "staticfiles"
+
+
 
 # STATICFILES_DIRS = [
-#     BASE_DIR / "static",
+#     os.path.join(BASE_DIR.parent, "static"),
 # ]
 
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR.parent, "static"),
-]
 
-# STORAGES = {
-#     "default": {
-#         "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
-#     },
-#     "staticfiles": {
-#         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
-#     },
-# }
-
-# STORAGES = {
-#     "default": {
-#         "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
-#     },
-#     "staticfiles": {
-#         "BACKEND": "django.contrib.staticfiles.storage.ManifestStaticFilesStorage",
-#     },
-# }
-
-STORAGES = {
-    "staticfiles": {
-        "BACKEND": "mkart.storage.IgnoreMissingCompressedStorage",
-    },
-}
-
-# ===================== MEDIA / CLOUDINARY =====================
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
     'API_KEY': os.environ.get('CLOUDINARY_API_KEY'),
@@ -54,7 +43,6 @@ CLOUDINARY_STORAGE = {
 }
 MEDIA_URL = '/media/'
 
-# ===================== BASIC SETTINGS =====================
 SECRET_KEY = os.environ.get("SECRET_KEY")
 DEBUG = False
 
@@ -66,7 +54,6 @@ SESSION_COOKIE_SECURE = True
 USE_TZ = True
 TIME_ZONE = "Asia/Kolkata"
 
-# ===================== INSTALLED APPS =====================
 INSTALLED_APPS = [
     "django.contrib.sites",
     "django.contrib.admin",
@@ -75,7 +62,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "cloudinary_storage",   # Important: before cloudinary
+    "cloudinary_storage",
     "cloudinary",
     "home",
     "products",
@@ -85,7 +72,6 @@ INSTALLED_APPS = [
     "social_django",
 ]
 
-# ===================== MIDDLEWARE =====================
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
