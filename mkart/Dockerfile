@@ -43,7 +43,6 @@
 
 # CMD ["gunicorn", "mkart.mkart.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "2", "--timeout", "120"]
 
-
 FROM python:3.11-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -59,9 +58,11 @@ RUN apt-get update && apt-get install -y \
 COPY mkart/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+ARG CACHEBUST=1
+RUN echo "Cache bust: ${CACHEBUST}" > /tmp/cachebuster
+
 COPY mkart/ .
 
 EXPOSE 8000
 
-# Run collectstatic at startup (not build)
-CMD ["sh", "-c", "python manage.py migrate && python manage.py collectstatic --noinput && gunicorn mkart.wsgi:application --bind 0.0.0.0:8000"]
+CMD ["sh", "-c", "rm -rf /app/mkart/mkart/staticfiles && python manage.py migrate && python manage.py collectstatic --noinput && gunicorn mkart.wsgi:application --bind 0.0.0.0:8000"]
