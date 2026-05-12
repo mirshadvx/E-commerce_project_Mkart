@@ -31,12 +31,18 @@ STATICFILES_DIRS = [
 #     },
 # }
 
+# STORAGES = {
+#     "default": {
+#         "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+#     },
+#     "staticfiles": {
+#         "BACKEND": "django.contrib.staticfiles.storage.ManifestStaticFilesStorage",
+#     },
+# }
+
 STORAGES = {
-    "default": {
-        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
-    },
     "staticfiles": {
-        "BACKEND": "django.contrib.staticfiles.storage.ManifestStaticFilesStorage",
+        "BACKEND": "mkart.storage.IgnoreMissingCompressedStorage",
     },
 }
 
