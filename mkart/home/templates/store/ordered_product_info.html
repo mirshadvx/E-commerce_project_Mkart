@@ -1,5 +1,7 @@
-{% extends "store/main_base.html" %} {% load static %} {% block title %}Order
-Information{% endblock %} {% block extra_style %}
+{% extends "store/main_base.html" %}
+{% load static %}
+{% block title %}Order Information{% endblock %}
+{% block extra_style %}
 
 <link
   rel="mask-icon"
@@ -170,7 +172,8 @@ Information{% endblock %} {% block extra_style %}
     overflow-x: auto;
   }
 </style>
-{% csrf_token %} {% endblock %} {% block content %}
+{% endblock %}
+{% block content %}
 
 <main class="main">
   <div class="page-content">
@@ -196,8 +199,7 @@ Information{% endblock %} {% block extra_style %}
           <p>Payment Method</p>
           <strong>{{ order.get_payment_method_display }}</strong>
         </div>
-        {% if order.payment_method == 'razorpay' and order.payment_status ==
-        'unpaid' %}
+        {% if order.payment_method == 'razorpay' and order.payment_status == 'unpaid' %}
         <div class="razorpay-retry-payment">
           <h3>Retry Payment</h3>
           <p>
@@ -263,9 +265,8 @@ Information{% endblock %} {% block extra_style %}
                 <td>
                   {% if item.item_status != 'returned' %}
                   <div class="action-buttons">
-                    {% if item.item_status != 'delivered' %} {% if
-                    item.action_status == 'cancel' and item.item_status !=
-                    'cancelled' %}
+                    {% if item.item_status != 'delivered' %}
+                    {% if item.action_status == 'cancel' and item.item_status != 'cancelled' %}
                     <button
                       class="btn btn-sm btn-outline-danger cancel-item"
                       data-item-id="{{ item.id }}"
@@ -274,26 +275,31 @@ Information{% endblock %} {% block extra_style %}
                     >
                       Cancel
                     </button>
-                    {% endif %} {% else %} {% if not item.return_request %}
+                    {% endif %}
+                    {% else %}
+                    {% if not item.return_request %}
                     <button
                       class="btn btn-sm btn-outline-warning return-item"
                       data-item-id="{{ item.id }}"
                     >
                       Return
                     </button>
-                    {% endif %} {% if item.item_status == 'delivered' %}
+                    {% endif %}
+                    {% if item.item_status == 'delivered' %}
                     <a
                       href="{% url 'download_invoice' item.id %}"
                       class="btn btn-sm btn-outline-primary"
                       >Download Invoice</a
                     >
-                    {% endif %} {% comment %}
+                    {% endif %}
+                    {% comment %}
                     <a
                       href="{% url 'download_invoice' item.id %}"
                       class="btn btn-sm btn-outline-primary"
                       >Download Invoice</a
                     >
-                    {% endcomment %} {% endif %}
+                    {% endcomment %}
+                    {% endif %}
                   </div>
                   {% else %}
                   <span class="text-muted">Returned</span>
@@ -402,7 +408,8 @@ Information{% endblock %} {% block extra_style %}
     </div>
   </div>
 </main>
-{% endblock %} {% block extra_js %}
+{% endblock %}
+{% block extra_js %}
 <script src="{% static 'store-assets/assets/js/jquery.min.js' %}"></script>
 <script src="{% static 'store-assets/assets/js/bootstrap.bundle.min.js' %}"></script>
 <script src="{% static 'store-assets/assets/js/jquery.hoverIntent.min.js' %}"></script>

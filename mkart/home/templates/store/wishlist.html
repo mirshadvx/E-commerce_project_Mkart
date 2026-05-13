@@ -1,5 +1,7 @@
-{% extends "store/main_base.html" %} {% load static %} {% block title %}
-Wishlist {% endblock %} {% block extra_style %}
+{% extends "store/main_base.html" %}
+{% load static %}
+{% block title %}Wishlist{% endblock %}
+{% block extra_style %}
 
 <link
   rel="mask-icon"
@@ -31,7 +33,7 @@ Wishlist {% endblock %} {% block extra_style %}
   <div
     class="page-header text-center"
     style="
-      background-image: url(&quot;{% static &quot;store-assets/assets/images/page-header-bg.jpg&quot; %}&quot;);
+      background-image: url('{% static "store-assets/assets/images/page-header-bg.jpg" %}');
     "
   >
     <div class="container">
@@ -94,8 +96,8 @@ Wishlist {% endblock %} {% block extra_style %}
               {% endif %}
             </td>
             <td class="action-col">
-              {% if item.variant.is_available and item.variant.stock > 0 %} {%
-              comment %}
+              {% if item.variant.is_available and item.variant.stock > 0 %}
+              {% comment %}
               <button class="btn btn-block btn-outline-primary-2">
                 <i class="icon-cart-plus"></i>Add to Cart
               </button>

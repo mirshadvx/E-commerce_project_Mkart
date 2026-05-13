@@ -224,71 +224,42 @@ Products{% endblock %} {% block extra_style %}
                   </option>
                   <option
                     value="low to high"
-                    {%
-                    if
-                    sort_by=""
-                    ="low to high"
-                    %}selected{%
-                    endif
-                    %}
+                    {% if sort_by == "low to high" %}selected{% endif %}
                   >
                     Price: Low to High
                   </option>
                   <option
                     value="high to low"
-                    {%
-                    if
-                    sort_by=""
-                    ="high to low"
-                    %}selected{%
-                    endif
-                    %}
+                    {% if sort_by == "high to low" %}selected{% endif %}
                   >
                     Price: High to Low
                   </option>
                   <option
                     value="new arrivals"
-                    {%
-                    if
-                    sort_by=""
-                    ="new arrivals"
-                    %}selected{%
-                    endif
-                    %}
+                    {% if sort_by == "new arrivals" %}selected{% endif %}
                   >
                     New Arrivals
                   </option>
                   <option
                     value="aA-zZ"
-                    {%
-                    if
-                    sort_by=""
-                    ="aA-zZ"
-                    %}selected{%
-                    endif
-                    %}
+                    {% if sort_by == "aA-zZ" %}selected{% endif %}
                   >
                     A–Z
                   </option>
                   <option
                     value="zZ-aA"
-                    {%
-                    if
-                    sort_by=""
-                    ="zZ-aA"
-                    %}selected{%
-                    endif
-                    %}
+                    {% if sort_by == "zZ-aA" %}selected{% endif %}
                   >
                     Z–A
                   </option>
                 </select>
               </div>
             </div>
-            {% for key, value in request.GET.items %} {% if key != 'sortby' and
-            key != 'page' %}
+            {% for key, value in request.GET.items %}
+            {% if key != 'sortby' and key != 'page' %}
             <input type="hidden" name="{{ key }}" value="{{ value }}" />
-            {% endif %} {% endfor %}
+            {% endif %}
+            {% endfor %}
           </form>
         </div>
       </div>
@@ -305,13 +276,14 @@ Products{% endblock %} {% block extra_style %}
                 <span class="product-label label-sale"
                   >{{ product.discount_percentage }}% OFF</span
                 >
-                {% endif %} {% if not product.variants.first.is_available %}
+                {% endif %}
+                {% if not product.variants.first.is_available %}
                 <span class="product-label label-out">Out of Stock</span>
                 {% endif %}
 
                 <a href="{% url 'product_info' product.id %}">
-                  {% with product.variants.first as variant %} {% if variant and
-                  variant.image_1 %}
+                  {% with product.variants.first as variant %}
+                  {% if variant and variant.image_1 %}
                   <img
                     class="product-image"
                     src="{{ variant.image_1.url }}"
@@ -335,7 +307,8 @@ Products{% endblock %} {% block extra_style %}
                     src="{% static 'store-assets/assets/images/placeholder.png' %}"
                     alt="No image"
                   />
-                  {% endif %} {% endwith %}
+                  {% endif %}
+                  {% endwith %}
                 </a>
 
                 <div class="product-action-vertical">
@@ -416,7 +389,9 @@ Products{% endblock %} {% block extra_style %}
               >
               {% else %}
               <span class="pg-btn pg-disabled">&lt; Prev</span>
-              {% endif %} {% for num in page_range %} {% if num is None %}
+              {% endif %}
+              {% for num in page_range %}
+              {% if num is None %}
               <span class="pg-ellipsis">…</span>
               {% elif num == products.number %}
               <span class="pg-btn pg-active">{{ num }}</span>
@@ -424,7 +399,9 @@ Products{% endblock %} {% block extra_style %}
               <a class="pg-btn" href="?{{ filter_query_string }}&page={{ num }}"
                 >{{ num }}</a
               >
-              {% endif %} {% endfor %} {% if products.has_next %}
+              {% endif %}
+              {% endfor %}
+              {% if products.has_next %}
               <a
                 class="pg-btn"
                 href="?{{ filter_query_string }}&page={{ products.next_page_number }}"
@@ -498,14 +475,7 @@ Products{% endblock %} {% block extra_style %}
                           id="cat-{{ category.id }}"
                           name="category"
                           value="{{ category.name }}"
-                          {%
-                          if
-                          category.name
-                          in
-                          selected_categories
-                          %}checked{%
-                          endif
-                          %}
+                          {% if category.name in selected_categories %}checked{% endif %}
                         />
                         <label
                           class="custom-control-label"
@@ -545,14 +515,7 @@ Products{% endblock %} {% block extra_style %}
                           id="brand-{{ brand.id }}"
                           name="brand"
                           value="{{ brand.name }}"
-                          {%
-                          if
-                          brand.name
-                          in
-                          selected_brands
-                          %}checked{%
-                          endif
-                          %}
+                          {% if brand.name in selected_brands %}checked{% endif %}
                         />
                         <label
                           class="custom-control-label"
@@ -592,14 +555,7 @@ Products{% endblock %} {% block extra_style %}
                           id="color-{{ color.id }}"
                           name="color"
                           value="{{ color.name }}"
-                          {%
-                          if
-                          color.name
-                          in
-                          selected_colors
-                          %}checked{%
-                          endif
-                          %}
+                          {% if color.name in selected_colors %}checked{% endif %}
                         />
                         <label
                           class="custom-control-label"

@@ -1,5 +1,7 @@
-{% extends 'store/main_base.html' %} {% load static %} {% block title %}OTP
-validation{% endblock %} {% block extra_style %}
+{% extends 'store/main_base.html' %}
+{% load static %}
+{% block title %}OTP validation{% endblock %}
+{% block extra_style %}
 
 <link
   rel="mask-icon"
@@ -32,83 +34,14 @@ validation{% endblock %} {% block extra_style %}
     color: #ff0000;
     margin-top: 15px;
   }
-</style>
-{% endblock %} {% block content %} {% comment %}
+ </style>
+{% endblock %}
+{% block content %}
 <main class="main">
   <div
     class="login-page bg-image pt-8 pb-8 pt-md-12 pb-md-12 pt-lg-17 pb-lg-17"
     style="
-      background-image: url(&quot;{% static &quot;\shop_img\background.jpg&quot; %}&quot;);
-    "
-  >
-    <div class="container">
-      <div class="form-box">
-        <div class="form-tab">
-          <ul class="nav nav-pills nav-fill" role="tablist">
-            <li class="nav-item">
-              <a class="nav-link" id="signin-tab-2">OTP</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'register' %}"
-                >Back to Register</a
-              >
-            </li>
-          </ul>
-          <div class="tab-content">
-            <div
-              class="tab-pane fade show active"
-              id="signin-2"
-              role="tabpanel"
-              aria-labelledby="signin-tab-2"
-            >
-              <form action="{% url 'validate_otp' %}" method="post">
-                {% csrf_token %}
-                <div class="form-group">
-                  <label for="otp">Enter your OTP</label>
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="otp"
-                    name="otp"
-                    required=""
-                  />
-                </div>
-                <div class="form-footer">
-                  <button
-                    type="submit"
-                    class="btn btn-outline-primary-2 col-12"
-                  >
-                    <span>Submit</span>
-                    <i class="icon-long-arrow-right"></i>
-                  </button>
-                </div>
-              </form>
-              <form action="{% url 'resend_otp' %}" method="post">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-secondary">
-                  Resend OTP
-                </button>
-              </form>
-            </div>
-            <!-- .End .tab-pane -->
-          </div>
-          <!-- End .tab-content -->
-        </div>
-        <!-- End .form-tab -->
-      </div>
-      <!-- End .form-box -->
-    </div>
-    <!-- End .container -->
-  </div>
-  <!-- End .login-page section-bg -->
-</main>
-{% endcomment %}
-
-<main class="main">
-  <div
-    class="login-page bg-image pt-8 pb-8 pt-md-12 pb-md-12 pt-lg-17 pb-lg-17"
-    style="
-      background-image: url(&quot;{% static &quot;\shop_img\background.jpg&quot; %}&quot;);
+      background-image: url('{% static "my_shop_images/login_back.jpg" %}');
     "
   >
     <div class="container">
