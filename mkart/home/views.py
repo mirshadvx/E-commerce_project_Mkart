@@ -499,7 +499,11 @@ def mens_items(request):
         except Cart.DoesNotExist:
             pass
 
-    products = Product.objects.filter(category__status=True, gender__name='Men')
+    products = Product.objects.filter(
+        category__status=True, gender__name='Men'
+    ).prefetch_related('variants', 'variants__color').select_related(
+        'category', 'brand', 'gender'
+    )
 
     search_query = request.GET.get('search', '')
     if search_query:
@@ -540,6 +544,8 @@ def mens_items(request):
             products = products.order_by('name')
         elif sort_by == 'zZ-aA':
             products = products.order_by('-name')
+    else:
+        products = products.order_by('-created_at')
 
     for product in products:
         variant = product.variants.first()
@@ -614,7 +620,11 @@ def womens_items(request):
         except Cart.DoesNotExist:
             pass
 
-    products = Product.objects.filter(category__status=True, gender__name='Women')
+    products = Product.objects.filter(
+        category__status=True, gender__name='Women'
+    ).prefetch_related('variants', 'variants__color').select_related(
+        'category', 'brand', 'gender'
+    )
 
     search_query = request.GET.get('search', '')
     if search_query:
@@ -655,6 +665,8 @@ def womens_items(request):
             products = products.order_by('name')
         elif sort_by == 'zZ-aA':
             products = products.order_by('-name')
+    else:
+        products = products.order_by('-created_at')
 
     for product in products:
         variant = product.variants.first()
