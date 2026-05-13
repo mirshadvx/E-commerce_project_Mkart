@@ -27,7 +27,7 @@ SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"
 
 
 # STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
-STATICFILES_STORAGE = "mkart.storage.ForgivingManifestStaticFilesStorage"
+STATICFILES_STORAGE = "storage.ForgivingManifestStaticFilesStorage"
 # STATICFILES_STORAGE = "django.contrib.staticfiles.storage.ManifestStaticFilesStorage"
 
 # STATICFILES_DIRS = [
