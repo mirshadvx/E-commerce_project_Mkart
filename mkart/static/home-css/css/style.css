@@ -14764,7 +14764,7 @@ button:focus {
     margin-bottom: 15rem !important; } }
 /*--------------------- 7.Font Icons -------------------- */
 /* Font Icons */
-@font-face {
+/* @font-face {
   font-family: 'timexo';
   src: url("../fonts/timexo.eot");
   src: url("../fonts/timexo.eot#iefix") format("embedded-opentype"), url("../fonts/timexo.woff2") format("woff2"), url("../fonts/timexo.woff") format("woff"), url("../fonts/timexo.ttf") format("truetype"), url("../images/timexo.svg#timexo") format("svg");
@@ -14794,7 +14794,7 @@ button:focus {
 
 /* '' */
 .icon-angle-up:before {
-  content: '\e802'; }
+  content: '\e802'; } */
 
 /* '' */
 .icon-life-ring:before {

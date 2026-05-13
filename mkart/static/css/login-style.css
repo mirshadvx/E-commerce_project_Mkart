@@ -14764,6 +14764,7 @@ button:focus {
     margin-bottom: 15rem !important; } }
 /*--------------------- 7.Font Icons -------------------- */
 /* Font Icons */
+/* 
 @font-face {
   font-family: 'timexo';
   src: url("../fonts/timexo_74273691.eot");
@@ -14786,7 +14787,7 @@ button:focus {
   -moz-osx-font-smoothing: grayscale; }
 
 .icon-google:before {
-  content: '\e800'; }
+  content: '\e800'; } */
 
 /* '' */
 .icon-check:before {
