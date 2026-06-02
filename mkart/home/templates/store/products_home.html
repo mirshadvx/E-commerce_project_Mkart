@@ -636,21 +636,21 @@ List{% endblock %} {% block extra_style %}
                     <div class="price-range-inputs">
                       <label for="min_price">Min Price:</label>
                       <input
-                        type="number"
-                        id="min_price"
-                        name="min_price"
-                        value="{{ min_price|default:'' }}"
-                        min="0"
-                        step="500"
+                          type="number"
+                          id="min_price"
+                          name="min_price"
+                          value="{{ min_price|default:'' }}"
+                          min="0"
+                          step="1"
                       />
-                      <label for="max_price">Max Price:</label>
+
                       <input
-                        type="number"
-                        id="max_price"
-                        name="max_price"
-                        value="{{ max_price|default:'' }}"
-                        min="0"
-                        step="500"
+                          type="number"
+                          id="max_price"
+                          name="max_price"
+                          value="{{ max_price|default:'' }}"
+                          min="0"
+                          step="1"
                       />
                     </div>
                   </div>
@@ -677,7 +677,6 @@ List{% endblock %} {% block extra_style %}
 <script src="{% static 'store-assets/assets/js/superfish.min.js' %}"></script>
 <script src="{% static 'store-assets/assets/js/owl.carousel.min.js' %}"></script>
 <script src="{% static 'store-assets/assets/js/wNumb.js' %}"></script>
-<script src="{% static 'store-assets/assets/js/bootstrap-input-spinner.js' %}"></script>
 <script src="{% static 'store-assets/assets/js/jquery.magnific-popup.min.js' %}"></script>
 <script src="{% static 'store-assets/assets/js/nouislider.min.js' %}"></script>
 <script src="{% static 'store-assets/assets/js/main.js' %}"></script>
