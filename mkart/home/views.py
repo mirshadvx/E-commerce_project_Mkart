@@ -1581,7 +1581,15 @@ def edit_details(request):
         confirm_new_password = request.POST.get('confirm_new_password')
         
         if not username or not last_name:
-            messages.error(request, 'Username and last name are required.')
+            messages.error(request, 'First name and last name are required.')
+            return redirect(request.META.get('HTTP_REFERER', 'home'))
+        
+        if not re.match(r'^[A-Za-z\s]+$', username):
+            messages.error(request, 'First name can contain only letters and spaces.')
+            return redirect(request.META.get('HTTP_REFERER', 'home'))
+
+        if not re.match(r'^[A-Za-z\s]+$', last_name):
+            messages.error(request, 'Last name can contain only letters and spaces.')
             return redirect(request.META.get('HTTP_REFERER', 'home'))
         
         user.username = username

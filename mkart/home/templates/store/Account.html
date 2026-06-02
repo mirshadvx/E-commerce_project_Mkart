@@ -357,12 +357,12 @@
                                     {% csrf_token %}
                                     <div class="row">
                                         <div class="col-sm-6">
-                                            <label>User name</label>
-                                            <input type="text" name="username" class="form-control" value="{{ user.username }}" required>
+                                            <label>First name</label>
+                                            <input type="text" name="username" class="form-control" pattern="[A-Za-z\s]+" title="Only letters and spaces are allowed" value="{{ user.username }}" required>
                                         </div>
                                         <div class="col-sm-6">
                                             <label>Last Name</label>
-                                            <input type="text" name="last_name" class="form-control" value="{{ user.last_name }}" required>
+                                            <input type="text" name="last_name" class="form-control" pattern="[A-Za-z\s]+" title="Only letters and spaces are allowed" value="{{ user.last_name }}" required>
                                         </div>
                                     </div>
                                     <div class="row">
@@ -381,12 +381,12 @@
     {% csrf_token %}
     <div class="row">
         <div class="col-sm-6">
-            <label>User name</label>
-            <input type="text" name="username" class="form-control" value="{{ user.username }}" required>
+            <label>First name</label>
+            <input type="text" name="username" class="form-control" pattern="[A-Za-z\s]+" title="Only letters and spaces are allowed" value="{{ user.username }}" required>
         </div>
         <div class="col-sm-6">
             <label>Last Name</label>
-            <input type="text" name="last_name" class="form-control" value="{{ user.last_name }}" required>
+            <input type="text" name="last_name" class="form-control" pattern="[A-Za-z\s]+" title="Only letters and spaces are allowed" value="{{ user.last_name }}" required>
         </div>
     </div>
     <div class="row">
@@ -459,7 +459,7 @@
                     </div>
                     <div class="col-sm-6">
                         <label>Last Name *</label>
-                        <input type="text" name="last_name" class="form-control" required>
+                        <input type="text" name="last_name" class="form-control" value="{{ user.last_name }}" required>
                         <span class="error" id="last_name_error"></span>
                     </div>
                 </div>
@@ -543,17 +543,16 @@
 
 <script>
     $(document).ready(function() {
-        // Validation rules with custom validators
         const validationRules = {
             full_name: {
                 required: true,
-                validator: (value) => /^[a-zA-Z\s]{2,50}$/.test(value),
-                message: 'First name must be 2-50 characters long and contain only letters.'
+                validator: (value) => /^[a-zA-Z\s]+\$/.test(value),
+                message: 'First name name must contain letters'
             },
             last_name: {
                 required: true,
-                validator: (value) => /^[a-zA-Z\s]{2,50}$/.test(value),
-                message: 'Last name must be 2-50 characters long and contain only letters.'
+                validator: (value) => /^[a-zA-Z\s]{2,20}$/.test(value),
+                message: 'Last name must be 2-20 characters long and contain only letters.'
             },
             address_line_1: {
                 required: true,
