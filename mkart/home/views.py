@@ -805,22 +805,45 @@ def wishlist(request):
     }
     return render(request, 'store/wishlist.html', context)
 
+# @never_cache
+# @login_required
+# def add_wishlist(request, id):
+#     if request.method == 'POST':
+#         variant_id = request.POST.get('variant_id')
+        
+#         variant = get_object_or_404(ProductVariant, id=variant_id, product_id=id)
+        
+#         try:
+#             Wishlist.objects.create(user=request.user, variant=variant)
+#             messages.success(request, f"{variant.product.name} ({variant.color.name}) added to your wishlist.")
+#         except IntegrityError:
+#             None
+#         return redirect(request.META.get('HTTP_REFERER', 'home'))
+    
+#     return JsonResponse({'success': False, 'error': 'Invalid request method'})
+
 @never_cache
 @login_required
 def add_wishlist(request, id):
     if request.method == 'POST':
         variant_id = request.POST.get('variant_id')
-        
+
         variant = get_object_or_404(ProductVariant, id=variant_id, product_id=id)
-        
+
         try:
-            Wishlist.objects.create(user=request.user, variant=variant)
-            messages.success(request, f"{variant.product.name} ({variant.color.name}) added to your wishlist.")
+            Wishlist.objects.create(
+                user=request.user,
+                variant=variant)
+
+            messages.success(request, f"{variant.product.name} added to wishlist.")
+
         except IntegrityError:
-            None
-        return redirect(request.META.get('HTTP_REFERER', 'home'))
-    
-    return JsonResponse({'success': False, 'error': 'Invalid request method'})
+            messages.warning(request, f"{variant.product.name} is already in your wishlist.")
+
+        return redirect( request.META.get('HTTP_REFERER', 'home') )
+
+    messages.error(request, "Invalid request.")
+    return redirect('home')
 
 @never_cache
 @login_required
@@ -892,35 +915,72 @@ def cart(request):
     
     return render(request, 'store/cart.html', context)
 
+# @never_cache
+# @login_required
+# def add_to_cart(request, id):
+#     if request.method == 'POST':
+#         variant_id = request.POST.get('variant_id')
+#         quantity = int(request.POST.get('quantity', 1))
+        
+#         variant = get_object_or_404(ProductVariant, id=variant_id)
+        
+#         if not variant.is_available or variant.stock < quantity:
+#             messages.error(request, "Sorry, this product is out of stock or the requested quantity exceeds available stock.")
+#             return redirect(request.META.get('HTTP_REFERER', 'home'))
+        
+#         cart, created = Cart.objects.get_or_create(user=request.user)
+        
+#         cart_item, item_created = CartItem.objects.get_or_create(
+#             cart=cart,
+#             product_variant=variant,
+#             defaults={'quantity': quantity}
+#         )
+        
+#         if not item_created:
+#             cart_item.quantity += quantity
+#             cart_item.save()
+        
+#         messages.success(request, f"{variant.product.name} has been added to your cart.")
+#         return redirect(request.META.get('HTTP_REFERER', 'home'))
+    
+#     return JsonResponse({'success': False, 'error': 'Invalid request method'})
+
 @never_cache
 @login_required
 def add_to_cart(request, id):
     if request.method == 'POST':
         variant_id = request.POST.get('variant_id')
         quantity = int(request.POST.get('quantity', 1))
-        
-        variant = get_object_or_404(ProductVariant, id=variant_id)
-        
-        if not variant.is_available or variant.stock < quantity:
-            messages.error(request, "Sorry, this product is out of stock or the requested quantity exceeds available stock.")
+
+        variant = get_object_or_404(ProductVariant,id=variant_id)
+
+        if not variant.is_available:
+            messages.error( request, "This product is currently unavailable.")
+
             return redirect(request.META.get('HTTP_REFERER', 'home'))
-        
+
+        if variant.stock < quantity:
+            messages.error(request, f"Only {variant.stock} items available.")
+
+            return redirect(request.META.get('HTTP_REFERER', 'home'))
+
         cart, created = Cart.objects.get_or_create(user=request.user)
-        
-        cart_item, item_created = CartItem.objects.get_or_create(
-            cart=cart,
-            product_variant=variant,
-            defaults={'quantity': quantity}
-        )
-        
+
+        cart_item, item_created = CartItem.objects.get_or_create(cart=cart,product_variant=variant,defaults={'quantity': quantity})
+
         if not item_created:
             cart_item.quantity += quantity
             cart_item.save()
-        
-        messages.success(request, f"{variant.product.name} has been added to your cart.")
+
+            messages.success(request,f"Quantity updated in cart.")
+        else:
+            messages.success( request, f"{variant.product.name} added to cart." )
+
         return redirect(request.META.get('HTTP_REFERER', 'home'))
-    
-    return JsonResponse({'success': False, 'error': 'Invalid request method'})
+
+    messages.error(request, "Invalid request.")
+    return redirect('home')
+
 
 @never_cache
 @login_required

@@ -37,7 +37,7 @@
     <link rel="stylesheet" href="{% static 'store-assets/assets/css/style.css' %}">
     <link rel="stylesheet" href="{% static 'store-assets/assets/css/skins/skin-demo-6.css' %}">
     <link rel="stylesheet" href="{% static 'store-assets/assets/css/demos/demo-6.css' %}">
-
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- Extra styles for child templates -->
     {% block extra_style %}{% endblock %}
 </head>
@@ -1510,6 +1510,22 @@
     <script src="{% static 'store-assets/assets/js/main.js' %}"></script>
     <script src="{% static 'store-assets/assets/js/demos/demo-6.js' %}"></script>
     {% endblock %}
+
+
+        {% if messages %}
+            {% for message in messages %}
+                <script>
+
+                    Swal.fire({
+                        icon: "{% if message.tags == 'success' %}success{% elif message.tags == 'error' %}error{% elif message.tags == 'warning' %}warning{% else %}info{% endif %}",
+                        title: "{{ message }}",
+                        timer: 2500,
+                        showConfirmButton: false
+                    });
+
+                </script>
+            {% endfor %}
+        {% endif %}
 </body>
 
 </html>

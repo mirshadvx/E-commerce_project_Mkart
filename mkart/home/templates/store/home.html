@@ -289,22 +289,20 @@
                                 style="justify-content:center;">
 
                                 {% if variant %}
-                                <form method="POST"
-                                    action="{% url 'add_to_cart' variant.id %}">
-
+                                <form method="POST" style="width:100%;"
+                                    action="{% url 'add_to_cart' product.id %}">
                                     {% csrf_token %}
-
-                                    <button type="submit"
-                                        style="background:none;
-                                        color:inherit;
-                                        border:none;
-                                        cursor:pointer;"
-                                        class="btn-product btn-cart">
-
-                                        <span>Add to cart</span>
-
-                                    </button>
-
+                                    <input type="hidden"
+                                        name="variant_id"
+                                        value="{{ variant.id }}">
+                                <button
+                                    type="submit"
+                                    class="btn-product btn-cart"
+                                    style="width:100%;background:none;border:none;cursor:pointer;"
+                                    onmouseover="this.style.backgroundColor='#c96';"
+                                    onmouseout="this.style.backgroundColor='transparent';">
+                                    <span>Add to cart</span>
+                                </button>
                                 </form>
                                 {% endif %}
 

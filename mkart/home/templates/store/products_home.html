@@ -310,19 +310,27 @@ List{% endblock %} {% block extra_style %}
                   {% endif %}
                   {% endwith %}
                 </a>
-
-                <div class="product-action-vertical">
-                  <a
-                    href="#"
-                    class="btn-product-icon btn-wishlist btn-expandable"
-                  >
-                    <span>add to wishlist</span>
-                  </a>
-                </div>
-                <div class="product-action">
-                  <a href="#" class="btn-product btn-cart"
-                    ><span>add to cart</span></a
-                  >
+                
+                <div class="product-action" style="justify-content: center;">
+                    {% with product.variants.first as variant %}
+                    {% if variant and variant.is_available %}
+                    <form method="POST" action="{% url 'add_to_cart' product.id %}" style="width:100%;">
+                        {% csrf_token %}
+                        <input
+                            type="hidden"
+                            name="variant_id"
+                            value="{{ variant.id }}">
+                        <button
+                            type="submit"
+                            class="btn-product btn-cart"
+                            style="width:100%;background:none;border:none;cursor:pointer;"
+                            onmouseover="this.style.backgroundColor='#c96';"
+                            onmouseout="this.style.backgroundColor='transparent';">
+                            <span>Add to cart</span>
+                        </button>
+                    </form>
+                    {% endif %}
+                    {% endwith %}
                 </div>
               </figure>
 
