@@ -309,7 +309,7 @@ def edit_product(request, product_id):
                     variant.save()
  
             messages.success(request, "Product updated successfully.")
-            return redirect('productlist')
+            return redirect('Admin:productlist')
  
         except Exception as exc:
             logger.exception("Product update failed for product_id=%s", product_id)
@@ -628,7 +628,7 @@ def add_variant(request, id):
                 variant.save()
 
                 messages.success(request, "Variant added successfully!")
-                return redirect('productlist') 
+                return redirect('Admin:productlist') 
 
         except Exception as exc:
             logger.exception("Failed to add variant for product %s", id)

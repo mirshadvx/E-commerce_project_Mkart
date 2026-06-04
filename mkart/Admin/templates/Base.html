@@ -26,6 +26,7 @@
     <link rel="stylesheet" href="{% static 'admin-assets/plugins/fontawesome/css/all.min.css' %}">
 
     <link rel="stylesheet" href="{% static 'admin-assets/css/style.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     </style>
     {% endblock  %}
@@ -316,6 +317,23 @@
 
     <script src="{% static 'admin-assets/js/script.js' %}"></script>
     {% endblock  %}
+
+            {% if messages %}
+            {% for message in messages %}
+                <script>
+
+                    Swal.fire({
+                        icon: "{% if message.tags == 'success' %}success{% elif message.tags == 'error' %}error{% elif message.tags == 'warning' %}warning{% else %}info{% endif %}",
+                        title: "{{ message }}",
+                        timer: 2500,
+                        showConfirmButton: false
+                    });
+
+                </script>
+            {% endfor %}
+        {% endif %}
+
+
 </body>
 
 </html>

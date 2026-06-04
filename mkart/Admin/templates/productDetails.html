@@ -68,13 +68,13 @@
                 <h6>Complete information for {{ product.name }}</h6>
             </div>
             <div class="page-btn">
-                <a href="{% url 'productlist' %}" class="btn btn-secondary">
+                <a href="{% url 'Admin:productlist' %}" class="btn btn-secondary">
                     <i class="fas fa-arrow-left me-2"></i>Back to List
                 </a>
-                <a href="{% url 'edit_product' product.id %}" class="btn btn-primary ms-2">
+                <a href="{% url 'Admin:edit_product' product.id %}" class="btn btn-primary ms-2">
                     <i class="fas fa-edit me-2"></i>Edit Product
                 </a>
-                <a href="{% url 'add_variant' product.id %}" class="btn btn-success ms-2">
+                <a href="{% url 'Admin:add_variant' product.id %}" class="btn btn-success ms-2">
                     <i class="fas fa-plus me-2"></i>Add Variant
                 </a>
             </div>
@@ -185,7 +185,7 @@
                     <i class="fas fa-info-circle fa-2x mb-3 text-warning"></i>
                     <h5>No variants found</h5>
                     <p>This product doesn't have any variants yet.</p>
-                    <a href="{% url 'add_variant' product.id %}" class="btn btn-success mt-2">
+                    <a href="{% url 'Admin:add_variant' product.id %}" class="btn btn-success mt-2">
                         <i class="fas fa-plus"></i> Add First Variant
                     </a>
                 </div>

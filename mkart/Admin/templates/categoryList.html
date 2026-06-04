@@ -56,7 +56,7 @@
                 <h6>Manage your product categories</h6>
             </div>
             <div class="page-btn">
-                <a href="{% url 'addCategory' %}" class="btn btn-added">
+                <a href="{% url 'Admin:addCategory' %}" class="btn btn-added">
                     <img src="{% static 'admin-assets/img/icons/plus.svg' %}" class="me-1" alt="img"> 
                     Add Category
                 </a>
@@ -107,7 +107,7 @@
                                     </div>
                                 </td>
                                 <td class="action-icons">
-                                    <a href="{% url 'edit_category' category.id %}" title="Edit">
+                                    <a href="{% url 'Admin:edit_category' category.id %}" title="Edit">
                                         <i class="fas fa-edit text-primary"></i>
                                     </a>
                                     <a href="#" onclick="deleteCategory({{ category.id }}, '{{ category.name|escapejs }}'); return false;" 
@@ -156,7 +156,7 @@ function deleteCategory(categoryId, categoryName) {
     }).then((result) => {
         if (result.isConfirmed) {
             $.ajax({
-                url: "{% url 'delete_category' 999 %}".replace('999', categoryId),
+                url: "{% url 'Admin:delete_category' 999 %}".replace('999', categoryId),
                 type: 'POST',
                 data: {
                     'csrfmiddlewaretoken': '{{ csrf_token }}'

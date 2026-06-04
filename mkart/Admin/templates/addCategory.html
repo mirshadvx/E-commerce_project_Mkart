@@ -26,7 +26,7 @@
                         </div>
                     </div>
 
-                    <form method="POST" enctype="multipart/form-data" action="{% url 'addCategory' %}" id="categoryForm">
+                    <form method="POST" enctype="multipart/form-data" action="{% url 'Admin:addCategory' %}" id="categoryForm">
                         {% csrf_token %}
                         <div class="card-body">
                             <div class="row">
