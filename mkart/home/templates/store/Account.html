@@ -1,9 +1,8 @@
 {% extends "store/main_base.html" %}
 {% load static %}
-{% block title %}Account{% endblock  %}
+{% block title %}Account{% endblock %}
+
 {% block extra_style %}
-    
-    
     <link rel="mask-icon" href="store-assets/assets/images/icons/safari-pinned-tab.svg" color="#666666">
     <meta name="apple-mobile-web-app-title" content="timexo">
     <meta name="application-name" content="timexo">
@@ -14,116 +13,106 @@
     <link rel="stylesheet" href="{% static 'store-assets/assets/css/bootstrap.min.css' %}">
     <!-- Main CSS File -->
     <link rel="stylesheet" href="{% static 'store-assets/assets/css/style.css' %}">
-<style>
-  /* The Modal (background) */
-  .modal {
-    display: none; /* Hidden by default */
-    position: fixed; /* Stay in place */
-    z-index: 1000; /* Sit on top */
-    left: 0;
-    top: 0;
-    width: 100%; /* Full width */
-    height: 100%; /* Full height */
-    overflow: auto; /* Enable scroll if needed */
-    background-color: rgb(0,0,0); /* Fallback color */
-    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
-  }
 
-  /* Modal Content */
-  .modal-content {
-    background-color: #fefefe;
-    margin: 15% auto; /* 15% from the top and centered */
-    padding: 20px;
-    border: 1px solid #888;
-    width: 80%; /* Could be more or less, depending on screen size */
-  }
+    <style>
+        /* The Modal (background) */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0,0,0);
+            background-color: rgba(0,0,0,0.4);
+        }
 
-  /* The Close Button */
-  .close {
-    color: #aaa;
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
-  }
+        /* Modal Content */
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+        }
 
-  .close:hover,
-  .close:focus {
-    color: black;
-    text-decoration: none;
-    cursor: pointer;
-  }
+        /* The Close Button */
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
 
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
 
-    .error {
-        color: red;
-        font-size: 13px;
-        margin-top: 0.25rem;
-        display: block;
-    }
-    .message-container {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 1000;
-        width: 80%;
-        max-width: 400px;
-    }
-    .message {
-        padding: 15px;
-        margin-bottom: 10px;
-        border-radius: 5px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        position: relative;
-        animation: fadeIn 0.5s;
-    }
-    .message.error {
-        background-color: #ffebee;
-        color: #c62828;
-        border: 1px solid #ef9a9a;
-    }
-    .message.success {
-        background-color: #e8f5e9;
-        color: #2e7d32;
-        border: 1px solid #a5d6a7;
-    }
-    .message.warning {
-        background-color: #fff3e0;
-        color: #ef6c00;
-        border: 1px solid #ffcc80;
-    }
-    .message.info {
-        background-color: #e3f2fd;
-        color: #1565c0;
-        border: 1px solid #90caf9;
-    }
-    .close-btn {
-        position: absolute;
-        top: 5px;
-        right: 10px;
-        background: none;
-        border: none;
-        font-size: 18px;
-        cursor: pointer;
-        opacity: 0.5;
-    }
-    .close-btn:hover {
-        opacity: 1;
-    }
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(-20px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
+        .error {
+            color: red;
+            font-size: 13px;
+            margin-top: 0.25rem;
+            display: block;
+        }
+
+        .message-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+            width: 80%;
+            max-width: 400px;
+        }
+
+        .message {
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            position: relative;
+            animation: fadeIn 0.5s;
+        }
+
+        .message.error { background-color: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
+        .message.success { background-color: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+        .message.warning { background-color: #fff3e0; color: #ef6c00; border: 1px solid #ffcc80; }
+        .message.info { background-color: #e3f2fd; color: #1565c0; border: 1px solid #90caf9; }
+
+        .close-btn {
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            opacity: 0.5;
+        }
+
+        .close-btn:hover {
+            opacity: 1;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
         .order-item {
-        display: flex;
-        align-items: center;
-        margin-bottom: 5px;
-    }
-    .order-item img {
-        margin-right: 10px;
-    }
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
 
+        .order-item img {
+            margin-right: 10px;
+        }
 
         .wallet-container {
             background-color: #ffffff;
@@ -132,21 +121,25 @@
             padding: 20px;
             margin-bottom: 20px;
         }
+
         .wallet-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
         }
+
         .wallet-balance {
             font-size: 2em;
             font-weight: bold;
             color: #4CAF50;
         }
+
         .transaction-list {
             list-style-type: none;
             padding: 0;
         }
+
         .transaction-item {
             background-color: #f9f9f9;
             border-radius: 4px;
@@ -156,368 +149,349 @@
             justify-content: space-between;
             align-items: center;
         }
+
         .transaction-type {
             font-weight: bold;
         }
+
         .transaction-amount {
             font-size: 1.1em;
         }
+
         .transaction-timestamp {
             color: #777;
             font-size: 0.9em;
         }
-        .credit {
-            color: #4CAF50;
-        }
-        .debit {
-            color: #F44336;
-        }
+
+        .credit { color: #4CAF50; }
+        .debit { color: #F44336; }
+
         .no-transactions {
             text-align: center;
             color: #777;
             font-style: italic;
         }
-</style>
-{% endblock  %}
+    </style>
+{% endblock %}
 
 {% block content %}
-<main class="main">
-{% if messages %}
-<div class="message-container">
-    {% for message in messages %}
-        <div class="message {% if message.tags %}{{ message.tags }}{% endif %}">
-            {{ message }}
-            <button class="close-btn" onclick="this.parentElement.style.display='none';">×</button>
-        </div>
-    {% endfor %}
-</div>
-{% endif %}
-    <div class="page-header text-center" style="background-image: url('{% static "store-assets/assets/images/page-header-bg.jpg" %}'); height: 121px;">
-        <div class="container">
-            <h1 class="page-title">My Account<span><a href="{% url "home" %}">Shop</a></span></h1>
-        </div><!-- End .container -->
-    </div><!-- End .page-header -->
-    <nav aria-label="breadcrumb" class="breadcrumb-nav mb-3">
-        <div class="container">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{% url "home" %}">Home</a></li>
-                <li class="breadcrumb-item"><a href="{% url "productslist" %}">Shop</a></li>
-                <li class="breadcrumb-item active" aria-current="page">My Account</li>
-            </ol>
-        </div><!-- End .container -->
-    </nav><!-- End .breadcrumb-nav -->
-    <div class="page-content">
-        <div class="dashboard">
-            <div class="container">
-                <div class="row">
-                    <aside class="col-md-4 col-lg-3">
-                        <ul class="nav nav-dashboard flex-column mb-3 mb-md-0" role="tablist">
-                            <li class="nav-item">
-                                <a class="nav-link active" id="tab-dashboard-link" data-toggle="tab" href="#tab-dashboard" role="tab" aria-controls="tab-dashboard" aria-selected="true">Dashboard</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" id="tab-orders-link" data-toggle="tab" href="#tab-orders" role="tab" aria-controls="tab-orders" aria-selected="false">Orders</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" id="tab-downloads-link" data-toggle="tab" href="#tab-downloads" role="tab" aria-controls="tab-downloads" aria-selected="false">Wallet</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" id="tab-address-link" data-toggle="tab" href="#tab-address" role="tab" aria-controls="tab-address" aria-selected="false">Addresses</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" id="tab-account-link" data-toggle="tab" href="#tab-account" role="tab" aria-controls="tab-account" aria-selected="false">Account Details</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'logout' %}">Log Out</a>
-                            </li>
-                        </ul>
-                    </aside><!-- End .col-lg-3 -->
-                    <div class="col-md-8 col-lg-9">
-                        <div class="tab-content">
-                            <div class="tab-pane fade show active" id="tab-dashboard" role="tabpanel" aria-labelledby="tab-dashboard-link">
-                                <p>Hello <span class="font-weight-normal text-dark">{{ request.user }}</span>
-                                <br>
-                                From your account dashboard you can view your <a href="#tab-orders" class="tab-trigger-link link-underline">recent orders</a>, manage your <a href="#tab-address" class="tab-trigger-link">shipping and billing addresses</a>, and <a href="#tab-account" class="tab-trigger-link">edit your password and account details</a>.</p>
-                            </div>
-
-                            
-                            <div class="tab-pane fade" id="tab-orders" role="tabpanel" aria-labelledby="tab-orders-link">
-                                <!-- Orders content here -->
-<div class="tab-content">
-    <div class="tab-pane fade show active" id="tab-orders" role="tabpanel" aria-labelledby="tab-orders-link">
-        {% if orders %}
-            <table class="table table-orders">
-                <thead>
-                    <tr>
-                        <th>Order ID</th>
-                        <th>Items</th>
-                        <th>Status</th>
-                        <th>Total</th>
-                        <th>Payment Method</th>
-                        <th>Details</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for order in orders %}
-                    <tr>
-                        <td>{{ order.id }}</td>
-                        <td>
-                            {% for item in order.ordered_items.all %}
-                                <div class="order-item">
-                                    <img src="{{ item.product_variant.image_1.url }}" alt="{{ item.product_variant.product.name }}" style="width: 50px; height: auto;">
-                                    {{ item.product_variant.product.name }} (x{{ item.quantity }})
-                                </div>
-                            {% endfor %}
-                        </td>
-                        <td>{{ order.get_status_display }}</td>
-                        <td>{{ order.total_price }}</td>
-                        <td>{{ order.get_payment_method_display }}</td>
-                        <td>
-                            <a href="{% url 'order_info' order_id=order.id %}" class="btn btn-outline-primary-2">View Details</a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        {% else %}
-            <p>No order has been made yet.</p>
-            <a href="{% url 'productslist' %}" class="btn btn-outline-primary-2">
-                <span>GO SHOP</span>
-                <i class="icon-long-arrow-right"></i>
-            </a>
-        {% endif %}
-    </div><!-- .End .tab-pane -->
-</div><!-- .End .tab-content -->
-</div>
-
-                            <div class="tab-pane fade" id="tab-downloads" role="tabpanel" aria-labelledby="tab-downloads-link">
-                                <!-- Wallet content here -->
- <div class="wallet-container">
-        <div class="wallet-header">
-            <h2>Your Wallet</h2>
-            <div class="wallet-balance">Balance: {{ wallet.balance }}</div>
-        </div>
-        <h3>Transaction History</h3>
-        {% if transactions %}
-            <ul class="transaction-list">
-                {% for transaction in transactions %}
-                    <li class="transaction-item">
-                        <div>
-                            <span class="transaction-type {{ transaction.transaction_type }}">
-                                {{ transaction.transaction_type.title }}
-                            </span>
-                            <span class="transaction-amount">
-                                {{ transaction.amount }}
-                            </span>
-                        </div>
-                        <span class="transaction-timestamp">
-                            {{ transaction.timestamp|date:"Y-m-d H:i" }}
-                        </span>
-                    </li>
+    <main class="main">
+        {% if messages %}
+            <div class="message-container">
+                {% for message in messages %}
+                    <div class="message {% if message.tags %}{{ message.tags }}{% endif %}">
+                        {{ message }}
+                        <button class="close-btn" onclick="this.parentElement.style.display='none';">×</button>
+                    </div>
                 {% endfor %}
-            </ul>
-        {% else %}
-            <p class="no-transactions">No transactions yet.</p>
+            </div>
         {% endif %}
-    </div>                                 
-                            </div>
 
-                            <div class="tab-pane fade" id="tab-address" role="tabpanel" aria-labelledby="tab-address-link">
-                                <button style="border-radius: 25px; margin-bottom: 20px;" id="myBtn" class="btn btn-primary">Add Address</button>
-                                <div class="row">
-                                    {% for address in user.addresses.all %}
-                                    <div class="col-lg-6 mb-4">
-                                        <div class="card card-dashboard">
-                                            <div class="card-body">
-                                                <h3 class="card-title">{% if address.is_default %}Default {% endif %}Address</h3>
-                                                <p>
-                                                    {{ address.full_name }} {{ address.last_name }}<br>
-                                                    {{ address.address_line_1 }}<br>
-                                                    {% if address.address_line_2 %}{{ address.address_line_2 }}<br>{% endif %}
-                                                    {{ address.city }}, {{ address.state }} {{ address.postal_code }}<br>
-                                                    {{ address.country }}<br>
-                                                    {{ address.phone_number }}<br>
-                                                    {{ address.email }}<br>
-                                                    <a href="{% url 'edit_address' address.id %}">Edit <i class="icon-edit"></i></a>
-                                                    <button class="btn btn-sm btn-danger delete-address" style="background: none; color: #f00; border: none; padding: 0; font: inherit; cursor: pointer; outline: inherit;" data-address-id="{{ address.id }}">Delete</button>
-                                                </p>
+        <div class="page-header text-center" style="background-image: url('{% static "store-assets/assets/images/page-header-bg.jpg" %}'); height: 121px;">
+            <div class="container">
+                <h1 class="page-title">My Account<span><a href="{% url "home" %}">Shop</a></span></h1>
+            </div>
+        </div>
+
+        <nav aria-label="breadcrumb" class="breadcrumb-nav mb-3">
+            <div class="container">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url "home" %}">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{% url "productslist" %}">Shop</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">My Account</li>
+                </ol>
+            </div>
+        </nav>
+
+        <div class="page-content">
+            <div class="dashboard">
+                <div class="container">
+                    <div class="row">
+                        <!-- Sidebar -->
+                        <aside class="col-md-4 col-lg-3">
+                            <ul class="nav nav-dashboard flex-column mb-3 mb-md-0" role="tablist">
+                                <li class="nav-item">
+                                    <a class="nav-link" id="tab-orders-link" data-toggle="tab" href="#tab-orders" role="tab" aria-controls="tab-orders" aria-selected="false">Orders</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="tab-downloads-link" data-toggle="tab" href="#tab-downloads" role="tab" aria-controls="tab-downloads" aria-selected="false">Wallet</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="tab-address-link" data-toggle="tab" href="#tab-address" role="tab" aria-controls="tab-address" aria-selected="false">Addresses</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="tab-account-link" data-toggle="tab" href="#tab-account" role="tab" aria-controls="tab-account" aria-selected="false">Account Details</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{% url 'logout' %}">Log Out</a>
+                                </li>
+                            </ul>
+                        </aside>
+
+                        <!-- Main Content -->
+                        <div class="col-md-8 col-lg-9">
+                            <div class="tab-content">
+
+                                <!-- Orders Tab -->
+                                <div class="tab-pane fade" id="tab-orders" role="tabpanel" aria-labelledby="tab-orders-link">
+                                    {% if orders %}
+                                        <table class="table table-orders">
+                                            <thead>
+                                                <tr>
+                                                    <th>Order ID</th>
+                                                    <th>Items</th>
+                                                    <th>Status</th>
+                                                    <th>Total</th>
+                                                    <th>Payment Method</th>
+                                                    <th>Details</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for order in orders %}
+                                                    <tr>
+                                                        <td>{{ order.id }}</td>
+                                                        <td>
+                                                            {% for item in order.ordered_items.all %}
+                                                                <div class="order-item">
+                                                                    <img src="{{ item.product_variant.image_1.url }}" alt="{{ item.product_variant.product.name }}" style="width: 50px; height: auto;">
+                                                                    {{ item.product_variant.product.name }} (x{{ item.quantity }})
+                                                                </div>
+                                                            {% endfor %}
+                                                        </td>
+                                                        <td>{{ order.get_status_display }}</td>
+                                                        <td>{{ order.total_price }}</td>
+                                                        <td>{{ order.get_payment_method_display }}</td>
+                                                        <td>
+                                                            <a href="{% url 'order_info' order_id=order.id %}" class="btn btn-outline-primary-2">View Details</a>
+                                                        </td>
+                                                    </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    {% else %}
+                                        <p>No order has been made yet.</p>
+                                        <a href="{% url 'productslist' %}" class="btn btn-outline-primary-2">
+                                            <span>GO SHOP</span>
+                                            <i class="icon-long-arrow-right"></i>
+                                        </a>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Wallet Tab -->
+                                <div class="tab-pane fade" id="tab-downloads" role="tabpanel" aria-labelledby="tab-downloads-link">
+                                    <div class="wallet-container">
+                                        <div class="wallet-header">
+                                            <h2>Your Wallet</h2>
+                                            <div class="wallet-balance">Balance: {{ wallet.balance }}</div>
+                                        </div>
+                                        <h3>Transaction History</h3>
+                                        {% if transactions %}
+                                            <ul class="transaction-list">
+                                                {% for transaction in transactions %}
+                                                    <li class="transaction-item">
+                                                        <div>
+                                                            <span class="transaction-type {{ transaction.transaction_type }}">
+                                                                {{ transaction.transaction_type.title }}
+                                                            </span>
+                                                            <span class="transaction-amount">
+                                                                {{ transaction.amount }}
+                                                            </span>
+                                                        </div>
+                                                        <span class="transaction-timestamp">
+                                                            {{ transaction.timestamp|date:"Y-m-d H:i" }}
+                                                        </span>
+                                                    </li>
+                                                {% endfor %}
+                                            </ul>
+                                        {% else %}
+                                            <p class="no-transactions">No transactions yet.</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <!-- Addresses Tab -->
+                                <div class="tab-pane fade" id="tab-address" role="tabpanel" aria-labelledby="tab-address-link">
+                                    <button style="border-radius: 25px; margin-bottom: 20px;" id="myBtn" class="btn btn-primary">Add Address</button>
+                                    <div class="row">
+                                        {% for address in user.addresses.all %}
+                                            <div class="col-lg-6 mb-4">
+                                                <div class="card card-dashboard">
+                                                    <div class="card-body">
+                                                        <h3 class="card-title">{% if address.is_default %}Default {% endif %}Address</h3>
+                                                        <p>
+                                                            {{ address.full_name }} {{ address.last_name }}<br>
+                                                            {{ address.address_line_1 }}<br>
+                                                            {% if address.address_line_2 %}{{ address.address_line_2 }}<br>{% endif %}
+                                                            {{ address.city }}, {{ address.state }} {{ address.postal_code }}<br>
+                                                            {{ address.country }}<br>
+                                                            {{ address.phone_number }}<br>
+                                                            {{ address.email }}<br>
+                                                            <a href="{% url 'edit_address' address.id %}">Edit <i class="icon-edit"></i></a>
+                                                            <button class="btn btn-sm btn-danger delete-address" style="background: none; color: #f00; border: none; padding: 0; font: inherit; cursor: pointer; outline: inherit;" data-address-id="{{ address.id }}">Delete</button>
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% empty %}
+                                            <div class="col-12">
+                                                <p>You have no saved addresses.</p>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+
+                                <!-- Account Details Tab -->
+                                <div class="tab-pane fade" id="tab-account" role="tabpanel" aria-labelledby="tab-account-link">
+                                    <form action="{% url 'edit_details' %}" method="POST">
+                                        {% csrf_token %}
+                                        <div class="row">
+                                            <div class="col-sm-6">
+                                                <label>First name</label>
+                                                <input type="text" name="username" class="form-control" pattern="[A-Za-z\s]+" title="Only letters and spaces are allowed" value="{{ user.username }}" required>
+                                            </div>
+                                            <div class="col-sm-6">
+                                                <label>Last Name</label>
+                                                <input type="text" name="last_name" class="form-control" pattern="[A-Za-z\s]+" title="Only letters and spaces are allowed" value="{{ user.last_name }}" required>
                                             </div>
                                         </div>
-                                    </div>
-                                    {% empty %}
-                                    <div class="col-12">
-                                        <p>You have no saved addresses.</p>
-                                    </div>
-                                    {% endfor %}
-                                </div>
-                            </div>
-
-                            <div class="tab-pane fade" id="tab-account" role="tabpanel" aria-labelledby="tab-account-link">
-                                {% comment %} <form action="{% url 'edit_details' %}" method="POST">
-                                    {% csrf_token %}
-                                    <div class="row">
-                                        <div class="col-sm-6">
-                                            <label>First name</label>
-                                            <input type="text" name="username" class="form-control" pattern="[A-Za-z\s]+" title="Only letters and spaces are allowed" value="{{ user.username }}" required>
+                                        <div class="row">
+                                            <div class="col-sm-6">
+                                                <label>Phone number</label>
+                                                <input type="text" name="phone_number" class="form-control" value="{{ profile.phone }}" required>
+                                            </div>
                                         </div>
-                                        <div class="col-sm-6">
-                                            <label>Last Name</label>
-                                            <input type="text" name="last_name" class="form-control" pattern="[A-Za-z\s]+" title="Only letters and spaces are allowed" value="{{ user.last_name }}" required>
+                                        <!-- Password fields -->
+                                        <div class="row">
+                                            <div class="col-sm-6">
+                                                <label>Current Password</label>
+                                                <input type="password" name="current_password" class="form-control">
+                                            </div>
+                                            <div class="col-sm-6">
+                                                <label>New Password</label>
+                                                <input type="password" name="new_password" class="form-control">
+                                            </div>
+                                            <div class="col-sm-6">
+                                                <label>Confirm New Password</label>
+                                                <input type="password" name="confirm_new_password" class="form-control">
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-sm-6">
-                                            <label>Phone number</label>
-                                            <input type="text" name="phone_number" class="form-control" value="{{ profile.phone }}" required>
-                                        </div>
-                                    </div>
-                                    <button type="submit" class="btn btn-outline-primary-2 mt-3">
-                                        <span>SAVE CHANGES</span>
-                                        <i class="icon-long-arrow-right"></i>
-                                    </button>
-                                </form> {% endcomment %}
-
-<form action="{% url 'edit_details' %}" method="POST">
-    {% csrf_token %}
-    <div class="row">
-        <div class="col-sm-6">
-            <label>First name</label>
-            <input type="text" name="username" class="form-control" pattern="[A-Za-z\s]+" title="Only letters and spaces are allowed" value="{{ user.username }}" required>
-        </div>
-        <div class="col-sm-6">
-            <label>Last Name</label>
-            <input type="text" name="last_name" class="form-control" pattern="[A-Za-z\s]+" title="Only letters and spaces are allowed" value="{{ user.last_name }}" required>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-sm-6">
-            <label>Phone number</label>
-            <input type="text" name="phone_number" class="form-control" value="{{ profile.phone }}" required>
-        </div>
-    </div>
-    <!-- Password fields -->
-    <div class="row">
-        <div class="col-sm-6">
-            <label>Current Password</label>
-            <input type="password" name="current_password" class="form-control">
-        </div>
-        <div class="col-sm-6">
-            <label>New Password</label>
-            <input type="password" name="new_password" class="form-control">
-        </div>
-        <div class="col-sm-6">
-            <label>Confirm New Password</label>
-            <input type="password" name="confirm_new_password" class="form-control">
-        </div>
-    </div>
-    <button type="submit" class="btn btn-outline-primary-2 mt-3">
-        <span>SAVE CHANGES</span>
-        <i class="icon-long-arrow-right"></i>
-    </button>
-</form>
-
-                                <div class="card card-dashboard mt-5">
-                                    <div class="card-body">
-                                        <h3 class="card-title">Your Referral Code</h3>
-                                        <p>Share this code with your friends and earn rewards!</p>
-                                        <div class="referral-code">
-                                            {{ user.profile.referral_code }}
-                                        </div>
-                                        <button class="btn btn-outline-primary-2 mt-2" onclick="copyReferralCode()">
-                                            <span>Copy Code</span>
-                                            <i class="icon-copy"></i>
+                                        <button type="submit" class="btn btn-outline-primary-2 mt-3">
+                                            <span>SAVE CHANGES</span>
+                                            <i class="icon-long-arrow-right"></i>
                                         </button>
-                                        <hr>
-                                        <h4>Referral Program Benefits</h4>
-                                        <ul>
-                                            <li>You'll receive ₹100 in your wallet for each successful referral</li>
-                                            <li>Your friend will receive ₹50 in their wallet upon signing up</li>
-                                        </ul>
-                                        <p>Start sharing and earning today!</p>
+                                    </form>
+
+                                    <div class="card card-dashboard mt-5">
+                                        <div class="card-body">
+                                            <h3 class="card-title">Your Referral Code</h3>
+                                            <p>Share this code with your friends and earn rewards!</p>
+                                            <div class="referral-code">
+                                                {{ user.profile.referral_code }}
+                                            </div>
+                                            <button class="btn btn-outline-primary-2 mt-2" onclick="copyReferralCode()">
+                                                <span>Copy Code</span>
+                                                <i class="icon-copy"></i>
+                                            </button>
+                                            <hr>
+                                            <h4>Referral Program Benefits</h4>
+                                            <ul>
+                                                <li>You'll receive ₹100 in your wallet for each successful referral</li>
+                                                <li>Your friend will receive ₹50 in their wallet upon signing up</li>
+                                            </ul>
+                                            <p>Start sharing and earning today!</p>
+                                        </div>
                                     </div>
                                 </div>
+
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-</main>                            
+    </main>
 
-<div class="col-lg-9">
-    <div id="myModal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <form id="addressForm" method="POST" action="{% url 'submit_address' %}">
-                {% csrf_token %}
-                <div class="row">
-                    <div class="col-sm-6">
-                        <label>First Name *</label>
-                        <input type="text" name="full_name" class="form-control" required>
-                        <span class="error" id="full_name_error"></span>
+    <!-- Add Address Modal -->
+    <div class="col-lg-9">
+        <div id="myModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <form id="addressForm" method="POST" action="{% url 'submit_address' %}">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <label>First Name *</label>
+                            <input type="text" name="full_name" class="form-control" required>
+                            <span class="error" id="full_name_error"></span>
+                        </div>
+                        <div class="col-sm-6">
+                            <label>Last Name *</label>
+                            <input type="text" name="last_name" class="form-control" value="{{ user.last_name }}" required>
+                            <span class="error" id="last_name_error"></span>
+                        </div>
                     </div>
-                    <div class="col-sm-6">
-                        <label>Last Name *</label>
-                        <input type="text" name="last_name" class="form-control" value="{{ user.last_name }}" required>
-                        <span class="error" id="last_name_error"></span>
+                    <label>Address line 1 *</label>
+                    <input type="text" name="address_line_1" class="form-control" required>
+                    <span class="error" id="address_line_1_error"></span>
+
+                    <label>Address line 2</label>
+                    <input type="text" name="address_line_2" class="form-control">
+                    <span class="error" id="address_line_2_error"></span>
+
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <label>City *</label>
+                            <input type="text" name="city" class="form-control" required>
+                            <span class="error" id="city_error"></span>
+                        </div>
+                        <div class="col-sm-6">
+                            <label>State *</label>
+                            <input type="text" name="state" class="form-control" required>
+                            <span class="error" id="state_error"></span>
+                        </div>
                     </div>
-                </div>
-                <label>Address line 1 *</label>
-                <input type="text" name="address_line_1" class="form-control" required>
-                <span class="error" id="address_line_1_error"></span>
-                <label>Address line 2</label>
-                <input type="text" name="address_line_2" class="form-control">
-                <span class="error" id="address_line_2_error"></span>
-                <div class="row">
-                    <div class="col-sm-6">
-                        <label>City *</label>
-                        <input type="text" name="city" class="form-control" required>
-                        <span class="error" id="city_error"></span>
+
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <label>Postal Code *</label>
+                            <input type="text" name="postal_code" class="form-control" required>
+                            <span class="error" id="postal_code_error"></span>
+                        </div>
+                        <div class="col-sm-6">
+                            <label>Country *</label>
+                            <input type="text" name="country" class="form-control" required>
+                            <span class="error" id="country_error"></span>
+                        </div>
                     </div>
-                    <div class="col-sm-6">
-                        <label>State *</label>
-                        <input type="text" name="state" class="form-control" required>
-                        <span class="error" id="state_error"></span>
+
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <label>Phone Number *</label>
+                            <input type="tel" name="phone_number" class="form-control" required>
+                            <span class="error" id="phone_number_error"></span>
+                        </div>
+                        <div class="col-sm-6">
+                            <label>Email Address *</label>
+                            <input type="email" name="email" class="form-control" required>
+                            <span class="error" id="email_error"></span>
+                        </div>
                     </div>
-                </div>
-                <div class="row">
-                    <div class="col-sm-6">
-                        <label>Postal Code *</label>
-                        <input type="text" name="postal_code" class="form-control" required>
-                        <span class="error" id="postal_code_error"></span>
+
+                    <div class="custom-control custom-checkbox">
+                        <input type="checkbox" class="custom-control-input" id="default-address" name="is_default">
+                        <label class="custom-control-label" for="default-address">Default Address</label>
                     </div>
-                    <div class="col-sm-6">
-                        <label>Country *</label>
-                        <input type="text" name="country" class="form-control" required>
-                        <span class="error" id="country_error"></span>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-sm-6">
-                        <label>Phone Number *</label>
-                        <input type="tel" name="phone_number" class="form-control" required>
-                        <span class="error" id="phone_number_error"></span>
-                    </div>
-                    <div class="col-sm-6">
-                        <label>Email Address *</label>
-                        <input type="email" name="email" class="form-control" required>
-                        <span class="error" id="email_error"></span>
-                    </div>
-                </div>
-                <div class="custom-control custom-checkbox">
-                    <input type="checkbox" class="custom-control-input" id="default-address" name="is_default">
-                    <label class="custom-control-label" for="default-address">Default Address</label>
-                </div>
-                <button type="submit" class="btn btn-outline-primary-2">
-                    <span>Save</span>
-                    <i class="icon-long-arrow-right"></i>
-                </button>
-            </form>
+
+                    <button type="submit" class="btn btn-outline-primary-2">
+                        <span>Save</span>
+                        <i class="icon-long-arrow-right"></i>
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
-</div>
 {% endblock %}
+
 {% block extra_js %}
     <script src="{% static 'store-assets/assets/js/jquery.min.js' %}"></script>
     <script src="{% static 'store-assets/assets/js/bootstrap.bundle.min.js' %}"></script>
@@ -525,254 +499,188 @@
     <script src="{% static 'store-assets/assets/js/jquery.waypoints.min.js' %}"></script>
     <script src="{% static 'store-assets/assets/js/superfish.min.js' %}"></script>
     <script src="{% static 'store-assets/assets/js/owl.carousel.min.js' %}"></script>
-    <!-- Main JS File -->
-    <script src="{% static 'store-assets/assets/js/main.js' %}"></script>   
-	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="{% static 'store-assets/assets/js/main.js' %}"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <script>
-    function copyReferralCode() {
-        var referralCode = "{{ user.profile.referral_code }}";
-        navigator.clipboard.writeText(referralCode).then(function() {
-            alert("Referral code copied to clipboard!");
-        }, function(err) {
-            console.error('Could not copy text: ', err);
-        });
-    }
+        function copyReferralCode() {
+            var referralCode = "{{ user.profile.referral_code }}";
+            navigator.clipboard.writeText(referralCode).then(function() {
+                alert("Referral code copied to clipboard!");
+            }, function(err) {
+                console.error('Could not copy text: ', err);
+            });
+        }
     </script>
 
-<script>
-    $(document).ready(function() {
-        const validationRules = {
-            full_name: {
-                required: true,
-                validator: (value) => /^[A-Za-z\s]{2,30}$/.test(value),
-                message: 'First name must contain only letters and be 2-30 characters long.'
-            },
-            last_name: {
-                required: true,
-                validator: (value) => /^[a-zA-Z\s]{2,20}$/.test(value),
-                message: 'Last name must be 2-20 characters long and contain only letters.'
-            },
-            address_line_1: {
-                required: true,
-                validator: (value) => /^[a-zA-Z0-9\s,'-]{5,100}$/.test(value),
-                message: 'Address must be 5-100 characters long and may include letters, numbers, spaces, commas, apostrophes, and hyphens.'
-            },
-            address_line_2: {
-                required: false,
-                validator: (value) => value === '' || /^[a-zA-Z0-9\s,'-]{0,100}$/.test(value),
-                message: 'Address line 2 may include up to 100 characters with letters, numbers, spaces, commas, apostrophes, and hyphens.'
-            },
-            city: {
-                required: true,
-                validator: (value) => /^[a-zA-Z\s]{2,50}$/.test(value),
-                message: 'City must be 2-50 characters long and contain only letters.'
-            },
-            state: {
-                required: true,
-                validator: (value) => /^[a-zA-Z\s]{2,50}$/.test(value),
-                message: 'State must be 2-50 characters long and contain only letters.'
-            },
-            postal_code: {
-                required: true,
-                validator: (value) => /^[0-9]{6}$/.test(value),
-                message: 'Postal code must be exactly 6 digits.'
-            },
-            country: {
-                required: true,
-                validator: (value) => /^[a-zA-Z\s]{2,50}$/.test(value),
-                message: 'Country must be 2-50 characters long and contain only letters.'
-            },
-            email: {
-                required: true,
-                validator: (value) => /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/.test(value),
-                message: 'Please enter a valid email address.'
-            },
-            phone_number: {
-                required: true,
-                validator: (value) => /^(\+\d{1,3}[- ]?)?\d{10}$/.test(value),
-                message: 'Please enter a valid 10-digit phone number, optionally starting with a country code.'
-            }
-        };
+    <script>
+        $(document).ready(function() {
+            const validationRules = {
+                full_name: {
+                    required: true,
+                    validator: (value) => /^[A-Za-z\s]{2,30}$/.test(value),
+                    message: 'First name must contain only letters and be 2-30 characters long.'
+                },
+                last_name: {
+                    required: true,
+                    validator: (value) => /^[a-zA-Z\s]{2,20}$/.test(value),
+                    message: 'Last name must be 2-20 characters long and contain only letters.'
+                },
+                address_line_1: {
+                    required: true,
+                    validator: (value) => /^[a-zA-Z0-9\s,'-]{5,100}$/.test(value),
+                    message: 'Address must be 5-100 characters long and may include letters, numbers, spaces, commas, apostrophes, and hyphens.'
+                },
+                address_line_2: {
+                    required: false,
+                    validator: (value) => value === '' || /^[a-zA-Z0-9\s,'-]{0,100}$/.test(value),
+                    message: 'Address line 2 may include up to 100 characters with letters, numbers, spaces, commas, apostrophes, and hyphens.'
+                },
+                city: {
+                    required: true,
+                    validator: (value) => /^[a-zA-Z\s]{2,50}$/.test(value),
+                    message: 'City must be 2-50 characters long and contain only letters.'
+                },
+                state: {
+                    required: true,
+                    validator: (value) => /^[a-zA-Z\s]{2,50}$/.test(value),
+                    message: 'State must be 2-50 characters long and contain only letters.'
+                },
+                postal_code: {
+                    required: true,
+                    validator: (value) => /^[0-9]{6}$/.test(value),
+                    message: 'Postal code must be exactly 6 digits.'
+                },
+                country: {
+                    required: true,
+                    validator: (value) => /^[a-zA-Z\s]{2,50}$/.test(value),
+                    message: 'Country must be 2-50 characters long and contain only letters.'
+                },
+                email: {
+                    required: true,
+                    validator: (value) => /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/.test(value),
+                    message: 'Please enter a valid email address.'
+                },
+                phone_number: {
+                    required: true,
+                    validator: (value) => /^(\+\d{1,3}[- ]?)?\d{10}$/.test(value),
+                    message: 'Please enter a valid 10-digit phone number, optionally starting with a country code.'
+                }
+            };
 
-        // Form validation class
-        class FormValidator {
-            constructor(form, rules) {
-                this.form = form;
-                this.rules = rules;
-                this.errors = {};
-                this.isValid = true;
-            }
-
-            validateField(fieldName, value) {
-                const rule = this.rules[fieldName];
-                if (!rule) return true;
-
-                if (rule.required && value.trim() === '') {
-                    this.errors[fieldName] = `${fieldName.replace('_', ' ')} is required.`;
-                    return false;
+            class FormValidator {
+                constructor(form, rules) {
+                    this.form = form;
+                    this.rules = rules;
+                    this.errors = {};
+                    this.isValid = true;
                 }
 
-                if (value.trim() !== '' && rule.validator && !rule.validator(value)) {
-                    this.errors[fieldName] = rule.message;
-                    return false;
+                validateField(fieldName, value) {
+                    const rule = this.rules[fieldName];
+                    if (!rule) return true;
+
+                    if (rule.required && value.trim() === '') {
+                        this.errors[fieldName] = `${fieldName.replace('_', ' ')} is required.`;
+                        return false;
+                    }
+
+                    if (value.trim() !== '' && rule.validator && !rule.validator(value)) {
+                        this.errors[fieldName] = rule.message;
+                        return false;
+                    }
+
+                    return true;
                 }
 
-                return true;
-            }
+                validateForm() {
+                    this.errors = {};
+                    this.isValid = true;
 
-            validateForm() {
-                this.errors = {};
-                this.isValid = true;
+                    for (const fieldName in this.rules) {
+                        const field = this.form.elements[fieldName];
+                        if (field) {
+                            const isFieldValid = this.validateField(fieldName, field.value);
+                            if (!isFieldValid) {
+                                this.isValid = false;
+                            }
+                        }
+                    }
 
-                for (const fieldName in this.rules) {
-                    const field = this.form.elements[fieldName];
-                    if (field) {
-                        const isFieldValid = this.validateField(fieldName, field.value);
-                        if (!isFieldValid) {
-                            this.isValid = false;
+                    this.displayErrors();
+                    return this.isValid;
+                }
+
+                displayErrors() {
+                    document.querySelectorAll('.error').forEach(el => el.innerText = '');
+                    for (const fieldName in this.errors) {
+                        const errorElement = document.getElementById(`${fieldName}_error`);
+                        if (errorElement) {
+                            errorElement.innerText = this.errors[fieldName];
                         }
                     }
                 }
-
-                this.displayErrors();
-                return this.isValid;
             }
 
-            displayErrors() {
-                // Clear all existing error messages
-                document.querySelectorAll('.error').forEach(el => el.innerText = '');
+            // Modal functionality
+            const modal = document.getElementById("myModal");
+            const btn = document.getElementById("myBtn");
+            const span = document.getElementsByClassName("close")[0];
 
-                // Display new error messages
-                for (const fieldName in this.errors) {
-                    const errorElement = document.getElementById(`${fieldName}_error`);
-                    if (errorElement) {
-                        errorElement.innerText = this.errors[fieldName];
+            btn.onclick = () => modal.style.display = "block";
+            span.onclick = () => modal.style.display = "none";
+            window.onclick = (event) => {
+                if (event.target == modal) {
+                    modal.style.display = "none";
+                }
+            };
+
+            // Form submission
+            $('#addressForm').submit(function(e) {
+                e.preventDefault();
+                const validator = new FormValidator(this, validationRules);
+                if (validator.validateForm()) {
+                    this.submit();
+                }
+            });
+
+            // Delete address (single handler)
+            $('.delete-address').click(function() {
+                var addressId = $(this).data('address-id');
+                var addressCard = $(this).closest('.col-lg-6');
+
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "You won't be able to revert this!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, delete it!',
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: '/delete_address/' + addressId + '/',
+                            method: 'POST',
+                            headers: {'X-CSRFToken': '{{ csrf_token }}'},
+                            success: function(response) {
+                                if (response.status === 'success') {
+                                    addressCard.fadeOut(300, function() { $(this).remove(); });
+                                    Swal.fire('Deleted!', response.message, 'success');
+                                } else {
+                                    Swal.fire('Error!', 'Error: ' + response.message, 'error');
+                                }
+                            },
+                            error: function() {
+                                Swal.fire('Error!', 'An error occurred while trying to delete the address.', 'error');
+                            }
+                        });
                     }
-                }
-            }
-        }
-
-        // Modal functionality
-        const modal = document.getElementById("myModal");
-        const btn = document.getElementById("myBtn");
-        const span = document.getElementsByClassName("close")[0];
-
-        btn.onclick = () => modal.style.display = "block";
-        span.onclick = () => modal.style.display = "none";
-        window.onclick = (event) => {
-            if (event.target == modal) {
-                modal.style.display = "none";
-            }
-        };
-
-        // Form submission handler
-        $('#addressForm').submit(function(e) {
-            e.preventDefault();
-            
-            const validator = new FormValidator(this, validationRules);
-            if (validator.validateForm()) {
-                // If the form is valid, submit it
-                this.submit();
-            }
-        });
-
-        // Delete address functionality
-        $('.delete-address').click(function() {
-            var addressId = $(this).data('address-id');
-            var addressCard = $(this).closest('.col-lg-6');
-
-            Swal.fire({
-                title: 'Are you sure?',
-                text: "You won't be able to revert this!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Yes, delete it!',
-                cancelButtonText: 'Cancel'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    $.ajax({
-                        url: '/delete_address/' + addressId + '/',
-                        method: 'POST',
-                        headers: {'X-CSRFToken': '{{ csrf_token }}'},
-                        success: function(response) {
-                            if (response.status === 'success') {
-                                addressCard.fadeOut(300, function() { $(this).remove(); });
-                                Swal.fire(
-                                    'Deleted!',
-                                    response.message,
-                                    'success'
-                                );
-                            } else {
-                                Swal.fire(
-                                    'Error!',
-                                    'Error: ' + response.message,
-                                    'error'
-                                );
-                            }
-                        },
-                        error: function() {
-                            Swal.fire(
-                                'Error!',
-                                'An error occurred while trying to delete the address.',
-                                'error'
-                            );
-                        }
-                    });
-                }
+                });
             });
         });
-
-        // Delete address functionality
-        $('.delete-address').click(function() {
-            var addressId = $(this).data('address-id');
-            var addressCard = $(this).closest('.col-lg-6');
-    
-            Swal.fire({
-                title: 'Are you sure?',
-                text: "You won't be able to revert this!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Yes, delete it!',
-                cancelButtonText: 'Cancel'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    $.ajax({
-                        url: '/delete_address/' + addressId + '/',
-                        method: 'POST',
-                        headers: {'X-CSRFToken': '{{ csrf_token }}'},
-                        success: function(response) {
-                            if (response.status === 'success') {
-                                addressCard.fadeOut(300, function() { $(this).remove(); });
-                                Swal.fire(
-                                    'Deleted!',
-                                    response.message,
-                                    'success'
-                                );
-                            } else {
-                                Swal.fire(
-                                    'Error!',
-                                    'Error: ' + response.message,
-                                    'error'
-                                );
-                            }
-                        },
-                        error: function() {
-                            Swal.fire(
-                                'Error!',
-                                'An error occurred while trying to delete the address.',
-                                'error'
-                            );
-                        }
-                    });
-                }
-            });
-        });
-    });
-</script>
-{% endblock  %}
+    </script>
+{% endblock %}
