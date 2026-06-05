@@ -116,8 +116,8 @@ def register(request):
         
         if not phone_number:
             errors['phone_number'] = 'Phone number is required'
-        elif not re.match(r'^\+?1?\d{9,15}$', phone_number):
-            errors['phone_number'] = 'Invalid phone number format'
+        elif not re.match(r'^\d{10}$', phone_number):
+            errors['phone_number'] = 'Phone number must be exactly 10 digits (0-9 only)'
 
         if not password:
             errors['password'] = 'Password is required'
