@@ -164,12 +164,11 @@ def register(request):
                 from_email=settings.EMAIL_HOST_USER,
                 to=[email] )
 
-            email.attach_alternative(
-                html_content,
-                "text/html")
+            email.attach_alternative(html_content, "text/html")
 
             email.send()
         except Exception as e:
+            print("Email otp sending erro :", e)
             logger.error("Email otp sending erro :", e)
      
         stored_data = request.session.get('registration_data')
