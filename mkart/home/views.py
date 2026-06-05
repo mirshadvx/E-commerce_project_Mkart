@@ -39,6 +39,7 @@ import json
 import logging
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core.mail import EmailMultiAlternatives
+from django.contrib.auth.views import PasswordResetView
 from django.template.loader import render_to_string
 
 logger = logging.getLogger('registration')
@@ -1779,3 +1780,20 @@ def return_item(request):
             return JsonResponse({'success': False, 'message': 'Unable to process return request !!!'})
     except OrderItem.DoesNotExist:
         return JsonResponse({'success': False, 'message': 'Item not found !!!'})
+
+
+class RequestDomainPasswordResetView(PasswordResetView):
+    def form_valid(self, form):
+        opts = {
+            "use_https": self.request.is_secure(),
+            "token_generator": self.token_generator,
+            "from_email": self.from_email,
+            "email_template_name": self.email_template_name,
+            "subject_template_name": self.subject_template_name,
+            "request": self.request,
+            "domain_override": self.request.get_host(),
+            "html_email_template_name": self.html_email_template_name,
+            "extra_email_context": self.extra_email_context,
+        }
+        form.save(**opts)
+        return super(PasswordResetView, self).form_valid(form)

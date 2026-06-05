@@ -32,7 +32,7 @@ urlpatterns = [
     path('order_info/<int:order_id> ',views.show_order_details,name='order_info'),
     path('download_invoice/<int:item_id>/', views.download_invoice, name='download_invoice'),
     path('edit_details',views.edit_details,name='edit_details'),
-    path('password_reset/',auth_views.PasswordResetView.as_view(template_name='store/password_reset.html'),name='password_reset'),
+    path('password_reset/',views.RequestDomainPasswordResetView.as_view(template_name='store/password_reset.html'),name='password_reset'),
     path('password_reset_done/',auth_views.PasswordResetDoneView.as_view(template_name='store/password_reset_done.html'),name='password_reset_done'),
     path('password-reset-confirm/<uidb64>/<token>/',auth_views.PasswordResetConfirmView.as_view(template_name='store/password_reset_confirm.html'),name='password_reset_confirm'),
     path('password-reset-complete/',auth_views.PasswordResetCompleteView.as_view(template_name='store/password_reset_complete.html'),name='password_reset_complete'),
