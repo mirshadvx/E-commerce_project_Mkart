@@ -235,7 +235,7 @@ $(document).ready(function () {
         var categoryId = button.data('id');
 
         $.ajax({
-            url: "{% url 'toggle_category_status' 999 %}".replace('999', categoryId),
+            url: "{% url 'Admin:toggle_category_status' 999 %}".replace('999', categoryId),
             type: 'POST',
             data: {
                 'csrfmiddlewaretoken': '{{ csrf_token }}'

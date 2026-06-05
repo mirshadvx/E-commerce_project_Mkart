@@ -38,6 +38,8 @@ from django.db.models.functions import Coalesce
 import json
 import logging
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
 
 logger = logging.getLogger('registration')
 
@@ -153,11 +155,19 @@ def register(request):
             'otp_created_at': timezone.now().isoformat()
         }
         try:
-            subject = 'Your OTP for registration'
-            message = f'Your OTP is: {otp}. This OTP is valid for 5 minutes.'
-            from_email = settings.EMAIL_HOST_USER
-            recipient_list = [email]
-            send_mail(subject, message, from_email, recipient_list)
+            subject = "Verify Your Email - Timexo"
+            html_content = render_to_string( "store/email_otp.html", {"username": username,"otp": otp})
+            email = EmailMultiAlternatives(
+                subject=subject,
+                body=f"Your OTP is {otp}",
+                from_email=settings.EMAIL_HOST_USER,
+                to=[email] )
+
+            email.attach_alternative(
+                html_content,
+                "text/html")
+
+            email.send()
         except Exception as e:
             logger.error("Email otp sending erro :", e)
      
