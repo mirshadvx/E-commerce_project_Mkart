@@ -45,7 +45,7 @@ CLOUDINARY_STORAGE = {
 MEDIA_URL = '/media/'
 
 SECRET_KEY = os.environ.get("SECRET_KEY")
-DEBUG = False
+DEBUG = os.environ.get("DEBUG", "False") == "True"
 
 ALLOWED_HOSTS = ["*"]
 CSRF_TRUSTED_ORIGINS = ["https://timexo.onrender.com"]
