@@ -546,8 +546,8 @@
         const validationRules = {
             full_name: {
                 required: true,
-                validator: (value) => /^[a-zA-Z\s]+\$/.test(value),
-                message: 'First name name must contain letters'
+                validator: (value) => /^[A-Za-z\s]{2,30}$/.test(value),
+                message: 'First name must contain only letters and be 2-30 characters long.'
             },
             last_name: {
                 required: true,
