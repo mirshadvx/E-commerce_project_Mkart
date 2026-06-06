@@ -1,10 +1,9 @@
 from django.db import IntegrityError
-from django.http import JsonResponse
+from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
-from django.core.mail import send_mail
 from django.conf import settings
 import random
 import time
@@ -38,9 +37,14 @@ from django.db.models.functions import Coalesce
 import json
 import logging
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.core.mail import EmailMultiAlternatives
 from django.contrib.auth.views import PasswordResetView
-from django.template.loader import render_to_string
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
+from .services.email_service import (
+    send_otp_email,
+    send_password_reset_email,
+    send_welcome_email,
+)
 
 logger = logging.getLogger('registration')
 
@@ -155,21 +159,8 @@ def register(request):
             'otp': otp,
             'otp_created_at': timezone.now().isoformat()
         }
-        try:
-            subject = "Verify Your Email - Timexo"
-            html_content = render_to_string( "store/email_otp.html", {"username": username,"otp": otp})
-            email = EmailMultiAlternatives(
-                subject=subject,
-                body=f"Your OTP is {otp}",
-                from_email=settings.EMAIL_HOST_USER,
-                to=[email] )
-
-            email.attach_alternative(html_content, "text/html")
-
-            email.send()
-        except Exception as e:
-            print("Email otp sending erro :", e)
-            logger.error("Email otp sending erro :", e)
+        if not send_otp_email(email, username, otp):
+            logger.error("OTP email sending failed for %s", email)
      
         stored_data = request.session.get('registration_data')
        
@@ -223,6 +214,9 @@ def validate_otp(request):
                     user = authenticate(request, username=stored_data['username'], password=stored_data['password'])
                     if user is not None:
                         login(request, user)
+
+                    if not send_welcome_email(new_user.email, new_user.username):
+                        logger.error("Welcome email sending failed for %s", new_user.email)
                 
                     return redirect('home')
 
@@ -255,13 +249,8 @@ def resend_otp(request):
 
     new_otp = str(random.randint(100000, 999999))
 
-    send_mail(
-        'Your new OTP for registration',
-        f'Your new OTP is: {new_otp}. This OTP will expire in 5 minutes.',
-        settings.EMAIL_HOST_USER,
-        [stored_data['email']],
-        fail_silently=False,
-    )
+    if not send_otp_email(stored_data['email'], stored_data['username'], new_otp):
+        logger.error("Resent OTP email sending failed for %s", stored_data['email'])
     stored_data['otp'] = new_otp
     stored_data['otp_created_at'] = timezone.now().isoformat()
     request.session['registration_data'] = stored_data
@@ -1783,16 +1772,18 @@ def return_item(request):
 
 class RequestDomainPasswordResetView(PasswordResetView):
     def form_valid(self, form):
-        opts = {
-            "use_https": self.request.is_secure(),
-            "token_generator": self.token_generator,
-            "from_email": self.from_email,
-            "email_template_name": self.email_template_name,
-            "subject_template_name": self.subject_template_name,
-            "request": self.request,
-            "domain_override": self.request.get_host(),
-            "html_email_template_name": self.html_email_template_name,
-            "extra_email_context": self.extra_email_context,
-        }
-        form.save(**opts)
-        return super(PasswordResetView, self).form_valid(form)
+        email = form.cleaned_data["email"]
+        for user in form.get_users(email):
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            token = self.token_generator.make_token(user)
+            reset_path = reverse(
+                "password_reset_confirm",
+                kwargs={"uidb64": uid, "token": token},
+            )
+            reset_link = self.request.build_absolute_uri(reset_path)
+            username = user.get_username()
+
+            if not send_password_reset_email(user.email, username, reset_link):
+                logger.error("Password reset email sending failed for %s", user.email)
+
+        return HttpResponseRedirect(self.get_success_url())

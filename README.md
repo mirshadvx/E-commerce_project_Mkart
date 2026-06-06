@@ -77,8 +77,8 @@ POSTGRES_USER=postgres
 POSTGRES_PASSWORD=mnbmnb
 POSTGRES_HOST=db
 
-EMAIL_HOST_USER=your-email@gmail.com
-EMAIL_HOST_PASSWORD=your-email-app-password
+RESEND_API_KEY=your-resend-api-key
+RESEND_FROM_EMAIL="Timexo <noreply@your-domain.com>"
 
 RAZORPAY_KEY_ID=your-razorpay-key-id
 RAZORPAY_KEY_SECRET=your-razorpay-key-secret
