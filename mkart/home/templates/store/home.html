@@ -314,13 +314,9 @@
 
                             <div class="product-cat">
 
-                                <a href="#">
-                                    {{ product.category.name }}
-                                </a>
-
                                 {% if product.gender %}
-                                    <a href="#">
-                                        / {{ product.gender.name }}
+                                    <a href="{% url 'product_info' product.id %}">
+                                        {{ product.gender.name }}
                                     </a>
                                 {% endif %}
 
@@ -329,7 +325,7 @@
                             <h3 class="product-title">
 
                                 <a href="{% url 'product_info' product.id %}">
-                                    {{ product.name }}
+                                    {{ product.name|truncatechars:28 }}
                                 </a>
 
                             </h3>
@@ -357,21 +353,21 @@
                                 {% if variant %}
 
                                     {% if variant.image_1 %}
-                                    <a href="#" class="active">
+                                    <a href="{% url 'product_info' product.id %}" class="active">
                                         <img src="{{ variant.image_1.url }}"
                                             alt="{{ product.name }}">
                                     </a>
                                     {% endif %}
 
                                     {% if variant.image_2 %}
-                                    <a href="#">
+                                    <a href="{% url 'product_info' product.id %}">
                                         <img src="{{ variant.image_2.url }}"
                                             alt="{{ product.name }}">
                                     </a>
                                     {% endif %}
 
                                     {% if variant.image_3 %}
-                                    <a href="#">
+                                    <a href="{% url 'product_info' product.id %}">
                                         <img src="{{ variant.image_3.url }}"
                                             alt="{{ product.name }}">
                                     </a>

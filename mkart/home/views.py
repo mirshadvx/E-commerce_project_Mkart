@@ -1360,12 +1360,59 @@ def create_order(request, total, coupon,coupon_discount):
 def handle_order_address(request, order, user):
     use_new_address = request.POST.get('use_new_address')
     if use_new_address:
+        required_fields = [
+            'full_name','last_name','phone_number','email','address_line_1',
+            'city','state','postal_code','country']
 
-        required_fields = ['full_name', 'last_name', 'phone_number', 'email', 'address_line_1', 'city', 'state', 'postal_code', 'country']
         for field in required_fields:
-            if not request.POST.get(field):
-                messages.error(request, f"Please fill in the {field.replace('_', ' ')} field.")
+            if not request.POST.get(field, '').strip():
+                messages.error(
+                    request,
+                    f"{field.replace('_', ' ').title()} is required.")
                 return False
+
+
+        full_name = request.POST.get('full_name').strip()
+        last_name = request.POST.get('last_name').strip()
+        phone_number = request.POST.get('phone_number').strip()
+        email = request.POST.get('email').strip()
+        city = request.POST.get('city').strip()
+        state = request.POST.get('state').strip()
+        country = request.POST.get('country').strip()
+        postal_code = request.POST.get('postal_code').strip()
+
+        name_regex = r'^[A-Za-z]+$'
+        city_regex = r'^[A-Za-z ]+$'
+        phone_regex = r'^[0-9]{10}$'
+        postal_regex = r'^[0-9]{6}$'
+
+        if not re.match(name_regex, full_name):
+            messages.error(request,"First name should contain letters only.")
+            return False
+
+        if not re.match(name_regex, last_name):
+            messages.error(request,"Last name should contain letters only.")
+            return False
+
+        if not re.match(phone_regex, phone_number):
+            messages.error(request,"Phone number must contain exactly 10 digits.")
+            return False
+
+        if not re.match(city_regex, city):
+            messages.error(request,"City should contain letters only.")
+            return False
+
+        if not re.match(city_regex, state):
+            messages.error(request,"State should contain letters only.")
+            return False
+
+        if not re.match(city_regex, country):
+            messages.error(request,"Country should contain letters only.")
+            return False
+
+        if not re.match(postal_regex, postal_code):
+            messages.error(request,"Postal code must contain exactly 6 digits.")
+            return False
         
         OrderAddress.objects.create(
             order=order,

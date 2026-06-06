@@ -299,10 +299,8 @@
                   %}
                 />
                 <label class="form-check-label" for="address{{ address.id }}">
-                  {{ address.full_name }} {{ address.last_name }}, {{
-                  address.address_line_1 }}, {{ address.city }}, {{
-                  address.state }}, {{ address.postal_code }}, {{
-                  address.country }}
+                  {{ address.full_name }} {{ address.last_name }}, {{ address.address_line_1 }}, {{ address.city }}, 
+                  {{ address.state }}, {{ address.postal_code }}, {{ address.country }}
                 </label>
               </div>
               {% endfor %}
@@ -330,6 +328,8 @@
                     class="form-control"
                     id="full_name"
                     name="full_name"
+                    pattern="[A-Za-z]+"
+                    maxlength="30"
                   />
                 </div>
                 <div class="col-md-6 mb-3">
@@ -339,20 +339,22 @@
                     class="form-control"
                     id="last_name"
                     name="last_name"
+                    pattern="[A-Za-z]+"
+                    maxlength="30"
                   />
                 </div>
               </div>
               <div class="row">
                 <div class="col-md-6 mb-3">
-                  <label for="phone_number" class="form-label"
-                    >Phone Number</label
-                  >
-                  <input
-                    type="tel"
-                    class="form-control"
-                    id="phone_number"
-                    name="phone_number"
-                  />
+                  <label for="phone_number" class="form-label" >Phone Number</label>
+                    <input
+                      type="tel"
+                      class="form-control"
+                      id="phone_number"
+                      name="phone_number"
+                      maxlength="10"
+                      pattern="[0-9]{10}"
+                    />
                 </div>
                 <div class="col-md-6 mb-3">
                   <label for="email" class="form-label">Email</label>
@@ -408,14 +410,14 @@
               </div>
               <div class="row">
                 <div class="col-md-6 mb-3">
-                  <label for="postal_code" class="form-label"
-                    >Postal Code</label
-                  >
+                  <label for="postal_code" class="form-label">Postal Code</label>
                   <input
-                    type="number"
+                    type="text"
                     class="form-control"
                     id="postal_code"
                     name="postal_code"
+                    maxlength="6"
+                    pattern="[0-9]{6}"
                   />
                 </div>
                 <div class="col-md-6 mb-3">
@@ -544,8 +546,7 @@
                     alt="{{ item.product_variant.product.name }}"
                     class="product-image"
                   />
-                  {{ item.product_variant.product.name }} - {{
-                  item.product_variant.color }}
+                  {{ item.product_variant.product.name }} - {{ item.product_variant.color }}
                 </td>
                 <td>{{ item.quantity }}</td>
                 <td>{{ item.get_total_price }}</td>
@@ -757,6 +758,24 @@
       }
     });
 
+    $("#full_name, #last_name").on("input", function () {
+        this.value = this.value.replace(/[^A-Za-z]/g, "");
+    });
+
+    $("#city, #state, #country").on("input", function () {
+        this.value = this.value.replace(/[^A-Za-z ]/g, "");
+    });
+
+    $("#phone_number").on("input", function () {
+        this.value = this.value.replace(/\D/g, "");
+        this.value = this.value.slice(0, 10);
+    });
+
+    $("#postal_code").on("input", function () {
+        this.value = this.value.replace(/\D/g, "");
+        this.value = this.value.slice(0, 6);
+    });
+
     $(".copy-coupon").click(function () {
       var couponCode = $(this).data("coupon");
       navigator.clipboard.writeText(couponCode).then(
@@ -819,44 +838,91 @@
     }
 
     $("#checkout-form").submit(function (event) {
-      if ($("#use_new_address").is(":checked")) {
+
+        $("#form-error-message").remove();
+        $(".error-message").remove();
+        $(".is-invalid").removeClass("is-invalid");
+
+        if (!$("#use_new_address").is(":checked")) {
+
+            const selectedAddress =
+                $('input[name="selected_address"]:checked').length;
+
+            if (!selectedAddress) {
+
+                event.preventDefault();
+
+                Swal.fire({
+                    icon: "warning",
+                    title: "Address Required",
+                    text: "Please select an address or add a new address."
+                });
+
+                return false;
+            }
+            return true;
+        }
+
         let isValid = true;
 
-        isValid =
-          validateField("#full_name", "Please enter a valid full name") &&
-          isValid;
-        isValid =
-          validateField("#last_name", "Please enter a valid last name") &&
-          isValid;
-        isValid =
-          validateField(
-            "#phone_number",
-            "Please enter a valid phone number",
-            /^\d{10}$/,
-          ) && isValid;
-        isValid =
-          validateField(
-            "#email",
-            "Please enter a valid email address",
-            /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-          ) && isValid;
-        isValid =
-          validateField("#address_line_1", "Address is required") && isValid;
-        isValid = validateField("#city", "City is required") && isValid;
-        isValid = validateField("#state", "State is required") && isValid;
-        isValid =
-          validateField(
-            "#postal_code",
-            "Please enter a valid 6-digit postal code",
-            /^\d{6}$/,
-          ) && isValid;
-        isValid = validateField("#country", "Country is required") && isValid;
+        isValid = validateField(
+                "#full_name",
+                "First name should contain only letters",
+                /^[A-Za-z]+$/) && isValid;
+
+        isValid = validateField(
+                "#last_name",
+                "Last name should contain only letters",
+                /^[A-Za-z]+$/ ) && isValid;
+
+        isValid = validateField(
+                "#phone_number",
+                "Phone number must contain exactly 10 digits",
+                /^[0-9]{10}$/) && isValid;
+
+        isValid = validateField(
+                "#email",
+                "Enter a valid email address",
+                /^[^\s@]+@[^\s@]+\.[^\s@]+$/) && isValid;
+
+        isValid = validateField(
+                "#address_line_1",
+                "Address Line 1 is required") && isValid;
+
+        isValid = validateField(
+                "#city",
+                "City should contain only letters",
+                /^[A-Za-z ]+$/) && isValid;
+
+        isValid = validateField(
+                "#state",
+                "State should contain only letters",
+                /^[A-Za-z ]+$/) && isValid;
+
+        isValid = validateField(
+                "#postal_code",
+                "Postal code must contain exactly 6 digits",
+                /^[0-9]{6}$/) && isValid;
+
+        isValid = validateField(
+                "#country",
+                "Country should contain only letters",
+                /^[A-Za-z ]+$/) && isValid;
 
         if (!isValid) {
-          event.preventDefault();
-          showFormError("Please fill out all required fields correctly.");
+
+            event.preventDefault();
+
+            Swal.fire({
+                icon: "error",
+                title: "Invalid Address Details",
+                text: "Please correct the highlighted fields before placing the order."
+            });
+
+            return false;
         }
-      }
+
+        return true;
     });
 
     function validateField(selector, errorMessage, regex = null) {
@@ -958,7 +1024,6 @@
       order_id: "{{ razorpay_order_id }}",
       handler: function (response) {
         if (response.razorpay_payment_id) {
-          // Payment successful
           document.getElementById("razorpay_payment_id").value =
             response.razorpay_payment_id;
           document.getElementById("razorpay_order_id").value =
@@ -987,7 +1052,6 @@
     };
 
     function handlePaymentFailure(orderId) {
-      // Send a request to the server to handle the failed payment
       fetch("/handle-failed-payment/", {
         method: "POST",
         headers: {
@@ -1052,7 +1116,6 @@
       });
     }
 
-    // Add error callback
     rzp1.on("payment.failed", function (response) {
       showPaymentError(response.error.description);
     });

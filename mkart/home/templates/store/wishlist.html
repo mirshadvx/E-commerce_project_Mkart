@@ -80,10 +80,7 @@
                   </a>
                 </figure>
                 <h3 class="product-title">
-                  <a href="{% url 'product_info' id=item.variant.product.id %}"
-                    >{{ item.variant.product.name }} ({{ item.variant.color.name
-                    }})</a
-                  >
+                  <a href="{% url 'product_info' id=item.variant.product.id %}">{{ item.variant.product.name }} {{ item.variant.color.name }}</a>
                 </h3>
               </div>
             </td>

@@ -96,7 +96,7 @@
                                             {% for offer in offers %}
                                             <option value="{{ offer.id }}" 
                                                 {% if category.offer_id == offer.id %}selected{% endif %}>
-                                                {{ offer.name }} ({{ offer.discount }}% off)
+                                                {{ offer.name }} {{ offer.discount }}% off
                                             </option>
                                             {% endfor %}
                                         </select>
