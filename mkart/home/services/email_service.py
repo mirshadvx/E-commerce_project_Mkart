@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 RESEND_EMAIL_URL = "https://api.resend.com/emails"
 RESEND_API_KEY = os.environ.get("RESEND_API_KEY")
-RESEND_FROM_EMAIL = os.environ.get("RESEND_FROM_EMAIL", "Timexo <>")
+RESEND_FROM_EMAIL = os.environ.get("RESEND_FROM_EMAIL", "Timexo <onboarding@resend.dev>")
 
 
 def _send_resend_email(to_email, subject, template_name, context):
