@@ -1,76 +1,40 @@
-# ----------------------
-# Python
-# ----------------------
 __pycache__/
 *.py[cod]
 *$py.class
 
-# ----------------------
-# Django
-# ----------------------
 *.log
 db.sqlite3
 db.sqlite3-journal
 
-# Static & Media
 /media/
 /staticfiles/
 
-# ----------------------
-# Environment
-# ----------------------
 .env
 .env.*
 venv/
 .venv/
 env/
 
-# ----------------------
-# IDE
-# ----------------------
 .vscode/
 .idea/
 
-# ----------------------
-# OS files
-# ----------------------
 .DS_Store
 Thumbs.db
 
-# ----------------------
-# Project-specific
-# ----------------------
 client_secret*.json
 
-# ----------------------
-# Temp files
-# ----------------------
 *.bak
 *.tmp
 
-# ----------------------
-# Database backups
-# ----------------------
 *.sql
 *.sqlite3-backup
 
-# ----------------------
-# Testing / coverage
-# ----------------------
 .coverage
 htmlcov/
 .pytest_cache/
 .mypy_cache/
 
-# ----------------------
-# Build / packaging
-# ----------------------
 *.egg
 *.egg-info/
 dist/
 build/
-
-# ----------------------
-# Node (if used)
-# ----------------------
-node_modules/
