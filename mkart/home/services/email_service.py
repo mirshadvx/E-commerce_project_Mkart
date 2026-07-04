@@ -5,35 +5,45 @@ from django.template.loader import render_to_string
 
 logger = logging.getLogger(__name__)
 
-RESEND_EMAIL_URL = "https://api.resend.com/emails"
-RESEND_API_KEY = os.environ.get("RESEND_API_KEY")
-RESEND_FROM_EMAIL = os.environ.get("RESEND_FROM_EMAIL", "Timexo <onboarding@resend.dev>")
+MAILJET_EMAIL_URL = "https://api.mailjet.com/v3.1/send"
+MAILJET_API_KEY = os.environ.get("MAILJET_API_KEY")
+MAILJET_SECRET_KEY = os.environ.get("MAILJET_SECRET_KEY")
+MAILJET_FROM_EMAIL = os.environ.get(
+    "MAILJET_FROM_EMAIL",
+    os.environ.get("EMAIL_HOST_USER", "noreply@example.com"),
+)
+MAILJET_FROM_NAME = os.environ.get("MAILJET_FROM_NAME", "Timexo")
 
 
-def _send_resend_email(to_email, subject, template_name, context):
-    if not RESEND_API_KEY:
-        logger.error("RESEND_API_KEY is not configured; email was not sent to %s", to_email)
+def _send_mailjet_email(to_email, subject, template_name, context):
+    if not MAILJET_API_KEY or not MAILJET_SECRET_KEY:
+        logger.error("Mailjet credentials are not configured; email was not sent to %s", to_email)
         return False
 
     try:
         html_content = render_to_string(template_name, context)
         response = requests.post(
-            RESEND_EMAIL_URL,
-            headers={
-                "Authorization": f"Bearer {RESEND_API_KEY}",
-                "Content-Type": "application/json",
-            },
+            MAILJET_EMAIL_URL,
+            auth=(MAILJET_API_KEY, MAILJET_SECRET_KEY),
+            headers={"Content-Type": "application/json"},
             json={
-                "from": RESEND_FROM_EMAIL,
-                "to": [to_email],
-                "subject": subject,
-                "html": html_content,
+                "Messages": [
+                    {
+                        "From": {
+                            "Email": MAILJET_FROM_EMAIL,
+                            "Name": MAILJET_FROM_NAME,
+                        },
+                        "To": [{"Email": to_email}],
+                        "Subject": subject,
+                        "HTMLPart": html_content,
+                    }
+                ]
             },
             timeout=10,
         )
         response.raise_for_status()
     except requests.RequestException:
-        logger.exception("Resend API request failed for %s", to_email)
+        logger.exception("Mailjet API request failed for %s", to_email)
         return False
     except Exception:
         logger.exception("Unexpected email rendering/sending failure for %s", to_email)
@@ -44,7 +54,7 @@ def _send_resend_email(to_email, subject, template_name, context):
 
 
 def send_otp_email(email, username, otp):
-    return _send_resend_email(
+    return _send_mailjet_email(
         to_email=email,
         subject="Verify Your Email - Timexo",
         template_name="emails/otp_email.html",
@@ -53,7 +63,7 @@ def send_otp_email(email, username, otp):
 
 
 def send_password_reset_email(email, username, reset_link):
-    return _send_resend_email(
+    return _send_mailjet_email(
         to_email=email,
         subject="Reset Your Timexo Password",
         template_name="emails/password_reset_email.html",
@@ -62,7 +72,7 @@ def send_password_reset_email(email, username, reset_link):
 
 
 def send_welcome_email(email, username):
-    return _send_resend_email(
+    return _send_mailjet_email(
         to_email=email,
         subject="Welcome to Timexo",
         template_name="emails/welcome_email.html",

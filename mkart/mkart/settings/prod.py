@@ -123,9 +123,10 @@ USE_I18N = True
 SITE_ID = 1
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# ===================== EMAIL, PAYMENT, SOCIAL =====================
-RESEND_API_KEY = os.environ.get("RESEND_API_KEY")
-RESEND_FROM_EMAIL = os.environ.get("RESEND_FROM_EMAIL", "Timexo <>")
+MAILJET_API_KEY = os.environ.get("MAILJET_API_KEY")
+MAILJET_SECRET_KEY = os.environ.get("MAILJET_SECRET_KEY")
+MAILJET_FROM_EMAIL = os.environ.get("MAILJET_FROM_EMAIL", os.environ.get("EMAIL_HOST_USER"))
+MAILJET_FROM_NAME = os.environ.get("MAILJET_FROM_NAME", "Timexo")
 
 RAZORPAY_KEY_ID = os.environ.get("RAZORPAY_KEY_ID")
 RAZORPAY_KEY_SECRET = os.environ.get("RAZORPAY_KEY_SECRET")
