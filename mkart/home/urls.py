@@ -28,6 +28,7 @@ urlpatterns = [
     path('edit_address/<int:id>/', views.edit_address, name='edit_address'),
     path('delete_address/<int:address_id>/', views.delete_address, name='delete_address'),
     path('checkout/',views.checkout,name='checkout'),
+    path('checkout/create-razorpay-order/', views.create_razorpay_checkout_order, name='create_razorpay_checkout_order'),
     path('order-confirmation/<int:order_id>/', views.order_confirmation, name='order_confirmation'),
     path('order_info/<int:order_id> ',views.show_order_details,name='order_info'),
     path('download_invoice/<int:item_id>/', views.download_invoice, name='download_invoice'),

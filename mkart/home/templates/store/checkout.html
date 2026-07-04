@@ -273,7 +273,7 @@
 
   <div class="row">
     <div class="col-lg-8">
-      <form method="post" id="checkout-form">
+      <form method="post" id="checkout-form" data-razorpay-create-url="{% url 'create_razorpay_checkout_order' %}">
         {% csrf_token %}
 
         <div class="card mb-4">
@@ -748,15 +748,24 @@
       $("#messageModal").modal("show");
     }
 
+    function setNewAddressRequired(isRequired) {
+      $("#new_address_form")
+        .find("#full_name, #last_name, #phone_number, #email, #address_line_1, #city, #state, #postal_code, #country")
+        .prop("required", isRequired);
+    }
+
     $("#use_new_address").change(function () {
       if (this.checked) {
         $("#new_address_form").show();
         $('input[name="selected_address"]').prop("checked", false);
+        setNewAddressRequired(true);
       } else {
         $("#new_address_form").hide();
         $('input[name="selected_address"]:first').prop("checked", true);
+        setNewAddressRequired(false);
       }
     });
+    setNewAddressRequired($("#use_new_address").is(":checked"));
 
     $("#full_name, #last_name").on("input", function () {
         this.value = this.value.replace(/[^A-Za-z]/g, "");
@@ -837,11 +846,21 @@
       $("#place-order-wallet-btn").hide();
     }
 
-    $("#checkout-form").submit(function (event) {
-
+    function validateCheckoutForm(showAlert = true) {
         $("#form-error-message").remove();
         $(".error-message").remove();
         $(".is-invalid").removeClass("is-invalid");
+
+        if (!$('input[name="payment_method"]:checked').length) {
+            if (showAlert) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Payment Method Required",
+                    text: "Please select a payment method."
+                });
+            }
+            return false;
+        }
 
         if (!$("#use_new_address").is(":checked")) {
 
@@ -850,13 +869,13 @@
 
             if (!selectedAddress) {
 
-                event.preventDefault();
-
-                Swal.fire({
-                    icon: "warning",
-                    title: "Address Required",
-                    text: "Please select an address or add a new address."
-                });
+                if (showAlert) {
+                    Swal.fire({
+                        icon: "warning",
+                        title: "Address Required",
+                        text: "Please select an address or add a new address."
+                    });
+                }
 
                 return false;
             }
@@ -910,19 +929,25 @@
                 /^[A-Za-z ]+$/) && isValid;
 
         if (!isValid) {
-
-            event.preventDefault();
-
-            Swal.fire({
-                icon: "error",
-                title: "Invalid Address Details",
-                text: "Please correct the highlighted fields before placing the order."
-            });
+            if (showAlert) {
+                Swal.fire({
+                    icon: "error",
+                    title: "Invalid Address Details",
+                    text: "Please correct the highlighted fields before placing the order."
+                });
+            }
 
             return false;
         }
 
         return true;
+    }
+
+    $("#checkout-form").submit(function (event) {
+        if (!validateCheckoutForm(true)) {
+            event.preventDefault();
+            return false;
+        }
     });
 
     function validateField(selector, errorMessage, regex = null) {
@@ -1014,43 +1039,6 @@
       }
     }
 
-    var options = {
-      key: "{{ razorpay_key_id }}",
-      amount: "{{ cart_total_paise }}",
-      currency: "INR",
-      name: "Mkart",
-      description: "Order Payment",
-      image: "https://example.com/your_logo.png",
-      order_id: "{{ razorpay_order_id }}",
-      handler: function (response) {
-        if (response.razorpay_payment_id) {
-          document.getElementById("razorpay_payment_id").value =
-            response.razorpay_payment_id;
-          document.getElementById("razorpay_order_id").value =
-            response.razorpay_order_id;
-          document.getElementById("razorpay_signature").value =
-            response.razorpay_signature;
-          document.getElementById("checkout-form").submit();
-        } else {
-          // Payment failed
-          handlePaymentFailure(response.razorpay_order_id);
-        }
-      },
-      prefill: {
-        name: "{{ user.get_full_name }}",
-        email: "{{ user.email }}",
-        contact: "{{ user.phone_number }}",
-      },
-      theme: {
-        color: "#3399cc",
-      },
-      modal: {
-        ondismiss: function () {
-          handlePaymentFailure(options.order_id);
-        },
-      },
-    };
-
     function handlePaymentFailure(orderId) {
       fetch("/handle-failed-payment/", {
         method: "POST",
@@ -1066,10 +1054,8 @@
         .then((data) => {
           if (data.success) {
             showPaymentError(
-              "Payment failed. Order created with pending status. You can retry payment in Accoung order section !!!",
+              "Payment was not completed. No order was created.",
             );
-            // Optionally, redirect to an order confirmation page
-            // window.location.href = data.redirect_url;
           } else {
             showPaymentError(
               "An error occurred while processing your order. Please try again.",
@@ -1097,10 +1083,82 @@
       return cookieValue;
     }
 
-    var rzp1 = new Razorpay(options);
     document.getElementById("rzp-button1").onclick = function (e) {
-      rzp1.open();
       e.preventDefault();
+      if (!validateCheckoutForm(true)) {
+        return false;
+      }
+
+      const button = this;
+      button.disabled = true;
+      button.textContent = "Preparing payment...";
+
+      fetch($("#checkout-form").data("razorpay-create-url"), {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": getCookie("csrftoken"),
+        },
+        body: new FormData(document.getElementById("checkout-form")),
+      })
+        .then(async (response) => {
+          const data = await response.json();
+          if (!response.ok || !data.success) {
+            throw data;
+          }
+          return data;
+        })
+        .then((data) => {
+          const options = {
+            key: data.key,
+            amount: data.amount,
+            currency: data.currency,
+            name: "Mkart",
+            description: "Order Payment",
+            order_id: data.order_id,
+            handler: function (response) {
+              document.getElementById("razorpay_payment_id").value =
+                response.razorpay_payment_id;
+              document.getElementById("razorpay_order_id").value =
+                response.razorpay_order_id;
+              document.getElementById("razorpay_signature").value =
+                response.razorpay_signature;
+              document.getElementById("checkout-form").submit();
+            },
+            prefill: {
+              name: "{{ user.get_full_name }}",
+              email: "{{ user.email }}",
+            },
+            theme: {
+              color: "#3399cc",
+            },
+            modal: {
+              ondismiss: function () {
+                button.disabled = false;
+                button.textContent = "Pay with Razorpay";
+                handlePaymentFailure(data.order_id);
+              },
+            },
+          };
+
+          const razorpayCheckout = new Razorpay(options);
+          razorpayCheckout.on("payment.failed", function (response) {
+            button.disabled = false;
+            button.textContent = "Pay with Razorpay";
+            showPaymentError(response.error.description);
+            handlePaymentFailure(data.order_id);
+          });
+          razorpayCheckout.open();
+        })
+        .catch((error) => {
+          button.disabled = false;
+          button.textContent = "Pay with Razorpay";
+          const errors = error && error.errors ? error.errors : ["Unable to start Razorpay payment. Please try again."];
+          Swal.fire({
+            icon: "error",
+            title: "Checkout Validation Failed",
+            html: errors.join("<br>"),
+          });
+        });
     };
 
     function showPaymentError(message) {
@@ -1109,16 +1167,8 @@
       );
       $("#messageModal").modal("show");
 
-      // Add an event listener for when the modal is hidden
-      $("#messageModal").on("hidden.bs.modal", function () {
-        // Redirect to the home page
-        window.location.href = "/"; // Adjust this URL if your home page has a different path
-      });
+      $("#messageModal").off("hidden.bs.modal");
     }
-
-    rzp1.on("payment.failed", function (response) {
-      showPaymentError(response.error.description);
-    });
   });
 </script>
 {% endblock %}
