@@ -14,7 +14,6 @@ from django.core.files.base import ContentFile
 from django.views.decorators.http import require_POST
 import base64
 from io import BytesIO
-from PIL import Image
 from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
@@ -38,6 +37,7 @@ from django.db import transaction
 import cloudinary.uploader
 import logging
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.db.models import ProtectedError
 
 logger = logging.getLogger(__name__)
 
@@ -124,20 +124,53 @@ def toggle_category_status(request, category_id):
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
 def delete_category(request, category_id):
-    if request.method == 'POST':
-        category = get_object_or_404(Category, id=category_id)
-        try:
-            category.delete()
-            return JsonResponse({
-                'success': True,
-                'message': f'Category "{category.name}" deleted successfully.'
+    if request.method != "POST":
+        return JsonResponse(
+            {
+                "success": False,
+                "message": "Invalid request method."
+            },
+            status=405
+        )
+
+    category = get_object_or_404(Category, id=category_id)
+    if Product.objects.filter(category=category).exists():
+        return JsonResponse(
+            {
+                "success": False,
+                "message": (
+                    "This category cannot be deleted because one or more "
+                    "products are assigned to it. Remove or reassign those "
+                    "products first."
+                )
+            },
+            status=400)
+
+    try:
+        category_name = category.name
+        category.delete()
+
+        return JsonResponse(
+            {
+                "success": True,
+                "message": f'Category "{category_name}" deleted successfully.'
             })
-        except Exception as e:
-            return JsonResponse({
-                'success': False,
-                'message': 'Error deleting category.'
-            }, status=500)
-    return JsonResponse({'success': False}, status=400)
+
+    except ProtectedError:
+        return JsonResponse(
+            {
+                "success": False,
+                "message": "This category is being used by other records and cannot be deleted."
+            },
+            status=400)
+
+    except Exception as e:
+        return JsonResponse(
+            {
+                "success": False,
+                "message": f"Error deleting category: {str(e)}"
+            },
+            status=500)
 
 
 @never_cache
