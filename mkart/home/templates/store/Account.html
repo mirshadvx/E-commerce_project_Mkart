@@ -9,9 +9,7 @@
     <meta name="msapplication-TileColor" content="#cc9966">
     <meta name="msapplication-config" content="store-assets/assets/images/icons/browserconfig.xml">
     <meta name="theme-color" content="#ffffff">
-    <!-- Plugins CSS File -->
     <link rel="stylesheet" href="{% static 'store-assets/assets/css/bootstrap.min.css' %}">
-    <!-- Main CSS File -->
     <link rel="stylesheet" href="{% static 'store-assets/assets/css/style.css' %}">
 
     <style>
@@ -207,7 +205,6 @@
             <div class="dashboard">
                 <div class="container">
                     <div class="row">
-                        <!-- Sidebar -->
                         <aside class="col-md-4 col-lg-3">
                             <ul class="nav nav-dashboard flex-column mb-3 mb-md-0" role="tablist">
                                 <li class="nav-item">
@@ -228,11 +225,9 @@
                             </ul>
                         </aside>
 
-                        <!-- Main Content -->
                         <div class="col-md-8 col-lg-9">
                             <div class="tab-content">
 
-                                <!-- Orders Tab -->
                                 <div class="tab-pane fade" id="tab-orders" role="tabpanel" aria-labelledby="tab-orders-link">
                                     {% if orders %}
                                         <table class="table table-orders">
@@ -277,7 +272,6 @@
                                     {% endif %}
                                 </div>
 
-                                <!-- Wallet Tab -->
                                 <div class="tab-pane fade" id="tab-downloads" role="tabpanel" aria-labelledby="tab-downloads-link">
                                     <div class="wallet-container">
                                         <div class="wallet-header">
@@ -309,7 +303,6 @@
                                     </div>
                                 </div>
 
-                                <!-- Addresses Tab -->
                                 <div class="tab-pane fade" id="tab-address" role="tabpanel" aria-labelledby="tab-address-link">
                                     <button style="border-radius: 25px; margin-bottom: 20px;" id="myBtn" class="btn btn-primary">Add Address</button>
                                     <div class="row">
@@ -340,27 +333,26 @@
                                     </div>
                                 </div>
 
-                                <!-- Account Details Tab -->
                                 <div class="tab-pane fade" id="tab-account" role="tabpanel" aria-labelledby="tab-account-link">
-                                    <form action="{% url 'edit_details' %}" method="POST">
+                                    <form id="accountDetailsForm" action="{% url 'edit_details' %}" method="POST">
                                         {% csrf_token %}
                                         <div class="row">
                                             <div class="col-sm-6">
-                                                <label>First name</label>
-                                                <input type="text" name="username" class="form-control" pattern="[A-Za-z\s]+" title="Only letters and spaces are allowed" value="{{ user.username }}" required>
+                                                <label>First name/Username</label>
+                                                <input type="text" name="username" class="form-control" pattern="[A-Za-z\s]+" title="Only letters and spaces are allowed" value="{{ user.username }}">
+                                                <span class="error" id="username_error"></span>
                                             </div>
                                             <div class="col-sm-6">
                                                 <label>Last Name</label>
-                                                <input type="text" name="last_name" class="form-control" pattern="[A-Za-z\s]+" title="Only letters and spaces are allowed" value="{{ user.last_name }}" required>
+                                                <input type="text" name="last_name" class="form-control" pattern="[A-Za-z\s]+" title="Only letters and spaces are allowed" value="{{ user.last_name }}">
                                             </div>
                                         </div>
                                         <div class="row">
                                             <div class="col-sm-6">
                                                 <label>Phone number</label>
-                                                <input type="text" name="phone_number" class="form-control" value="{{ profile.phone }}" required>
+                                                <input type="text" name="phone_number" class="form-control" value="{{ profile.phone }}" >
                                             </div>
                                         </div>
-                                        <!-- Password fields -->
                                         <div class="row">
                                             <div class="col-sm-6">
                                                 <label>Current Password</label>
@@ -411,7 +403,6 @@
         </div>
     </main>
 
-    <!-- Add Address Modal -->
     <div class="col-lg-9">
         <div id="myModal" class="modal">
             <div class="modal-content">
@@ -624,7 +615,6 @@
                 }
             }
 
-            // Modal functionality
             const modal = document.getElementById("myModal");
             const btn = document.getElementById("myBtn");
             const span = document.getElementsByClassName("close")[0];
@@ -637,7 +627,6 @@
                 }
             };
 
-            // Form submission
             $('#addressForm').submit(function(e) {
                 e.preventDefault();
                 const validator = new FormValidator(this, validationRules);
@@ -646,7 +635,39 @@
                 }
             });
 
-            // Delete address (single handler)
+            $('#accountDetailsForm').submit(function(e) {
+                e.preventDefault();
+                const form = this;
+                const usernameInput = $(form).find('input[name="username"]');
+                const usernameValue = usernameInput.val().trim();
+                const currentUsername = "{{ user.username }}";
+                const errorSpan = $('#username_error');
+
+                errorSpan.text(''); 
+
+                if (usernameValue.toLowerCase() === currentUsername.toLowerCase()) {
+                    form.submit();
+                    return;
+                }
+
+                $.ajax({
+                    url: "{% url 'check_username' %}",
+                    method: 'GET',
+                    data: { 'username': usernameValue },
+                    dataType: 'json',
+                    success: function(data) {
+                        if (data.exists) {
+                            errorSpan.text('This username is already taken. Please choose another one.');
+                        } else {
+                            form.submit();
+                        }
+                    },
+                    error: function() {
+                        errorSpan.text('An error occurred while verifying username validation availability.');
+                    }
+                });
+            });
+
             $('.delete-address').click(function() {
                 var addressId = $(this).data('address-id');
                 var addressCard = $(this).closest('.col-lg-6');
