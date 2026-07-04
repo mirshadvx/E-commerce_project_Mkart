@@ -67,7 +67,7 @@
                                             <img src="{% static 'admin-assets/img/product/noimage.png' %}" alt="{{ product.name }}" />
                                         {% endif %}
                                     </a>
-                                    <a href="{% url 'Admin:product_details' product.id %}">{{ product.name }}</a>
+                                    <a href="{% url 'Admin:product_details' product.id %}">{{ product.name|truncatechars:18 }}</a>
                                 </td>
                                 <td>{{ product.category.name }}</td>
                                 <td>{{ product.gender.name }}</td>
