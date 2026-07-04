@@ -11,7 +11,7 @@ from Admin.models import *
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    phone = models.CharField(max_length=15, blank=True, null=True)
+    phone = models.CharField(max_length=15, blank=True, default="")
     referral_code = models.CharField(max_length=10, unique=True, blank=True,null=True)
     referred_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='referrals')
 
