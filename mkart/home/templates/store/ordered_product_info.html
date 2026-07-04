@@ -1,38 +1,19 @@
 {% extends "store/main_base.html" %}
 {% load static %}
-{% block title %}Order Information{% endblock %}
-{% block extra_style %}
 
-<link
-  rel="mask-icon"
-  href="store-assets/assets/images/icons/safari-pinned-tab.svg"
-  color="#666666"
-/>
+{% block title %}Order Information{% endblock %}
+
+{% block extra_style %}
+<link rel="mask-icon" href="store-assets/assets/images/icons/safari-pinned-tab.svg" color="#666666" />
 <meta name="apple-mobile-web-app-title" content="timexo" />
 <meta name="application-name" content="timexo" />
 <meta name="msapplication-TileColor" content="#cc9966" />
-<meta
-  name="msapplication-config"
-  content="store-assets/assets/images/icons/browserconfig.xml"
-/>
+<meta name="msapplication-config" content="store-assets/assets/images/icons/browserconfig.xml" />
 <meta name="theme-color" content="#ffffff" />
-<link
-  rel="stylesheet"
-  href="{% static 'store-assets/assets/css/bootstrap.min.css' %}"
-/>
-<link
-  rel="stylesheet"
-  href="{% static 'store-assets/assets/css/style.css' %}"
-/>
-<link
-  rel="stylesheet"
-  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
-/>
-
-<link
-  rel="stylesheet"
-  href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"
-/>
+<link rel="stylesheet" href="{% static 'store-assets/assets/css/bootstrap.min.css' %}" />
+<link rel="stylesheet" href="{% static 'store-assets/assets/css/style.css' %}" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
 
 <style>
   body {
@@ -40,6 +21,7 @@
     background-color: #f8f9fa;
     color: #333;
   }
+
   .order-details-container {
     max-width: 1000px;
     margin: 40px auto;
@@ -48,6 +30,7 @@
     border-radius: 15px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   }
+
   .order-header {
     display: flex;
     justify-content: space-between;
@@ -56,12 +39,14 @@
     padding-bottom: 20px;
     border-bottom: 2px solid #f1f1f1;
   }
+
   .order-header h2 {
     font-size: 32px;
     font-weight: 600;
     color: #2c3e50;
     margin: 0;
   }
+
   .order-status {
     font-size: 16px;
     padding: 8px 15px;
@@ -69,34 +54,40 @@
     background-color: #e1f5fe;
     color: #0288d1;
   }
+
   .order-meta {
     display: flex;
     justify-content: space-between;
     margin-bottom: 30px;
     flex-wrap: wrap;
   }
+
   .order-meta-item {
     text-align: center;
     flex: 1;
     min-width: 150px;
     margin-bottom: 20px;
   }
+
   .order-meta-item i {
     font-size: 24px;
     color: #3498db;
     margin-bottom: 10px;
   }
+
   .order-meta-item p {
     margin: 0;
     font-size: 14px;
     color: #7f8c8d;
   }
+
   .order-meta-item strong {
     display: block;
     font-size: 18px;
     color: #2c3e50;
     margin-top: 5px;
   }
+
   .section-title {
     font-size: 24px;
     font-weight: 600;
@@ -105,12 +96,14 @@
     padding-bottom: 10px;
     border-bottom: 2px solid #f1f1f1;
   }
+
   .table {
     margin-bottom: 30px;
     width: 100%;
     border-collapse: separate;
     border-spacing: 0 10px;
   }
+
   .table thead th {
     background-color: #f8f9fa;
     color: #2c3e50;
@@ -120,17 +113,20 @@
     padding: 12px;
     border: none;
   }
+
   .table tbody td {
     vertical-align: middle;
     padding: 12px;
     border-top: 1px solid #f1f1f1;
   }
+
   .product-img {
     width: 80px;
     height: 80px;
     object-fit: cover;
     border-radius: 5px;
   }
+
   .order-address,
   .order-summary {
     background-color: #f8f9fa;
@@ -138,10 +134,12 @@
     border-radius: 10px;
     margin-bottom: 30px;
   }
+
   .order-actions {
     text-align: right;
     margin-top: 30px;
   }
+
   .order-actions a {
     margin-left: 15px;
     padding: 10px 20px;
@@ -149,6 +147,7 @@
     text-transform: uppercase;
     letter-spacing: 0.5px;
   }
+
   .item-status {
     font-size: 14px;
     padding: 4px 8px;
@@ -157,24 +156,27 @@
     color: #0288d1;
     display: inline-block;
   }
+
   .action-buttons {
     display: flex;
     gap: 5px;
     justify-content: flex-start;
   }
+
   .action-buttons .btn {
     padding: 4px 8px;
     font-size: 12px;
     white-space: nowrap;
     border-radius: 4px;
   }
+
   .table-responsive {
     overflow-x: auto;
   }
 </style>
 {% endblock %}
-{% block content %}
 
+{% block content %}
 <main class="main">
   <div class="page-content">
     <div class="order-details-container">
@@ -200,14 +202,13 @@
           <strong>{{ order.get_payment_method_display }}</strong>
         </div>
         {% if order.payment_method == 'razorpay' and order.payment_status == 'unpaid' %}
-        <div class="razorpay-retry-payment">
-          <h3>Retry Payment</h3>
-          <p>
-            Your payment for this order is pending. Click the button below to
-            retry the payment.
-          </p>
-          <button id="rzp-button1" class="btn btn-primary">Pay Now</button>
-        </div>
+          <div class="razorpay-retry-payment">
+            <h3>Retry Payment</h3>
+            <p>
+              Your payment for this order is pending. Click the button below to retry the payment.
+            </p>
+            <button id="rzp-button1" class="btn btn-primary">Pay Now</button>
+          </div>
         {% endif %}
       </div>
 
@@ -229,85 +230,69 @@
             </thead>
             <tbody>
               {% for item in order_items %}
-              <tr>
-                <td>{{ item.product_variant.product.name }}</td>
-                <td>
-                  <img
-                    src="{{ item.product_variant.image_1.url|default_if_none:'/static/store-assets/default-image.png' }}"
-                    alt="{{ item.product_variant.product.name }}"
-                    class="product-img"
-                  />
-                </td>
-                <td>{{ item.quantity }}</td>
-                <td>₹{{ item.price }}</td>
-                {% comment %}
-                <td>₹{{ item.get_total_price }}</td>
-                {% endcomment %}
-                <td>₹{{ item.orderItem_coupon_discount }}</td>
-                {% if item.payment_status_item == 'paid' %}
-                <td>
-                  <span style="color: #4de52d; font-weight: bold">Paid</span>
-                </td>
-                {% else %}
-                <td>
-                  <span style="color: #ee4949; font-weight: bold"
-                    >Not paid</span
-                  >
-                </td>
-                {% endif %}
-
-                <td>
-                  <span class="item-status"
-                    >{{ item.get_item_status_display }}</span
-                  >
-                </td>
-
-                <td>
-                  {% if item.item_status != 'returned' %}
-                  <div class="action-buttons">
-                    {% if item.item_status != 'delivered' %}
-                    {% if item.action_status == 'cancel' and item.item_status != 'cancelled' %}
-                    <button
-                      class="btn btn-sm btn-outline-danger cancel-item"
-                      data-item-id="{{ item.id }}"
-                      data-variant-id="{{ item.product_variant.id }}"
-                      data-inc-quantity="{{ item.quantity }}"
-                    >
-                      Cancel
-                    </button>
-                    {% endif %}
-                    {% else %}
-                    {% if not item.return_request %}
-                    <button
-                      class="btn btn-sm btn-outline-warning return-item"
-                      data-item-id="{{ item.id }}"
-                    >
-                      Return
-                    </button>
-                    {% endif %}
-                    {% if item.item_status == 'delivered' %}
-                    <a
-                      href="{% url 'download_invoice' item.id %}"
-                      class="btn btn-sm btn-outline-primary"
-                      >Download Invoice</a
-                    >
-                    {% endif %}
-                    {% comment %}
-                    <a
-                      href="{% url 'download_invoice' item.id %}"
-                      class="btn btn-sm btn-outline-primary"
-                      >Download Invoice</a
-                    >
-                    {% endcomment %}
-                    {% endif %}
-                  </div>
+                <tr>
+                  <td>{{ item.product_variant.product.name }}</td>
+                  <td>
+                    <img
+                      src="{{ item.product_variant.image_1.url|default_if_none:'/static/store-assets/default-image.png' }}"
+                      alt="{{ item.product_variant.product.name }}"
+                      class="product-img"
+                    />
+                  </td>
+                  <td>{{ item.quantity }}</td>
+                  <td>₹{{ item.price }}</td>
+                  <td>₹{{ item.orderItem_coupon_discount }}</td>
+                  {% if item.payment_status_item == 'paid' %}
+                    <td>
+                      <span style="color: #4de52d; font-weight: bold">Paid</span>
+                    </td>
                   {% else %}
-                  <span class="text-muted">Returned</span>
+                    <td>
+                      <span style="color: #ee4949; font-weight: bold">Not paid</span>
+                    </td>
                   {% endif %}
-                </td>
-
-                {% endfor %}
-              </tr>
+                  <td>
+                    <span class="item-status">{{ item.get_item_status_display }}</span>
+                  </td>
+                  <td>
+                    {% if item.item_status != 'returned' %}
+                      <div class="action-buttons">
+                        {% if item.item_status != 'delivered' %}
+                          {% if item.action_status == 'cancel' and item.item_status != 'cancelled' %}
+                            <button
+                              class="btn btn-sm btn-outline-danger cancel-item"
+                              data-item-id="{{ item.id }}"
+                              data-variant-id="{{ item.product_variant.id }}"
+                              data-inc-quantity="{{ item.quantity }}"
+                            >
+                              Cancel
+                            </button>
+                          {% endif %}
+                        {% else %}
+                          {% if not item.return_request %}
+                            <button
+                              class="btn btn-sm btn-outline-warning return-item"
+                              data-item-id="{{ item.id }}"
+                            >
+                              Return
+                            </button>
+                          {% endif %}
+                          {% if item.item_status == 'delivered' %}
+                            <a
+                              href="{% url 'download_invoice' item.id %}"
+                              class="btn btn-sm btn-outline-primary"
+                            >
+                              Download Invoice
+                            </a>
+                          {% endif %}
+                        {% endif %}
+                      </div>
+                    {% else %}
+                      <span class="text-muted">Returned</span>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
             </tbody>
           </table>
         </div>
@@ -318,16 +303,16 @@
           <div class="order-address">
             <h3 class="section-title">Shipping Address</h3>
             <p>
-              <strong>Name:</strong> {{ order_address.full_name }} {{
-              order_address.last_name }}
+              <strong>Name:</strong>
+              {{ order_address.full_name }} {{ order_address.last_name }}
             </p>
             <p><strong>Phone:</strong> {{ order_address.phone_number }}</p>
             <p><strong>Email:</strong> {{ order_address.email }}</p>
             <p>
-              <strong>Address:</strong> {{ order_address.address_line_1 }}, {{
-              order_address.address_line_2 }}, {{ order_address.city }}, {{
-              order_address.state }}, {{ order_address.country }} - {{
-              order_address.postal_code }}
+              <strong>Address:</strong>
+              {{ order_address.address_line_1 }}, {{ order_address.address_line_2 }},
+              {{ order_address.city }}, {{ order_address.state }},
+              {{ order_address.country }} - {{ order_address.postal_code }}
             </p>
           </div>
         </div>
@@ -349,35 +334,23 @@
       </div>
 
       <div class="order-actions">
-        <a href="{% url 'account' %}" class="btn btn-outline-primary"
-          ><i class="fas fa-arrow-left"></i> Back to Orders</a
-        >
-        <a href="{% url 'productslist' %}" class="btn btn-primary"
-          >Continue Shopping <i class="fas fa-shopping-cart"></i
-        ></a>
+        <a href="{% url 'account' %}" class="btn btn-outline-primary">
+          <i class="fas fa-arrow-left"></i> Back to Orders
+        </a>
+        <a href="{% url 'productslist' %}" class="btn btn-primary">
+          Continue Shopping <i class="fas fa-shopping-cart"></i>
+        </a>
       </div>
     </div>
   </div>
 
   <!-- Return Request Modal -->
-  <div
-    class="modal fade"
-    id="returnModal"
-    tabindex="-1"
-    role="dialog"
-    aria-labelledby="returnModalLabel"
-    aria-hidden="true"
-  >
+  <div class="modal fade" id="returnModal" tabindex="-1" role="dialog" aria-labelledby="returnModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" id="returnModalLabel">Return Request</h5>
-          <button
-            type="button"
-            class="close"
-            data-dismiss="modal"
-            aria-label="Close"
-          >
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
@@ -386,29 +359,20 @@
             <input type="hidden" id="returnItemId" name="item_id" />
             <div class="form-group">
               <label for="returnReason">Reason for return:</label>
-              <textarea
-                class="form-control"
-                id="returnReason"
-                name="reason"
-                rows="3"
-                required
-              ></textarea>
+              <textarea class="form-control" id="returnReason" name="reason" rows="3" required></textarea>
             </div>
           </form>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">
-            Close
-          </button>
-          <button type="button" class="btn btn-primary" id="submitReturn">
-            Submit Return Request
-          </button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" id="submitReturn">Submit Return Request</button>
         </div>
       </div>
     </div>
   </div>
 </main>
 {% endblock %}
+
 {% block extra_js %}
 <script src="{% static 'store-assets/assets/js/jquery.min.js' %}"></script>
 <script src="{% static 'store-assets/assets/js/bootstrap.bundle.min.js' %}"></script>
@@ -472,6 +436,7 @@
     e.preventDefault();
   };
 </script>
+
 <script>
   $(document).ready(function () {
     $(".cancel-item").click(function () {
@@ -500,11 +465,9 @@
             },
             success: function (response) {
               if (response.success) {
-                Swal.fire("Cancelled!", response.message, "success").then(
-                  () => {
-                    location.reload();
-                  },
-                );
+                Swal.fire("Cancelled!", response.message, "success").then(() => {
+                  location.reload();
+                });
               } else {
                 Swal.fire("Error!", response.message, "error");
               }
@@ -556,12 +519,10 @@
             },
             success: function (response) {
               if (response.success) {
-                Swal.fire("Submitted!", response.message, "success").then(
-                  () => {
-                    $("#returnModal").modal("hide");
-                    location.reload();
-                  },
-                );
+                Swal.fire("Submitted!", response.message, "success").then(() => {
+                  $("#returnModal").modal("hide");
+                  location.reload();
+                });
               } else {
                 Swal.fire("Error!", response.message, "error");
               }
