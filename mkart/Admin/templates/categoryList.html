@@ -80,7 +80,7 @@
                             {% for category in categories %}
                             <tr>
                                 <td>{{ category.name }}</td>
-                                <td>{{ category.description|truncatewords:15|default:"-" }}</td>
+                                <td>{{ category.description|truncatewords:7|default:"-" }}</td>
                                 <td>
                                     <button class="btn-toggle-status button-42"
                                             data-id="{{ category.id }}"
