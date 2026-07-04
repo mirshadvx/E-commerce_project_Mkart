@@ -48,18 +48,37 @@ class Profile(models.Model):
             user.profile.referred_by = referred_by_profile.user
             user.profile.save()
 
-            user.wallet.balance += 50
-            user.wallet.save()
+            user_wallet, _ = Wallet.objects.get_or_create(user=user)
+            referrer_wallet, _ = Wallet.objects.get_or_create(user=referred_by_profile.user)
 
-            referred_by_profile.user.wallet.balance += 100
-            referred_by_profile.user.wallet.save()
+            user_wallet.balance += 50
+            user_wallet.save()
 
-            WalletTransaction.objects.create(wallet=user.wallet, amount=50, transaction_type='credit')
-            WalletTransaction.objects.create(wallet=referred_by_profile.user.wallet, amount=100, transaction_type='credit')
+            referrer_wallet.balance += 100
+            referrer_wallet.save()
+
+            WalletTransaction.objects.create(
+                wallet=user_wallet,
+                amount=50,
+                transaction_type='credit',
+                description='Referral signup bonus',
+                balance_after=user_wallet.balance,
+                reference_type='referral',
+                reference_id=str(referred_by_profile.user_id),
+            )
+            WalletTransaction.objects.create(
+                wallet=referrer_wallet,
+                amount=100,
+                transaction_type='credit',
+                description=f'Referral reward for inviting {user.username}',
+                balance_after=referrer_wallet.balance,
+                reference_type='referral',
+                reference_id=str(user.id),
+            )
 
             return True
         except cls.DoesNotExist:
-            return False      
+            return False
          
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -223,4 +242,3 @@ class OrderAddress(models.Model):
 
     def __str__(self):
         return f"Address for Order {self.order.id} - {self.full_name} {self.last_name}"
-    

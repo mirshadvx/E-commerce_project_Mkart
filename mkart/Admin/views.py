@@ -738,7 +738,11 @@ def update_order_item_status(request):
                         WalletTransaction.objects.create(
                             wallet=wallet,
                             amount=refund_amount,
-                            transaction_type='credit'
+                            transaction_type='credit',
+                            description=f'Refund for returned item in order #{order_item.order.id}',
+                            balance_after=wallet.balance,
+                            reference_type='order_item',
+                            reference_id=str(order_item.id),
                         )
                     
                     order = order_item.order

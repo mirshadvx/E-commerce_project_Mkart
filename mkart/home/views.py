@@ -1530,11 +1530,6 @@ def create_validated_order(request, validated, razorpay_order_id=None, razorpay_
                 raise ValueError("Insufficient balance in your wallet to complete this purchase.")
             wallet.balance -= total
             wallet.save()
-            WalletTransaction.objects.create(
-                wallet=wallet,
-                amount=total,
-                transaction_type='debit'
-            )
         elif payment_method == 'cod':
             if total < Decimal('1000.00'):
                 raise ValueError("Cash on Delivery is not available for orders below ₹1000.")
@@ -1554,6 +1549,17 @@ def create_validated_order(request, validated, razorpay_order_id=None, razorpay_
             coupon=coupon_code,
             discount_amount_coupon=coupon_discount,
         )
+
+        if payment_method == 'wallet':
+            WalletTransaction.objects.create(
+                wallet=wallet,
+                amount=total,
+                transaction_type='debit',
+                description=f'Wallet payment for order #{order.id}',
+                balance_after=wallet.balance,
+                reference_type='order',
+                reference_id=str(order.id),
+            )
 
         OrderAddress.objects.create(order=order, **validated['address_data'])
 
@@ -2053,6 +2059,10 @@ def cancel_item(request):
                     wallet=user_wallet,
                     amount=refund_amount,
                     transaction_type='credit',
+                    description=f'Refund for cancelled item in order #{order.id}',
+                    balance_after=user_wallet.balance,
+                    reference_type='order_item',
+                    reference_id=str(item.id),
                 )
 
             return JsonResponse({

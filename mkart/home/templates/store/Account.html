@@ -141,24 +141,50 @@
         .transaction-item {
             background-color: #f9f9f9;
             border-radius: 4px;
-            padding: 10px;
+            padding: 14px;
             margin-bottom: 10px;
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: flex-start;
+            gap: 16px;
         }
 
         .transaction-type {
             font-weight: bold;
+            text-transform: capitalize;
         }
 
         .transaction-amount {
             font-size: 1.1em;
+            font-weight: 600;
         }
 
         .transaction-timestamp {
             color: #777;
             font-size: 0.9em;
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .transaction-details {
+            flex: 1;
+        }
+
+        .transaction-description {
+            margin-top: 5px;
+            color: #555;
+        }
+
+        .transaction-meta {
+            margin-top: 5px;
+            color: #777;
+            font-size: 0.9em;
+        }
+
+        .transaction-balance {
+            display: block;
+            margin-top: 4px;
+            color: #555;
         }
 
         .credit { color: #4CAF50; }
@@ -283,17 +309,32 @@
                                             <ul class="transaction-list">
                                                 {% for transaction in transactions %}
                                                     <li class="transaction-item">
-                                                        <div>
+                                                        <div class="transaction-details">
                                                             <span class="transaction-type {{ transaction.transaction_type }}">
                                                                 {{ transaction.transaction_type.title }}
                                                             </span>
                                                             <span class="transaction-amount">
-                                                                {{ transaction.amount }}
+                                                                {% if transaction.transaction_type == 'credit' %}+{% else %}-{% endif %}{{ transaction.amount }}
                                                             </span>
+                                                            <div class="transaction-description">
+                                                                {% if transaction.description %}
+                                                                    {{ transaction.description }}
+                                                                {% else %}
+                                                                    Wallet {{ transaction.transaction_type }} transaction
+                                                                {% endif %}
+                                                            </div>
+                                                            {% if transaction.reference_type or transaction.reference_id %}
+                                                                <div class="transaction-meta">
+                                                                    Reference:
+                                                                    {% if transaction.reference_type %}{{ transaction.reference_type|title }}{% endif %}
+                                                                    {% if transaction.reference_id %}#{{ transaction.reference_id }}{% endif %}
+                                                                </div>
+                                                            {% endif %}
                                                         </div>
-                                                        <span class="transaction-timestamp">
+                                                        <div class="transaction-timestamp">
                                                             {{ transaction.timestamp|date:"Y-m-d H:i" }}
-                                                        </span>
+                                                            <span class="transaction-balance">Balance: {{ transaction.balance_after|default_if_none:"Not recorded" }}</span>
+                                                        </div>
                                                     </li>
                                                 {% endfor %}
                                             </ul>
