@@ -118,20 +118,18 @@
                                 <li><a href="{% url "Admin:brandlist" %}">Brand List</a></li>
                             </ul>
                         </li>
-                        <li class="submenu">
-                            <a href="javascript:void(0);"><img src="{% static 'admin-assets/img/icons/users1.svg' %}" alt="img"><span>
-                                    Users</span> <span class="menu-arrow"></span></a>
-                            <ul>
-                                <li><a href="{% url "Admin:userlist" %}">Users List</a></li>
-                            </ul>
+                        <li>
+                            <a href="{% url 'Admin:userlist' %}">
+                                <img src="{% static 'admin-assets/img/icons/users1.svg' %}" alt="img">
+                                <span>Users</span>
+                            </a>
                         </li>
-                        <li class="submenu">
-                            <a><img src="{% static 'admin-assets/img/icons/sales1.svg' %}" alt="img"><span>
-                                    Orders</span> <span class="menu-arrow"></span></a>
-                            <ul>
-                                <li><a href="{% url "Admin:order_list" %}">Orders List</a></li>
-                            </ul>
-                        </li>   
+                        <li>
+                            <a href="{% url 'Admin:order_list' %}">
+                                <img src="{% static 'admin-assets/img/icons/sales1.svg' %}" alt="img">
+                                <span>Orders</span>
+                            </a>
+                        </li>
                         <li class="submenu">
                             <a><i style="font-size: 19px; color: black;" class="fas fa-ticket-alt coupon-icon"></i><span>
                                     Coupon / Offer</span> <span class="menu-arrow"></span></a>
@@ -148,12 +146,12 @@
                                 <li><a href="{% url "Admin:sales_report" %}">Sales List</a></li>
                             </ul>
                         </li>
-                        <li class="submenu">
+                        <!-- <li class="submenu">
                             <a href="javascript:void(0);"><img src="{% static 'admin-assets/img/icons/settings.svg' %}" alt="img"><span>
                                     Settings</span> <span class="menu-arrow"></span></a>
                             <ul>
                             </ul>
-                        </li>
+                        </li> -->
                     </ul>
                 </div>
             </div>
