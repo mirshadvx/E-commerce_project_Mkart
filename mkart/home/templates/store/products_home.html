@@ -1,6 +1,9 @@
-{% extends "store/main_base.html" %} {% load static %} {% block title %}Products
-List{% endblock %} {% block extra_style %}
+{% extends "store/main_base.html" %}
+{% load static %}
 
+{% block title %}Products List{% endblock %}
+
+{% block extra_style %}
 <link
   rel="mask-icon"
   href="store-assets/assets/images/icons/safari-pinned-tab.svg"
@@ -45,12 +48,14 @@ List{% endblock %} {% block extra_style %}
     flex-wrap: wrap;
     gap: 12px;
   }
+
   .pagination-info {
     color: #888;
     font-size: 1.5rem;
     letter-spacing: 0.02em;
     margin: 0;
   }
+
   .pagination-nav {
     display: flex;
     align-items: center;
@@ -58,6 +63,7 @@ List{% endblock %} {% block extra_style %}
     gap: 5px;
     margin-left: auto;
   }
+
   .pagination-nav .pg-btn {
     display: inline-flex;
     align-items: center;
@@ -80,11 +86,13 @@ List{% endblock %} {% block extra_style %}
     white-space: nowrap;
     line-height: 1;
   }
+
   .pagination-nav .pg-btn:hover {
     background: #cc9966;
     border-color: #cc9966;
     color: #fff;
   }
+
   .pagination-nav .pg-btn.pg-active {
     background: #cc9966;
     border-color: #cc9966;
@@ -92,6 +100,7 @@ List{% endblock %} {% block extra_style %}
     font-weight: 700;
     pointer-events: none;
   }
+
   .pagination-nav .pg-btn.pg-disabled {
     background: #f9f9f9;
     color: #bbb;
@@ -99,6 +108,7 @@ List{% endblock %} {% block extra_style %}
     pointer-events: none;
     cursor: default;
   }
+
   .pagination-nav .pg-ellipsis {
     display: inline-flex;
     align-items: center;
@@ -137,13 +147,11 @@ List{% endblock %} {% block extra_style %}
     vertical-align: middle;
   }
 </style>
-{% endblock %} {% block search_bar %}
-<div
-  class="header-search header-search-extended header-search-visible d-none d-lg-block"
->
-  <a href="#" class="search-toggle" role="button"
-    ><i class="icon-search"></i
-  ></a>
+{% endblock %}
+
+{% block search_bar %}
+<div class="header-search header-search-extended header-search-visible d-none d-lg-block">
+  <a href="#" class="search-toggle" role="button"><i class="icon-search"></i></a>
   <form action="{% url 'productslist' %}" method="GET">
     <div class="header-search-wrapper search-wrapper-wide">
       <input
@@ -159,7 +167,9 @@ List{% endblock %} {% block extra_style %}
     </div>
   </form>
 </div>
-{% endblock %} {% block wishlist_cart_data %}
+{% endblock %}
+
+{% block wishlist_cart_data %}
 <div class="header-right">
   <a href="{% url 'wishlist' %}" class="wishlist-link">
     <i class="icon-heart-o"></i>
@@ -179,7 +189,9 @@ List{% endblock %} {% block extra_style %}
     </a>
   </div>
 </div>
-{% endblock %} {% block content %}
+{% endblock %}
+
+{% block content %}
 <main class="main">
   <div class="page-header text-center" style="background-color: beige">
     <div class="container">
@@ -201,12 +213,8 @@ List{% endblock %} {% block extra_style %}
       <!-- Toolbox -->
       <div class="toolbox">
         <div class="toolbox-left">
-          <a href="#" class="sidebar-toggler"
-            ><i class="icon-bars"></i>Filters</a
-          >
-          <a href="{% url 'productslist' %}" class="btn btn-outline-darker"
-            >CLEAR ALL</a
-          >
+          <a href="#" class="sidebar-toggler"><i class="icon-bars"></i>Filters</a>
+          <a href="{% url 'productslist' %}" class="btn btn-outline-darker">CLEAR ALL</a>
         </div>
         <div class="toolbox-right">
           <form id="sort-form" method="GET" action="{% url 'productslist' %}">
@@ -219,46 +227,19 @@ List{% endblock %} {% block extra_style %}
                   class="form-control"
                   onchange="this.form.submit()"
                 >
-                  <option value="" {% if not sort_by %}selected{% endif %}>
-                    Default
-                  </option>
-                  <option
-                    value="low to high"
-                    {% if sort_by == "low to high" %}selected{% endif %}
-                  >
-                    Price: Low to High
-                  </option>
-                  <option
-                    value="high to low"
-                    {% if sort_by == "high to low" %}selected{% endif %}
-                  >
-                    Price: High to Low
-                  </option>
-                  <option
-                    value="new arrivals"
-                    {% if sort_by == "new arrivals" %}selected{% endif %}
-                  >
-                    New Arrivals
-                  </option>
-                  <option
-                    value="aA-zZ"
-                    {% if sort_by == "aA-zZ" %}selected{% endif %}
-                  >
-                    A–Z
-                  </option>
-                  <option
-                    value="zZ-aA"
-                    {% if sort_by == "zZ-aA" %}selected{% endif %}
-                  >
-                    Z–A
-                  </option>
+                  <option value="" {% if not sort_by %}selected{% endif %}>Default</option>
+                  <option value="low to high" {% if sort_by == "low to high" %}selected{% endif %}>Price: Low to High</option>
+                  <option value="high to low" {% if sort_by == "high to low" %}selected{% endif %}>Price: High to Low</option>
+                  <option value="new arrivals" {% if sort_by == "new arrivals" %}selected{% endif %}>New Arrivals</option>
+                  <option value="aA-zZ" {% if sort_by == "aA-zZ" %}selected{% endif %}>A–Z</option>
+                  <option value="zZ-aA" {% if sort_by == "zZ-aA" %}selected{% endif %}>Z–A</option>
                 </select>
               </div>
             </div>
             {% for key, value in request.GET.items %}
-            {% if key != 'sortby' and key != 'page' %}
-            <input type="hidden" name="{{ key }}" value="{{ value }}" />
-            {% endif %}
+              {% if key != 'sortby' and key != 'page' %}
+                <input type="hidden" name="{{ key }}" value="{{ value }}" />
+              {% endif %}
             {% endfor %}
           </form>
         </div>
@@ -269,162 +250,121 @@ List{% endblock %} {% block extra_style %}
         <!-- Product Grid -->
         <div class="row justify-content-center">
           {% for product in products %}
-          <div class="col-6 col-md-4 col-lg-3">
-            <div class="product product-7 text-center">
-              <figure class="product-media">
-                {% if product.discount_percentage %}
-                <span class="product-label label-sale"
-                  >{{ product.discount_percentage }}% OFF</span
-                >
-                {% endif %}
-                {% if not product.variants.first.is_available %}
-                <span class="product-label label-out">Out of Stock</span>
-                {% endif %}
-
-                <a href="{% url 'product_info' product.id %}">
-                  {% with product.variants.first as variant %}
-                  {% if variant and variant.image_1 %}
-                  <img
-                    class="product-image"
-                    src="{{ variant.image_1.url }}"
-                    alt="{{ product.name }}"
-                  />
-                  {% elif variant and variant.image_2 %}
-                  <img
-                    class="product-image"
-                    src="{{ variant.image_2.url }}"
-                    alt="{{ product.name }}"
-                  />
-                  {% elif variant and variant.image_3 %}
-                  <img
-                    class="product-image"
-                    src="{{ variant.image_3.url }}"
-                    alt="{{ product.name }}"
-                  />
-                  {% else %}
-                  <img
-                    class="product-image"
-                    src="{% static 'store-assets/assets/images/placeholder.png' %}"
-                    alt="No image"
-                  />
+            <div class="col-6 col-md-4 col-lg-3">
+              <div class="product product-7 text-center">
+                <figure class="product-media">
+                  {% if product.discount_percentage %}
+                    <span class="product-label label-sale">{{ product.discount_percentage }}% OFF</span>
                   {% endif %}
-                  {% endwith %}
-                </a>
-                
-                <div class="product-action" style="justify-content: center;">
+                  {% if not product.variants.first.is_available %}
+                    <span class="product-label label-out">Out of Stock</span>
+                  {% endif %}
+
+                  <a href="{% url 'product_info' product.id %}">
                     {% with product.variants.first as variant %}
-                    {% if variant and variant.is_available %}
-                    <form method="POST" action="{% url 'add_to_cart' product.id %}" style="width:100%;">
-                        {% csrf_token %}
-                        <input
-                            type="hidden"
-                            name="variant_id"
-                            value="{{ variant.id }}">
-                        <button
+                      {% if variant and variant.image_1 %}
+                        <img class="product-image" src="{{ variant.image_1.url }}" alt="{{ product.name }}" />
+                      {% elif variant and variant.image_2 %}
+                        <img class="product-image" src="{{ variant.image_2.url }}" alt="{{ product.name }}" />
+                      {% elif variant and variant.image_3 %}
+                        <img class="product-image" src="{{ variant.image_3.url }}" alt="{{ product.name }}" />
+                      {% else %}
+                        <img class="product-image" src="{% static 'store-assets/assets/images/placeholder.png' %}" alt="No image" />
+                      {% endif %}
+                    {% endwith %}
+                  </a>
+
+                  <div class="product-action" style="justify-content: center;">
+                    {% with product.variants.first as variant %}
+                      {% if variant and variant.is_available %}
+                        <form method="POST" action="{% url 'add_to_cart' product.id %}" style="width:100%;">
+                          {% csrf_token %}
+                          <input type="hidden" name="variant_id" value="{{ variant.id }}">
+                          <button
                             type="submit"
                             class="btn-product btn-cart"
                             style="width:100%;background:none;border:none;cursor:pointer;"
                             onmouseover="this.style.backgroundColor='#c96';"
-                            onmouseout="this.style.backgroundColor='transparent';">
+                            onmouseout="this.style.backgroundColor='transparent';"
+                          >
                             <span>Add to cart</span>
-                        </button>
-                    </form>
-                    {% endif %}
+                          </button>
+                        </form>
+                      {% endif %}
                     {% endwith %}
-                </div>
-              </figure>
+                  </div>
+                </figure>
 
-              <div class="product-body">
-                <div class="product-cat">
-                  <a>{{ product.category.name }}</a>
-                  {% if product.gender %}
-                  <a>/ {{ product.gender.name }}</a>
-                  {% endif %}
-                </div>
-                <h3 class="product-title">
-                  <a href="{% url 'product_info' product.id %}"
-                    >{{ product.name|truncatechars:28 }}</a
-                  >
-                </h3>
-                <div class="product-price">
-                  {% if product.discounted_price %}
-                  <span class="new-price"
-                    >₹{{ product.discounted_price|floatformat:2 }}</span
-                  >
-                  <span class="old-price"
-                    ><s>₹{{ product.display_price|floatformat:2 }}</s></span
-                  >
-                  {% else %}
-                  <span>₹{{ product.display_price|floatformat:2 }}</span>
-                  {% endif %}
+                <div class="product-body">
+                  <div class="product-cat">
+                    <a>{{ product.category.name }}</a>
+                    {% if product.gender %}
+                      <a>/ {{ product.gender.name }}</a>
+                    {% endif %}
+                  </div>
+                  <h3 class="product-title">
+                    <a href="{% url 'product_info' product.id %}">{{ product.name|truncatechars:28 }}</a>
+                  </h3>
+                  <div class="product-price">
+                    {% if product.discounted_price %}
+                      <span class="new-price">₹{{ product.discounted_price|floatformat:2 }}</span>
+                      <span class="old-price"><s>₹{{ product.display_price|floatformat:2 }}</s></span>
+                    {% else %}
+                      <span>₹{{ product.display_price|floatformat:2 }}</span>
+                    {% endif %}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
           {% empty %}
-          <div class="col-12 text-center py-5">
-            <i class="icon-search" style="font-size: 3rem; color: #ccc"></i>
-            <h4 class="mt-3 text-muted">No products found</h4>
-            <p class="text-muted">
-              Try adjusting your filters or search query.
-            </p>
-            <a href="{% url 'productslist' %}" class="btn btn-primary mt-2"
-              >Clear all filters</a
-            >
-          </div>
+            <div class="col-12 text-center py-5">
+              <i class="icon-search" style="font-size: 3rem; color: #ccc"></i>
+              <h4 class="mt-3 text-muted">No products found</h4>
+              <p class="text-muted">Try adjusting your filters or search query.</p>
+              <a href="{% url 'productslist' %}" class="btn btn-primary mt-2">Clear all filters</a>
+            </div>
           {% endfor %}
         </div>
         <!-- /Product Grid -->
 
         <!-- ====================== PAGINATION ====================== -->
         {% if paginator.count > 0 %}
-        <div class="pagination-section">
-          <p class="pagination-info">
-            Showing <strong>{{ products.start_index }}</strong>–<strong
-              >{{ products.end_index }}</strong
-            >
-            of <strong>{{ paginator.count }}</strong> product{{
-            paginator.count|pluralize }} &nbsp;|&nbsp; Page
-            <strong>{{ products.number }}</strong> of
-            <strong>{{ paginator.num_pages }}</strong>
-          </p>
+          <div class="pagination-section">
+            <p class="pagination-info">
+              Showing <strong>{{ products.start_index }}</strong>–<strong>{{ products.end_index }}</strong>
+              of <strong>{{ paginator.count }}</strong> product{{ paginator.count|pluralize }} &nbsp;|&nbsp; Page
+              <strong>{{ products.number }}</strong> of
+              <strong>{{ paginator.num_pages }}</strong>
+            </p>
 
-          {% if paginator.num_pages > 1 %}
-          <nav aria-label="Product pages">
-            <div class="pagination-nav">
-              {% if products.has_previous %}
-              <a
-                class="pg-btn"
-                href="?{{ filter_query_string }}&page={{ products.previous_page_number }}"
-                >&lt; Prev</a
-              >
-              {% else %}
-              <span class="pg-btn pg-disabled">&lt; Prev</span>
-              {% endif %}
-              {% for num in page_range %}
-              {% if num is None %}
-              <span class="pg-ellipsis">…</span>
-              {% elif num == products.number %}
-              <span class="pg-btn pg-active">{{ num }}</span>
-              {% else %}
-              <a class="pg-btn" href="?{{ filter_query_string }}&page={{ num }}"
-                >{{ num }}</a
-              >
-              {% endif %}
-              {% endfor %}
-              {% if products.has_next %}
-              <a
-                class="pg-btn"
-                href="?{{ filter_query_string }}&page={{ products.next_page_number }}"
-                >Next &raquo;</a
-              >
-              {% else %}
-              <span class="pg-btn pg-disabled">Next &gt;</span>
-              {% endif %}
-            </div>
-          </nav>
-          {% endif %}
-        </div>
+            {% if paginator.num_pages > 1 %}
+              <nav aria-label="Product pages">
+                <div class="pagination-nav">
+                  {% if products.has_previous %}
+                    <a class="pg-btn" href="?{{ filter_query_string }}&page={{ products.previous_page_number }}">&lt; Prev</a>
+                  {% else %}
+                    <span class="pg-btn pg-disabled">&lt; Prev</span>
+                  {% endif %}
+
+                  {% for num in page_range %}
+                    {% if num is None %}
+                      <span class="pg-ellipsis">…</span>
+                    {% elif num == products.number %}
+                      <span class="pg-btn pg-active">{{ num }}</span>
+                    {% else %}
+                      <a class="pg-btn" href="?{{ filter_query_string }}&page={{ num }}">{{ num }}</a>
+                    {% endif %}
+                  {% endfor %}
+
+                  {% if products.has_next %}
+                    <a class="pg-btn" href="?{{ filter_query_string }}&page={{ products.next_page_number }}">Next &raquo;</a>
+                  {% else %}
+                    <span class="pg-btn pg-disabled">Next &gt;</span>
+                  {% endif %}
+                </div>
+              </nav>
+            {% endif %}
+          </div>
         {% endif %}
         <!-- /PAGINATION -->
       </div>
@@ -471,31 +411,29 @@ List{% endblock %} {% block extra_style %}
                   role="button"
                   aria-expanded="true"
                   aria-controls="widget-category"
-                  >Category</a
                 >
+                  Category
+                </a>
               </h3>
               <div class="collapse show" id="widget-category">
                 <div class="widget-body">
                   <div class="filter-items filter-items-count">
                     {% for category in categories %}
-                    <div class="filter-item">
-                      <div class="custom-control custom-checkbox">
-                        <input
-                          type="checkbox"
-                          class="custom-control-input"
-                          id="cat-{{ category.id }}"
-                          name="category"
-                          value="{{ category.name }}"
-                          {% if category.name in selected_categories %}checked{% endif %}
-                        />
-                        <label
-                          class="custom-control-label"
-                          for="cat-{{ category.id }}"
-                        >
-                          {{ category.name }}
-                        </label>
+                      <div class="filter-item">
+                        <div class="custom-control custom-checkbox">
+                          <input
+                            type="checkbox"
+                            class="custom-control-input"
+                            id="cat-{{ category.id }}"
+                            name="category"
+                            value="{{ category.name }}"
+                            {% if category.name in selected_categories %}checked{% endif %}
+                          />
+                          <label class="custom-control-label" for="cat-{{ category.id }}">
+                            {{ category.name }}
+                          </label>
+                        </div>
                       </div>
-                    </div>
                     {% endfor %}
                   </div>
                 </div>
@@ -511,31 +449,29 @@ List{% endblock %} {% block extra_style %}
                   role="button"
                   aria-expanded="true"
                   aria-controls="widget-gender"
-                  >Gender</a
                 >
+                  Gender
+                </a>
               </h3>
               <div class="collapse show" id="widget-gender">
                 <div class="widget-body">
                   <div class="filter-items">
                     {% for gender in genders %}
-                    <div class="filter-item">
-                      <div class="custom-control custom-checkbox">
-                        <input
-                          type="checkbox"
-                          class="custom-control-input"
-                          id="gender-{{ gender.id }}"
-                          name="gender"
-                          value="{{ gender.name }}"
-                          {% if gender.name in selected_genders %}checked{% endif %}
-                        />
-                        <label
-                          class="custom-control-label"
-                          for="gender-{{ gender.id }}"
-                        >
-                          {{ gender.name }}
-                        </label>
+                      <div class="filter-item">
+                        <div class="custom-control custom-checkbox">
+                          <input
+                            type="checkbox"
+                            class="custom-control-input"
+                            id="gender-{{ gender.id }}"
+                            name="gender"
+                            value="{{ gender.name }}"
+                            {% if gender.name in selected_genders %}checked{% endif %}
+                          />
+                          <label class="custom-control-label" for="gender-{{ gender.id }}">
+                            {{ gender.name }}
+                          </label>
+                        </div>
                       </div>
-                    </div>
                     {% endfor %}
                   </div>
                 </div>
@@ -551,31 +487,29 @@ List{% endblock %} {% block extra_style %}
                   role="button"
                   aria-expanded="true"
                   aria-controls="widget-brand"
-                  >Brand</a
                 >
+                  Brand
+                </a>
               </h3>
               <div class="collapse show" id="widget-brand">
                 <div class="widget-body">
                   <div class="filter-items">
                     {% for brand in brands %}
-                    <div class="filter-item">
-                      <div class="custom-control custom-checkbox">
-                        <input
-                          type="checkbox"
-                          class="custom-control-input"
-                          id="brand-{{ brand.id }}"
-                          name="brand"
-                          value="{{ brand.name }}"
-                          {% if brand.name in selected_brands %}checked{% endif %}
-                        />
-                        <label
-                          class="custom-control-label"
-                          for="brand-{{ brand.id }}"
-                        >
-                          {{ brand.name }}
-                        </label>
+                      <div class="filter-item">
+                        <div class="custom-control custom-checkbox">
+                          <input
+                            type="checkbox"
+                            class="custom-control-input"
+                            id="brand-{{ brand.id }}"
+                            name="brand"
+                            value="{{ brand.name }}"
+                            {% if brand.name in selected_brands %}checked{% endif %}
+                          />
+                          <label class="custom-control-label" for="brand-{{ brand.id }}">
+                            {{ brand.name }}
+                          </label>
+                        </div>
                       </div>
-                    </div>
                     {% endfor %}
                   </div>
                 </div>
@@ -591,35 +525,30 @@ List{% endblock %} {% block extra_style %}
                   role="button"
                   aria-expanded="true"
                   aria-controls="widget-color"
-                  >Color</a
                 >
+                  Color
+                </a>
               </h3>
               <div class="collapse show" id="widget-color">
                 <div class="widget-body">
                   <div class="filter-items">
                     {% for color in colors %}
-                    <div class="filter-item">
-                      <div class="custom-control custom-checkbox">
-                        <input
-                          type="checkbox"
-                          class="custom-control-input"
-                          id="color-{{ color.id }}"
-                          name="color"
-                          value="{{ color.name }}"
-                          {% if color.name in selected_colors %}checked{% endif %}
-                        />
-                        <label
-                          class="custom-control-label"
-                          for="color-{{ color.id }}"
-                        >
-                          <span
-                            class="color-swatch"
-                            style="background-color: {{ color.hex_code }};"
-                          ></span>
-                          {{ color.name }}
-                        </label>
+                      <div class="filter-item">
+                        <div class="custom-control custom-checkbox">
+                          <input
+                            type="checkbox"
+                            class="custom-control-input"
+                            id="color-{{ color.id }}"
+                            name="color"
+                            value="{{ color.name }}"
+                            {% if color.name in selected_colors %}checked{% endif %}
+                          />
+                          <label class="custom-control-label" for="color-{{ color.id }}">
+                            <span class="color-swatch" style="background-color: {{ color.hex_code }};"></span>
+                            {{ color.name }}
+                          </label>
+                        </div>
                       </div>
-                    </div>
                     {% endfor %}
                   </div>
                 </div>
@@ -635,8 +564,9 @@ List{% endblock %} {% block extra_style %}
                   role="button"
                   aria-expanded="true"
                   aria-controls="widget-price"
-                  >Price</a
                 >
+                  Price
+                </a>
               </h3>
               <div class="collapse show" id="widget-price">
                 <div class="widget-body">
@@ -644,21 +574,20 @@ List{% endblock %} {% block extra_style %}
                     <div class="price-range-inputs">
                       <label for="min_price">Min Price:</label>
                       <input
-                          type="number"
-                          id="min_price"
-                          name="min_price"
-                          value="{{ min_price|default:'' }}"
-                          min="0"
-                          step="1"
+                        type="number"
+                        id="min_price"
+                        name="min_price"
+                        value="{{ min_price|default:'' }}"
+                        min="0"
+                        step="1"
                       />
-
                       <input
-                          type="number"
-                          id="max_price"
-                          name="max_price"
-                          value="{{ max_price|default:'' }}"
-                          min="0"
-                          step="1"
+                        type="number"
+                        id="max_price"
+                        name="max_price"
+                        value="{{ max_price|default:'' }}"
+                        min="0"
+                        step="1"
                       />
                     </div>
                   </div>
@@ -673,11 +602,12 @@ List{% endblock %} {% block extra_style %}
           </form>
         </div>
       </aside>
-      <!-- /SIDEBAR FILTER -->
     </div>
   </div>
 </main>
-{% endblock %} {% block extra_js %}
+{% endblock %}
+
+{% block extra_js %}
 <script src="{% static 'store-assets/assets/js/jquery.min.js' %}"></script>
 <script src="{% static 'store-assets/assets/js/bootstrap.bundle.min.js' %}"></script>
 <script src="{% static 'store-assets/assets/js/jquery.hoverIntent.min.js' %}"></script>
