@@ -190,7 +190,7 @@ def edit_category(request, category_id):
                 category.slug = slugify(category.name)
             category.save()
             messages.success(request, 'Category updated successfully.')
-            return redirect('categorylist')
+            return redirect('Admin:categorylist')
 
     return render(request, 'editCategory.html', {'category': category})
 
