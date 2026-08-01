@@ -200,7 +200,7 @@
 
 {% block content %}
     <main class="main">
-        {% if messages %}
+        <!-- {% if messages %}
             <div class="message-container">
                 {% for message in messages %}
                     <div class="message {% if message.tags %}{{ message.tags }}{% endif %}">
@@ -209,7 +209,7 @@
                     </div>
                 {% endfor %}
             </div>
-        {% endif %}
+        {% endif %} -->
 
         <div class="page-header text-center" style="background-image: url('{% static "store-assets/assets/images/page-header-bg.jpg" %}'); height: 121px;">
             <div class="container">
@@ -380,18 +380,18 @@
                                         <div class="row">
                                             <div class="col-sm-6">
                                                 <label>First name/Username</label>
-                                                <input type="text" name="username" class="form-control" pattern="[A-Za-z\s]+" title="Only letters and spaces are allowed" value="{{ user.username }}">
+                                                <input type="text" name="username" class="form-control" pattern="[A-Za-z\s]+" title="Only letters and spaces are allowed" value="{{ form_data.username|default:user.username }}">
                                                 <span class="error" id="username_error"></span>
                                             </div>
                                             <div class="col-sm-6">
                                                 <label>Last Name</label>
-                                                <input type="text" name="last_name" class="form-control" pattern="[A-Za-z\s]+" title="Only letters and spaces are allowed" value="{{ user.last_name }}">
+                                                <input type="text" name="last_name" class="form-control" pattern="[A-Za-z\s]+" title="Only letters and spaces are allowed" value="{{ form_data.last_name|default:user.last_name }}">
                                             </div>
                                         </div>
                                         <div class="row">
                                             <div class="col-sm-6">
                                                 <label>Phone number</label>
-                                                <input type="text" name="phone_number" class="form-control" value="{{ profile.phone }}" >
+                                                <input type="text" name="phone_number" class="form-control" value="{{ form_data.phone_number|default:profile.phone }}" >
                                             </div>
                                         </div>
                                         <div class="row">
@@ -534,7 +534,6 @@
     <script src="{% static 'store-assets/assets/js/main.js' %}"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <script>
         function copyReferralCode() {
@@ -549,6 +548,39 @@
 
     <script>
         $(document).ready(function() {
+
+            var hash = window.location.hash;
+            var storedTab = localStorage.getItem('account_active_tab');
+
+            function activateTab(targetHash) {
+                try {
+                    var $tab = $('a[href="' + targetHash + '"]');
+                    if ($tab.length) {
+                        $tab.tab('show');
+                    }
+                } catch (e) {
+                    console.error('Tab activation failed:', e);
+                }
+            }
+
+            $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+                var target = $(e.target).attr('href');
+                localStorage.setItem('account_active_tab', target);
+            });
+
+            if (hash) {
+                activateTab(hash);
+                localStorage.setItem('account_active_tab', hash);
+                if (history.pushState) {
+                    history.pushState(null, null, window.location.pathname + window.location.search);
+                } else {
+                    location.hash = '';
+                }
+            } else if (storedTab) {
+                activateTab(storedTab);
+            }
+
+
             const validationRules = {
                 full_name: {
                     required: true,
@@ -684,7 +716,7 @@
                 const currentUsername = "{{ user.username }}";
                 const errorSpan = $('#username_error');
 
-                errorSpan.text(''); 
+                errorSpan.text('');
 
                 if (usernameValue.toLowerCase() === currentUsername.toLowerCase()) {
                     form.submit();

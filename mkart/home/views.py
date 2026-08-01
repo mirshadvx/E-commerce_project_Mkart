@@ -914,35 +914,6 @@ def cart(request):
     
     return render(request, 'store/cart.html', context)
 
-# @never_cache
-# @login_required
-# def add_to_cart(request, id):
-#     if request.method == 'POST':
-#         variant_id = request.POST.get('variant_id')
-#         quantity = int(request.POST.get('quantity', 1))
-        
-#         variant = get_object_or_404(ProductVariant, id=variant_id)
-        
-#         if not variant.is_available or variant.stock < quantity:
-#             messages.error(request, "Sorry, this product is out of stock or the requested quantity exceeds available stock.")
-#             return redirect(request.META.get('HTTP_REFERER', 'home'))
-        
-#         cart, created = Cart.objects.get_or_create(user=request.user)
-        
-#         cart_item, item_created = CartItem.objects.get_or_create(
-#             cart=cart,
-#             product_variant=variant,
-#             defaults={'quantity': quantity}
-#         )
-        
-#         if not item_created:
-#             cart_item.quantity += quantity
-#             cart_item.save()
-        
-#         messages.success(request, f"{variant.product.name} has been added to your cart.")
-#         return redirect(request.META.get('HTTP_REFERER', 'home'))
-    
-#     return JsonResponse({'success': False, 'error': 'Invalid request method'})
 
 @never_cache
 @login_required
@@ -1028,7 +999,6 @@ def remove_cart(request, id):
 @never_cache
 @login_required
 def account(request):
- 
     try:
         user_wishlist_count = Wishlist.objects.filter(user=request.user).count()
     except Wishlist.DoesNotExist:
@@ -1049,17 +1019,21 @@ def account(request):
     wallet, created = Wallet.objects.get_or_create(user=request.user)
     transactions = wallet.transactions.all()
 
+    form_data = request.session.pop('account_form_data', {})
+
     context = {
         'user': user,
         'orders': orders,
         'profile': profile,
         'wallet': wallet,
         'transactions': transactions,
-        'wishlist_count':user_wishlist_count,
-        'cart_count':user_cart_count,
-        'cart_total':cart_total,
+        'wishlist_count': user_wishlist_count,
+        'cart_count': user_cart_count,
+        'cart_total': cart_total,
+        'form_data': form_data,
     }
     return render(request, 'store/Account.html', context)
+
 
 @never_cache
 @login_required
@@ -1935,7 +1909,7 @@ def edit_details(request):
         profile = Profile.objects.get(user=user)
     except Profile.DoesNotExist:
         messages.error(request, "Profile does not exist.")
-        return redirect("home")
+        return redirect(reverse('account') + '#tab-account')
 
     username = request.POST.get("username", "").strip()
     last_name = request.POST.get("last_name", "").strip()
@@ -1945,70 +1919,67 @@ def edit_details(request):
     new_password = request.POST.get("new_password", "").strip()
     confirm_new_password = request.POST.get("confirm_new_password", "").strip()
 
+    def preserve_and_redirect(error_message):
+        form_data = request.POST.dict()
+        form_data.pop('csrfmiddlewaretoken', None)
+        form_data.pop('current_password', None)
+        form_data.pop('new_password', None)
+        form_data.pop('confirm_new_password', None)
+        request.session['account_form_data'] = form_data
+        messages.error(request, error_message)
+        return redirect(reverse('account') + '#tab-account')
+
     user_updated = False
     profile_updated = False
 
     if username:
         if not re.match(r"^[A-Za-z\s]+$", username):
-            messages.error(request, "First name can contain only letters and spaces.")
-            return redirect(request.META.get("HTTP_REFERER", "home"))
+            return preserve_and_redirect("First name can contain only letters and spaces.")
 
         user.username = username
         user_updated = True
 
     if last_name:
         if not re.match(r"^[A-Za-z\s]+$", last_name):
-            messages.error(request, "Last name can contain only letters and spaces.")
-            return redirect(request.META.get("HTTP_REFERER", "home"))
+            return preserve_and_redirect("Last name can contain only letters and spaces.")
 
         user.last_name = last_name
         user_updated = True
 
     if phone_number:
         if not phone_number.isdigit():
-            messages.error(request, "Phone number must contain only digits.")
-            return redirect(request.META.get("HTTP_REFERER", "home"))
+            return preserve_and_redirect("Phone number must contain only digits.")
 
         if len(phone_number) != 10:
-            messages.error(request, "Phone number must be 10 digits long.")
-            return redirect(request.META.get("HTTP_REFERER", "home"))
+            return preserve_and_redirect("Phone number must be 10 digits long.")
 
         profile.phone = phone_number
         profile_updated = True
 
     if current_password or new_password or confirm_new_password:
-
         if not (current_password and new_password and confirm_new_password):
-            messages.error(request, "Please fill all password fields.")
-            return redirect(request.META.get("HTTP_REFERER", "home"))
+            return preserve_and_redirect("Please fill all password fields.")
 
         if not user.check_password(current_password):
-            messages.error(request, "Current password is incorrect.")
-            return redirect(request.META.get("HTTP_REFERER", "home"))
+            return preserve_and_redirect("Current password is incorrect.")
 
         if len(new_password) < 8:
-            messages.error(request, "New password must be at least 8 characters long.")
-            return redirect(request.META.get("HTTP_REFERER", "home"))
+            return preserve_and_redirect("New password must be at least 8 characters long.")
 
         if not re.search(r"[A-Z]", new_password):
-            messages.error(request, "New password must contain at least one uppercase letter.")
-            return redirect(request.META.get("HTTP_REFERER", "home"))
+            return preserve_and_redirect("New password must contain at least one uppercase letter.")
 
         if not re.search(r"[a-z]", new_password):
-            messages.error(request, "New password must contain at least one lowercase letter.")
-            return redirect(request.META.get("HTTP_REFERER", "home"))
+            return preserve_and_redirect("New password must contain at least one lowercase letter.")
 
         if not re.search(r"[0-9]", new_password):
-            messages.error(request, "New password must contain at least one number.")
-            return redirect(request.META.get("HTTP_REFERER", "home"))
+            return preserve_and_redirect("New password must contain at least one number.")
 
         if not re.search(r"[\W_]", new_password):
-            messages.error(request, "New password must contain at least one special character.")
-            return redirect(request.META.get("HTTP_REFERER", "home"))
+            return preserve_and_redirect("New password must contain at least one special character.")
 
         if new_password != confirm_new_password:
-            messages.error(request, "New passwords do not match.")
-            return redirect(request.META.get("HTTP_REFERER", "home"))
+            return preserve_and_redirect("New passwords do not match.")
 
         user.set_password(new_password)
         user_updated = True
@@ -2021,11 +1992,15 @@ def edit_details(request):
 
     if profile_updated:
         profile.save()
+
     if user_updated or profile_updated:
         messages.success(request, "Your profile was successfully updated.")
+        request.session.pop('account_form_data', None)
     else:
         messages.info(request, "No changes were made.")
-    return redirect(request.META.get("HTTP_REFERER", "home"))
+        
+    return redirect(reverse('account') + '#tab-account')
+
 
 @require_POST
 @transaction.atomic
