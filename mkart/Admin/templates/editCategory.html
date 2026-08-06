@@ -35,7 +35,7 @@
             </div>
         </div>
 
-        <form method="post" enctype="multipart/form-data">
+        <form method="post" enctype="multipart/form-data" id="categoryForm">
             {% csrf_token %}
             <div class="card">
                 <div class="card-body">
@@ -43,7 +43,8 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Category Name <span class="text-danger">*</span></label>
-                                <input type="text" name="name" class="form-control" value="{{ category.name }}" required />
+                                <input type="text" name="name" id="categoryName" class="form-control" value="{{ category.name }}" pattern="[A-Za-z]+" required />
+                                <span id="categoryError" style="color: red; display: block; margin-top: 5px;"></span>
                             </div>
                         </div>
                         <div class="col-md-12">
@@ -87,5 +88,62 @@
 
     <script src="{% static 'admin-assets/js/script.js' %}"></script>
 
+    <script>
+        $(document).ready(function () {
+            function validateCategoryName() {
+                var categoryName = $("#categoryName").val().trim();
+                var namePattern = /^[A-Za-z]+$/;
+
+                if (!categoryName) {
+                    $("#categoryError").text("Category name is required.");
+                    return false;
+                }
+
+                if (!namePattern.test(categoryName)) {
+                    $("#categoryError").text("Only letters are allowed. Spaces, numbers, and special symbols are not allowed.");
+                    return false;
+                }
+
+                $.ajax({
+                    url: '{% url "Admin:check_category" %}',
+                    data: {
+                        name: categoryName,
+                        id: '{{ category.id }}'
+                    },
+                    dataType: "json",
+                    async: false,
+                    success: function (data) {
+                        if (!data.valid) {
+                            $("#categoryError").text("Only letters are allowed. Spaces, numbers, and special symbols are not allowed.");
+                        } else if (data.exists) {
+                            $("#categoryError").text("This category already exists.");
+                        } else {
+                            $("#categoryError").text("");
+                        }
+                    },
+                    error: function () {
+                        console.error("Could not complete category validation check.");
+                    }
+                });
+
+                return $("#categoryError").text() === "";
+            }
+
+            $("#categoryName").on("input blur", validateCategoryName);
+
+            $("#categoryForm").on("submit", function (e) {
+                if (!validateCategoryName()) {
+                    e.preventDefault();
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Invalid Category',
+                        text: $("#categoryError").text() || 'Please enter a valid unique category name.',
+                        confirmButtonColor: '#3085d6',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            });
+        });
+    </script>
 
 {% endblock  %}

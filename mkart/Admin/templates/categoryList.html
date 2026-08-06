@@ -66,7 +66,7 @@
         <div class="card">
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table datanew table-hover" id="categoryTable">
+                    <table class="table table-hover" id="categoryTable">
                         <thead>
                             <tr>
                                 <th>Category Name</th>
@@ -76,48 +76,7 @@
                                 <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            {% for category in categories %}
-                            <tr>
-                                <td>{{ category.name }}</td>
-                                <td>{{ category.description|truncatewords:7|default:"-" }}</td>
-                                <td>
-                                    <button class="btn-toggle-status button-42"
-                                            data-id="{{ category.id }}"
-                                            data-status="{{ category.status }}">
-                                        {{ category.status|yesno:"Active,Inactive" }}
-                                    </button>
-                                </td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <select class="offer-select form-control form-control-sm me-2"
-                                                data-category-id="{{ category.id }}">
-                                            <option value="">No Offer</option>
-                                            {% for offer in offers %}
-                                            <option value="{{ offer.id }}" 
-                                                {% if category.offer_id == offer.id %}selected{% endif %}>
-                                                {{ offer.name }} {{ offer.discount }}% off
-                                            </option>
-                                            {% endfor %}
-                                        </select>
-                                        <button class="btn btn-primary btn-sm update-offer-btn"
-                                                data-category-id="{{ category.id }}">
-                                            Update
-                                        </button>
-                                    </div>
-                                </td>
-                                <td class="action-icons">
-                                    <a href="{% url 'Admin:edit_category' category.id %}" title="Edit">
-                                        <i class="fas fa-edit text-primary"></i>
-                                    </a>
-                                    <a href="#" onclick="deleteCategory({{ category.id }}, '{{ category.name|escapejs }}'); return false;" 
-                                       title="Delete" class="delete-btn">
-                                        <i class="fas fa-trash"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
+                        <tbody></tbody>
                     </table>
                 </div>
             </div>
@@ -143,7 +102,30 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+{{ offer_options|json_script:"offer-options-data" }}
+
 <script>
+var offerOptions = JSON.parse(document.getElementById('offer-options-data').textContent);
+
+function escapeHtml(value) {
+    return $('<div>').text(value == null ? '' : value).html();
+}
+
+function buildOfferSelect(row) {
+    var options = '<option value="">No Offer</option>';
+    offerOptions.forEach(function (offer) {
+        var selected = Number(row.offer_id) === Number(offer.id) ? ' selected' : '';
+        options += '<option value="' + offer.id + '"' + selected + '>' + escapeHtml(offer.label) + '</option>';
+    });
+
+    return '<div class="d-flex align-items-center">' +
+        '<select class="offer-select form-control form-control-sm me-2" data-category-id="' + row.id + '">' +
+        options +
+        '</select>' +
+        '<button class="btn btn-primary btn-sm update-offer-btn" data-category-id="' + row.id + '">Update</button>' +
+        '</div>';
+}
+
 function deleteCategory(categoryId, categoryName) {
     Swal.fire({
         title: 'Are you sure?',
@@ -178,8 +160,63 @@ function deleteCategory(categoryId, categoryName) {
 }
 
 $(document).ready(function () {
+    $('#categoryTable').DataTable({
+        processing: true,
+        serverSide: true,
+        ajax: {
+            url: '{% url "Admin:categorylist" %}',
+            type: 'GET'
+        },
+        columns: [
+            { data: 'name', render: function (data) { return escapeHtml(data); } },
+            { data: 'description', render: function (data) { return escapeHtml(data || '-'); } },
+            {
+                data: 'status',
+                render: function (data, type, row) {
+                    return '<button class="btn-toggle-status button-42" data-id="' + row.id + '">' +
+                        (data ? 'Active' : 'Inactive') +
+                        '</button>';
+                }
+            },
+            {
+                data: null,
+                orderable: false,
+                render: function (data, type, row) {
+                    return buildOfferSelect(row);
+                }
+            },
+            {
+                data: null,
+                orderable: false,
+                searchable: false,
+                render: function (data, type, row) {
+                    var editUrl = "{% url 'Admin:edit_category' 999 %}".replace('999', row.id);
+                    return '<span class="action-icons">' +
+                        '<a href="' + editUrl + '" title="Edit"><i class="fas fa-edit text-primary"></i></a>' +
+                        '<a href="#" title="Delete" class="delete-btn" data-id="' + row.id + '" data-name="' + escapeHtml(row.name) + '">' +
+                        '<i class="fas fa-trash"></i>' +
+                        '</a>' +
+                        '</span>';
+                }
+            }
+        ],
+        order: [[0, 'asc']],
+        pagingType: 'numbers',
+        language: {
+            search: " ",
+            sLengthMenu: "_MENU_",
+            searchPlaceholder: "Search...",
+            info: "_START_ - _END_ of _TOTAL_ items",
+            processing: "Loading categories..."
+        }
+    });
 
-    $('.update-offer-btn').click(function () {
+    $(document).on('click', '.delete-btn', function (e) {
+        e.preventDefault();
+        deleteCategory($(this).data('id'), $(this).data('name'));
+    });
+
+    $(document).on('click', '.update-offer-btn', function () {
         var btn = $(this);
         var categoryId = btn.data('category-id');
         var offerSelect = btn.siblings('.offer-select');
@@ -230,7 +267,7 @@ $(document).ready(function () {
         });
     });
 
-    $('.btn-toggle-status').click(function () {
+    $(document).on('click', '.btn-toggle-status', function () {
         var button = $(this);
         var categoryId = button.data('id');
 
