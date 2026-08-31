@@ -13,6 +13,7 @@ admin.site.register(Order,show_order)
 
 admin.site.register(OrderItem)
 admin.site.register(OrderAddress)
+admin.site.register(Review)
 
 # @admin.register(Profile)
 # class ProfileAdmin(admin.ModelAdmin):

@@ -43,4 +43,7 @@ urlpatterns = [
     path('handle-failed-payment/', views.handle_failed_payment, name='handle_failed_payment'),
     path('razorpay_payment_success/', views.razorpay_payment_success, name='razorpay_payment_success'),
     path('contact/', views.contact, name='contact'),
+    path('product/<int:product_id>/review/add/', views.add_review, name='add_review'),
+    path('review/<int:review_id>/edit/', views.edit_review, name='edit_review'),
+    path('review/<int:review_id>/delete/', views.delete_review, name='delete_review'),
 ]

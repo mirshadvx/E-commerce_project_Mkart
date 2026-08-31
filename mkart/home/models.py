@@ -242,3 +242,25 @@ class OrderAddress(models.Model):
 
     def __str__(self):
         return f"Address for Order {self.order.id} - {self.full_name} {self.last_name}"
+
+class Review(models.Model):
+    product = models.ForeignKey('products.Product', on_delete=models.CASCADE, related_name='reviews')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reviews')
+    order_item = models.OneToOneField(OrderItem, on_delete=models.CASCADE, related_name='review', null=True, blank=True)
+    rating = models.PositiveIntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
+    title = models.CharField(max_length=100, blank=True)
+    comment = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('product', 'user')
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user.username} - {self.product.name} ({self.rating}⭐)"
+
+    @classmethod
+    def get_average_rating(cls, product):
+        agg = cls.objects.filter(product=product).aggregate(avg=models.Avg('rating'), count=models.Count('id'))
+        return agg['avg'] or 0, agg['count']

@@ -278,6 +278,21 @@
                             </button>
                           {% endif %}
                           {% if item.item_status == 'delivered' %}
+                            {% if item.can_review %}
+                              <a
+                                href="{{ item.review_url }}"
+                                class="btn btn-sm btn-outline-success"
+                              >
+                                Write Review
+                              </a>
+                            {% elif item.user_review %}
+                              <a
+                                href="{{ item.review_url }}"
+                                class="btn btn-sm btn-outline-success"
+                              >
+                                Edit Review
+                              </a>
+                            {% endif %}
                             <a
                               href="{% url 'download_invoice' item.id %}"
                               class="btn btn-sm btn-outline-primary"

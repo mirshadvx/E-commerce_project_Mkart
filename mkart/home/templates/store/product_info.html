@@ -295,7 +295,7 @@
                         <a class="nav-link" id="product-info-link" data-toggle="tab" href="#product-info-tab" role="tab" aria-controls="product-info-tab" aria-selected="false">Additional Information</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" id="product-review-link" data-toggle=" tab" href="#product-review-tab" role="tab" aria-controls="product-review-tab" aria-selected="false">Reviews</a>
+                        <a class="nav-link" id="product-review-link" data-toggle="tab" href="#product-review-tab" role="tab" aria-controls="product-review-tab" aria-selected="false">Reviews</a>
                     </li>
                 </ul>
                 <div class="tab-content">
@@ -322,12 +322,129 @@
                             </ul>
                         </div>
                     </div>
-                    <div class="tab-pane fade" id="product-review-tab" role="tabpanel" aria-labelledby="product-review-link">
+                    <!-- <div class="tab-pane fade" id="product-review-tab" role="tabpanel" aria-labelledby="product-review-link">
                         <div class="reviews">
                             <h3>Reviews</h3>
                             <p>No reviews yet. Be the first to review this product!</p>
                         </div>
+                    </div> -->
+                    <div class="tab-pane fade" id="product-review-tab" role="tabpanel" aria-labelledby="product-review-link">
+                        <div class="reviews">
+                            <h3>Reviews ({{ review_count }})</h3>
+
+                            {% if review_count > 0 %}
+                            <div class="row mb-4">
+                                <div class="col-md-3 text-center">
+                                    <h1 class="display-4">{{ avg_rating }}</h1>
+                                    <p>
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter <= avg_rating_int %}
+                                                <span style="color:#f5b301">★</span>
+                                            {% else %}
+                                                <span style="color:#ccc">★</span>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </p>
+                                    <p class="text-muted">{{ review_count }} review{{ review_count|pluralize }}</p>
+                                </div>
+                                <div class="col-md-9">
+                                    {% for star, count in rating_breakdown.items %}
+                                    <div class="d-flex align-items-center mb-1">
+                                        <span style="width:60px">{{ star }} star</span>
+                                        <div class="progress flex-grow-1 mx-2" style="height:10px">
+                                            <div class="progress-bar bg-warning" style="width:{% widthratio count review_count 100 %}%"></div>
+                                        </div>
+                                        <span>({{ count }})</span>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {# ---- Review form: only for purchased users ---- #}
+                            {% if user_can_review %}
+                            <div class="card mb-4">
+                                <div class="card-body">
+                                    <h5>Write a Review</h5>
+                                    <form method="POST" action="{% url 'add_review' product.id %}">
+                                        {% csrf_token %}
+                                        <div class="form-group mb-2">
+                                            <label>Rating:</label>
+                                            <select name="rating" class="form-control" style="width:120px" required>
+                                                <option value="5">5 ★</option>
+                                                <option value="4">4 ★</option>
+                                                <option value="3">3 ★</option>
+                                                <option value="2">2 ★</option>
+                                                <option value="1">1 ★</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group mb-2">
+                                            <input type="text" name="title" class="form-control" placeholder="Review title (optional)">
+                                        </div>
+                                        <div class="form-group mb-2">
+                                            <textarea name="comment" class="form-control" rows="3" placeholder="Share your experience..." required></textarea>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">Submit Review</button>
+                                    </form>
+                                </div>
+                            </div>
+                            {% elif user_review %}
+                            <div class="card mb-4">
+                                <div class="card-body">
+                                    <h5>Edit Your Review</h5>
+                                    <form method="POST" action="{% url 'edit_review' user_review.id %}">
+                                        {% csrf_token %}
+                                        <div class="form-group mb-2">
+                                            <label>Rating:</label>
+                                            <select name="rating" class="form-control" style="width:120px" required>
+                                                {% for i in "54321" %}
+                                                <option value="{{ i }}" {% if user_review.rating|stringformat:"s" == i %}selected{% endif %}>{{ i }} ★</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="form-group mb-2">
+                                            <input type="text" name="title" class="form-control" placeholder="Review title (optional)" value="{{ user_review.title }}">
+                                        </div>
+                                        <div class="form-group mb-2">
+                                            <textarea name="comment" class="form-control" rows="3" required>{{ user_review.comment }}</textarea>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">Update Review</button>
+                                    </form>
+                                </div>
+                            </div>
+                            {% elif request.user.is_authenticated and not user_has_purchased %}
+                                <p class="text-muted">Only customers who purchased this product can write a review.</p>
+                            {% elif not request.user.is_authenticated %}
+                                <p class="text-muted"><a href="{% url 'login' %}">Log in</a> to review products you have purchased.</p>
+                            {% endif %}
+
+                            {# ---- Review list ---- #}
+                            {% if reviews %}
+                                {% for review in reviews %}
+                                <div class="border-top py-3">
+                                    <div class="d-flex justify-content-between">
+                                        <strong>{{ review.user.username }}</strong>
+                                        <small class="text-muted">{{ review.created_at|date:"M d, Y" }}</small>
+                                    </div>
+                                    <p class="mb-1" style="color:#f5b301">
+                                        {% for i in "12345" %}{% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}{% endfor %}
+                                    </p>
+                                    {% if review.title %}<h6>{{ review.title }}</h6>{% endif %}
+                                    <p class="mb-0">{{ review.comment }}</p>
+                                    {% if request.user == review.user %}
+                                    <form method="POST" action="{% url 'delete_review' review.id %}" class="mt-2">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Delete Review</button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <p>No reviews yet{% if user_can_review %} — be the first to review this product!{% endif %}</p>
+                            {% endif %}
+                        </div>
                     </div>
+
                 </div>
             </div>
         </div>
@@ -335,8 +452,31 @@
 </main>
 {% endblock %}
 {% block extra_js %}
+<script src="{% static 'store-assets/assets/js/jquery.min.js' %}"></script>
+<script src="{% static 'store-assets/assets/js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'store-assets/assets/js/jquery.hoverIntent.min.js' %}"></script>
+<script src="{% static 'store-assets/assets/js/jquery.waypoints.min.js' %}"></script>
+<script src="{% static 'store-assets/assets/js/superfish.min.js' %}"></script>
+<script src="{% static 'store-assets/assets/js/owl.carousel.min.js' %}"></script>
+<script src="{% static 'store-assets/assets/js/bootstrap-input-spinner.js' %}"></script>
+<script src="{% static 'store-assets/assets/js/jquery.elevateZoom.min.js' %}"></script>
+<script src="{% static 'store-assets/assets/js/jquery.magnific-popup.min.js' %}"></script>
+<script src="{% static 'store-assets/assets/js/main.js' %}"></script>
 <script>
     $(document).ready(function() {
+        var activeHash = window.location.hash;
+        if (activeHash) {
+            var $tabLink = $('.product-details-tab a[data-toggle="tab"][href="' + activeHash + '"]');
+            if ($tabLink.length) {
+                $tabLink.tab('show');
+            }
+        }
+
+        $('.product-details-tab a[data-toggle="tab"]').on('shown.bs.tab', function(e) {
+            if (history.replaceState) {
+                history.replaceState(null, null, e.target.hash);
+            }
+        });
 
         // Quantity input functionality
         $('.quantity-button.decrease').on('click', function() {
@@ -354,25 +494,15 @@
                 input.val(value + 1).change();
             }
         });
-    });
-</script>
-<script src="{% static 'store-assets/assets/js/jquery.min.js' %}"></script>
-<script src="{% static 'store-assets/assets/js/bootstrap.bundle.min.js' %}"></script>
-<script src="{% static 'store-assets/assets/js/jquery.hoverIntent.min.js' %}"></script>
-<script src="{% static 'store-assets/assets/js/jquery.waypoints.min.js' %}"></script>
-<script src="{% static 'store-assets/assets/js/superfish.min.js' %}"></script>
-<script src="{% static 'store-assets/assets/js/owl.carousel.min.js' %}"></script>
-<script src="{% static 'store-assets/assets/js/bootstrap-input-spinner.js' %}"></script>
-<script src="{% static 'store-assets/assets/js/jquery.elevateZoom.min.js' %}"></script>
-<script src="{% static 'store-assets/assets/js/jquery.magnific-popup.min.js' %}"></script>
-<script src="{% static 'store-assets/assets/js/main.js' %}"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/elevatezoom-plus/1.2.3/jquery.ez-plus.min.js"></script>
-<script>
-    $(document).ready(function() {
+
         var $productZoom = $('#product-zoom');
         var $productGallery = $('#product-zoom-gallery');
 
         function initZoom() {
+            if (!$productZoom.length || !$.fn.elevateZoom) {
+                return;
+            }
+
             try {
                 // Destroy existing zoom
                 var zoomInstance = $productZoom.data('elevateZoom');

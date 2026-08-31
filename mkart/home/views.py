@@ -48,6 +48,27 @@ from .services.email_service import (
 
 logger = logging.getLogger('registration')
 
+
+def redirect_to_product_reviews(product_id):
+    return HttpResponseRedirect(f"{reverse('product_info', kwargs={'id': product_id})}#product-review-tab")
+
+
+def attach_review_state(order_items, user):
+    product_ids = [item.product_variant.product_id for item in order_items]
+    reviews_by_product_id = {
+        review.product_id: review
+        for review in Review.objects.filter(user=user, product_id__in=product_ids)
+    }
+
+    for item in order_items:
+        product = item.product_variant.product
+        user_review = reviews_by_product_id.get(product.id)
+        item.user_review = user_review
+        item.can_review = item.item_status == 'delivered' and user_review is None
+        item.review_url = f"{reverse('product_info', kwargs={'id': product.id})}#product-review-tab"
+
+    return order_items
+
 def custom_404(request, exception):
     return render(request, 'store/404.html', status=404)
 
@@ -724,46 +745,139 @@ def womens_items(request):
 
     return render(request, 'store/womens_items.html', context)
 
+# @never_cache
+# def product_info(request, id):
+
+#     user_wishlist_count = 0
+#     user_cart_count = 0
+#     cart_total = 0
+    
+#     if request.user.is_authenticated:
+#         try:
+#             user_wishlist_count = Wishlist.objects.filter(user=request.user).count()
+#         except Wishlist.DoesNotExist:
+#             user_wishlist_count = None
+        
+#         try:
+#             user_cart_count = CartItem.objects.filter(cart__user=request.user).count()
+#         except Cart.DoesNotExist:
+#             user_cart_count = None
+        
+#         cart, created = Cart.objects.get_or_create(user=request.user)   
+#         cart_total = cart.get_total_price()
+
+#     product = get_object_or_404(Product, id=id)
+#     variants = product.variants.all()
+
+    
+#     variant_id = request.GET.get('variant_id')
+#     if variant_id:
+#         selected_variant = get_object_or_404(ProductVariant, id=variant_id)
+#     else:
+#         selected_variant = product.variants.first()
+
+   
+#     original_price = selected_variant.price
+#     discounted_price = product.get_discounted_price()
+
+#     active_offer = None
+#     if product.offer and product.offer.is_active and product.offer.valid_from <= timezone.now() <= product.offer.valid_to:
+#         active_offer = product.offer
+#     elif product.category.offer and product.category.offer.is_active and product.category.offer.valid_from <= timezone.now() <= product.category.offer.valid_to:
+#         active_offer = product.category.offer
+
+#     reviews = product.reviews.select_related('user').all()
+#     avg_rating, review_count = Review.get_average_rating(product)
+#     user_review = None
+#     user_can_review = False
+#     if request.user.is_authenticated:
+#         user_review = reviews.filter(user=request.user).first()
+#         user_can_review = OrderItem.objects.filter(
+#             order__user=request.user,
+#             product_variant__product=product,
+#             item_status='delivered'
+#         ).exists()
+
+#     rating_breakdown = {i: reviews.filter(rating=i).count() for i in range(5, 0, -1)}
+
+
+#     context = {
+#         'product': product,
+#         'variants': variants,
+#         'selected_variant': selected_variant,
+#         'active_offer': active_offer,
+#         'original_price': original_price,
+#         'discounted_price': discounted_price,
+#         'wishlist_count': user_wishlist_count,
+#         'cart_count': user_cart_count,
+#         'cart_total': cart_total,
+#         'reviews': reviews,
+#         'avg_rating': round(avg_rating, 1),
+#         'review_count': review_count,
+#         'user_review': user_review,
+#         'user_can_review': user_can_review,
+#         'rating_breakdown': rating_breakdown,
+
+#     }
+
+#     return render(request, 'store/product_info.html', context)
+
+
+
 @never_cache
 def product_info(request, id):
-
     user_wishlist_count = 0
     user_cart_count = 0
     cart_total = 0
-    
+
     if request.user.is_authenticated:
-        try:
-            user_wishlist_count = Wishlist.objects.filter(user=request.user).count()
-        except Wishlist.DoesNotExist:
-            user_wishlist_count = None
-        
-        try:
-            user_cart_count = CartItem.objects.filter(cart__user=request.user).count()
-        except Cart.DoesNotExist:
-            user_cart_count = None
-        
-        cart, created = Cart.objects.get_or_create(user=request.user)   
+        user_wishlist_count = Wishlist.objects.filter(user=request.user).count()
+        user_cart_count = CartItem.objects.filter(cart__user=request.user).count()
+        cart, created = Cart.objects.get_or_create(user=request.user)
         cart_total = cart.get_total_price()
 
     product = get_object_or_404(Product, id=id)
     variants = product.variants.all()
 
-    
     variant_id = request.GET.get('variant_id')
     if variant_id:
-        selected_variant = get_object_or_404(ProductVariant, id=variant_id)
+        selected_variant = get_object_or_404(ProductVariant, id=variant_id, product=product)
     else:
         selected_variant = product.variants.first()
 
-   
-    original_price = selected_variant.price
+    if selected_variant is None:
+        selected_variant = product.variants.first()  # safety fallback
+
+    original_price = selected_variant.price if selected_variant else 0
     discounted_price = product.get_discounted_price()
 
     active_offer = None
-    if product.offer and product.offer.is_active and product.offer.valid_from <= timezone.now() <= product.offer.valid_to:
+    now = timezone.now()
+    if product.offer and product.offer.is_active and product.offer.valid_from <= now <= product.offer.valid_to:
         active_offer = product.offer
-    elif product.category.offer and product.category.offer.is_active and product.category.offer.valid_from <= timezone.now() <= product.category.offer.valid_to:
+    elif product.category.offer and product.category.offer.is_active and product.category.offer.valid_from <= now <= product.category.offer.valid_to:
         active_offer = product.category.offer
+
+    # ---- REVIEWS ----
+    reviews = product.reviews.select_related('user').order_by('-created_at')
+    avg_rating, review_count = Review.get_average_rating(product)
+
+    user_review = None
+    user_can_review = False
+    user_has_purchased = False
+
+    if request.user.is_authenticated:
+        user_review = Review.objects.filter(product=product, user=request.user).first()
+        # Check if user has a DELIVERED order containing any variant of this product
+        user_has_purchased = OrderItem.objects.filter(
+            order__user=request.user,
+            product_variant__product=product,
+            item_status='delivered'
+        ).exists()
+        # Can add a review only if purchased AND hasn't reviewed yet
+        user_can_review = user_has_purchased and user_review is None
+
+    rating_breakdown = {i: reviews.filter(rating=i).count() for i in range(5, 0, -1)}
 
     context = {
         'product': product,
@@ -775,9 +889,18 @@ def product_info(request, id):
         'wishlist_count': user_wishlist_count,
         'cart_count': user_cart_count,
         'cart_total': cart_total,
+        'reviews': reviews,
+        'avg_rating': round(avg_rating, 1) if avg_rating else 0,
+        'avg_rating_int': round(avg_rating) if avg_rating else 0,
+        'review_count': review_count,
+        'user_review': user_review,
+        'user_can_review': user_can_review,
+        'user_has_purchased': user_has_purchased,
+        'rating_breakdown': rating_breakdown,
     }
 
     return render(request, 'store/product_info.html', context)
+
 
 @never_cache
 @login_required
@@ -1014,7 +1137,11 @@ def account(request):
     cart_items = CartItem.objects.filter(cart=cart)
     cart_total = cart.get_total_price()
     user = request.user
-    orders = Order.objects.filter(user=user).order_by('-created_at')
+    orders = Order.objects.filter(user=user).prefetch_related(
+        'ordered_items__product_variant__product'
+    ).order_by('-created_at')
+    for order in orders:
+        attach_review_state(list(order.ordered_items.all()), request.user)
     profile = Profile.objects.get(user=user)
     wallet, created = Wallet.objects.get_or_create(user=request.user)
     transactions = wallet.transactions.all()
@@ -1809,7 +1936,10 @@ def order_confirmation(request, order_id):
 @login_required
 def show_order_details(request, order_id):
     order = get_object_or_404(Order, id=order_id, user=request.user)
-    order_items = OrderItem.objects.filter(order=order)
+    order_items = attach_review_state(
+        list(OrderItem.objects.filter(order=order).select_related('product_variant__product')),
+        request.user
+    )
     order_address = order.order_address
 
     try:
@@ -2092,3 +2222,90 @@ class RequestDomainPasswordResetView(PasswordResetView):
                 logger.error("Password reset email sending failed for %s", user.email)
 
         return HttpResponseRedirect(self.get_success_url())
+
+    
+@login_required
+@never_cache
+def add_review(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+
+    # One review per user per product
+    if Review.objects.filter(product=product, user=request.user).exists():
+        messages.warning(request, "You have already reviewed this product.")
+        return redirect_to_product_reviews(product.id)
+
+    # Only users who purchased & received the product can review
+    delivered_order_item = OrderItem.objects.filter(
+        order__user=request.user,
+        product_variant__product=product,
+        item_status='delivered'
+    ).exclude(review__isnull=False).first()
+
+    if not delivered_order_item:
+        messages.error(request, "You can only review products you have purchased and received.")
+        return redirect_to_product_reviews(product.id)
+
+    if request.method != 'POST':
+        return redirect_to_product_reviews(product.id)
+
+    rating = request.POST.get('rating')
+    title = request.POST.get('title', '').strip()
+    comment = request.POST.get('comment', '').strip()
+
+    try:
+        rating = int(rating)
+    except (TypeError, ValueError):
+        rating = None
+
+    if rating not in range(1, 6) or not comment:
+        messages.error(request, "Rating and comment are required.")
+        return redirect_to_product_reviews(product.id)
+
+    Review.objects.create(
+        product=product,
+        user=request.user,
+        order_item=delivered_order_item,
+        rating=rating,
+        title=title,
+        comment=comment,
+    )
+    messages.success(request, "Thank you! Your review has been submitted.")
+
+    return redirect_to_product_reviews(product.id)
+
+
+@login_required
+@never_cache
+def edit_review(request, review_id):
+    review = get_object_or_404(Review, id=review_id, user=request.user)
+
+    if request.method == 'POST':
+        rating = request.POST.get('rating')
+        title = request.POST.get('title', '').strip()
+        comment = request.POST.get('comment', '').strip()
+
+        try:
+            rating = int(rating)
+        except (TypeError, ValueError):
+            rating = None
+
+        if rating not in range(1, 6) or not comment:
+            messages.error(request, "Rating and comment are required.")
+        else:
+            review.rating = rating
+            review.title = title
+            review.comment = comment
+            review.save()
+            messages.success(request, "Your review has been updated.")
+
+    return redirect_to_product_reviews(review.product.id)
+
+
+@login_required
+@require_POST
+def delete_review(request, review_id):
+    review = get_object_or_404(Review, id=review_id, user=request.user)
+    product_id = review.product_id
+    review.delete()
+    messages.success(request, "Review deleted.")
+    return redirect_to_product_reviews(product_id)
