@@ -94,17 +94,14 @@
             </td>
             <td class="action-col">
               {% if item.variant.is_available and item.variant.stock > 0 %}
-              {% comment %}
-              <button class="btn btn-block btn-outline-primary-2">
-                <i class="icon-cart-plus"></i>Add to Cart
-              </button>
-              {% endcomment %}
-              <button
-                class="btn btn-block btn-outline-primary-2 add-to-cart"
-                data-variant-id="{{ item.variant.id }}"
-              >
-                <i class="icon-cart-plus"></i>Add to Cart
-              </button>
+              <form method="POST" action="{% url 'add_to_cart' item.variant.product.id %}">
+                {% csrf_token %}
+                <input type="hidden" name="variant_id" value="{{ item.variant.id }}">
+                <input type="hidden" name="quantity" value="1">
+                <button type="submit" class="btn btn-block btn-outline-primary-2">
+                  <i class="icon-cart-plus"></i>Add to Cart
+                </button>
+              </form>
 
               {% else %}
               <button class="btn btn-block btn-outline-primary-2 disabled">
@@ -177,54 +174,6 @@
       });
     });
 
-    $(".add-to-cart").on("click", function () {
-      var variantId = $(this).data("variant-id");
-      var quantity = 1; // You can modify this if you want to allow quantity selection
-
-      $.ajax({
-        url: "/cart/add/" + variantId + "/",
-        type: "POST",
-        data: {
-          variant_id: variantId,
-          quantity: quantity,
-        },
-        headers: {
-          "X-CSRFToken": "{{ csrf_token }}",
-        },
-        success: function (response) {
-          if (response.success) {
-            $("#wishlist-item-" + variantId).remove();
-            $(".wishlist-count").text(response.wishlist_count);
-            $(".cart-count").text(response.cart_count);
-            $(".cart-txt").text(response.cart_total);
-
-            Swal.fire({
-              text: response.message || "Product added to cart!",
-              icon: "success",
-            });
-
-            if ($(".table-wishlist tbody tr").length === 0) {
-              $(".table-wishlist").replaceWith(
-                "<p>Your wishlist is empty.</p>",
-              );
-            }
-          } else {
-            Swal.fire({
-              text: response.message || "Failed to add product to cart.",
-              icon: "error",
-            });
-          }
-        },
-        error: function (xhr) {
-          Swal.fire({
-            text:
-              xhr.responseJSON?.error ||
-              "An error occurred while adding the item to cart.",
-            icon: "error",
-          });
-        },
-      });
-    });
   });
 </script>
 {% endblock %}

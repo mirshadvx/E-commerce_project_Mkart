@@ -239,6 +239,9 @@
                                                        data-decimals="0" 
                                                        data-item-id="{{ item.id }}"
                                                        data-price="{{ item.product_variant.product.get_discounted_price }}"
+                                                       data-previous-quantity="{{ item.quantity }}"
+                                                       data-stock="{{ item.product_variant.stock }}"
+                                                       data-purchase-limit="10"
                                                        required>                                                
                                                 {% else %}
                                                 <input type="number" class="form-control quantity-input" 
@@ -249,6 +252,9 @@
                                                        data-decimals="0" 
                                                        data-item-id="{{ item.id }}"
                                                        data-price="{{ item.product_variant.product.get_discounted_price }}"
+                                                       data-previous-quantity="{{ item.quantity }}"
+                                                       data-stock="{{ item.product_variant.stock }}"
+                                                       data-purchase-limit="10"
                                                        required>
                                                 {% endif %}
                                             </div>
@@ -402,23 +408,65 @@ $(document).ready(function() {
         $('#cart-subtotal, #cart-total').text(total.toFixed(2));
     }
 
+    function updateItemTotal(cartItemId, quantity, price) {
+        $('#total-' + cartItemId).text((quantity * price).toFixed(2));
+        updateCartTotal();
+    }
+
+    function restoreQuantity(input, quantity) {
+        input.val(quantity);
+        input.data('previous-quantity', quantity);
+        updateItemTotal(input.data('item-id'), quantity, parseFloat(input.data('price')));
+    }
+
+    function quantityLimitMessage(input) {
+        var stock = parseInt(input.data('stock'));
+        var purchaseLimit = parseInt(input.data('purchase-limit'));
+
+        if (stock < purchaseLimit) {
+            return 'Only ' + stock + ' item(s) available in stock.';
+        }
+        return 'You can purchase a maximum of ' + purchaseLimit + ' item(s) of this product.';
+    }
+
+    $('.cart-product-quantity').on('click', '.btn-increment', function() {
+        var input = $(this).closest('.input-spinner').prev('.quantity-input');
+        var currentQuantity = parseInt(input.val());
+        var stock = parseInt(input.data('stock'));
+        var purchaseLimit = parseInt(input.data('purchase-limit'));
+        var maxAllowedQuantity = Math.min(stock, purchaseLimit);
+
+        if (currentQuantity >= maxAllowedQuantity) {
+            showErrorModal(quantityLimitMessage(input));
+        }
+    });
+
     $('.quantity-input').on('change', function() {
         var input = $(this);
         var cartItemId = input.data('item-id');
         var quantity = parseInt(input.val());
         var price = parseFloat(input.data('price'));
+        var previousQuantity = parseInt(input.data('previous-quantity'));
+        var stock = parseInt(input.data('stock'));
+        var purchaseLimit = parseInt(input.data('purchase-limit'));
+        var maxAllowedQuantity = Math.min(stock, purchaseLimit);
 
-        var itemTotal = quantity * price;
-        $('#total-' + cartItemId).text(itemTotal.toFixed(2));
+        if (isNaN(quantity) || quantity < 1) {
+            showErrorModal('Quantity must be at least 1.');
+            restoreQuantity(input, previousQuantity);
+            return;
+        }
 
+        if (quantity > maxAllowedQuantity) {
+            showErrorModal(quantityLimitMessage(input));
+            restoreQuantity(input, previousQuantity);
+            return;
+        }
 
-        updateCartTotal();
-
- 
-        debouncedUpdate(cartItemId, quantity);
+        debouncedUpdate(cartItemId, quantity, input);
     });
 
-    const debouncedUpdate = debounce(function(cartItemId, quantity) {
+    const debouncedUpdate = debounce(function(cartItemId, quantity, input) {
         showLoading();
         $.ajax({
             url: '/cart/update/' + cartItemId + '/',
@@ -431,15 +479,18 @@ $(document).ready(function() {
             },
             success: function(response) {
                 if (response.success) {
-                    $('#total-' + cartItemId).text(response.item_total.toFixed(2));
-                    updateCartTotal();
+                    $('#total-' + cartItemId).text(Number(response.item_total).toFixed(2));
+                    $('#cart-subtotal, #cart-total').text(Number(response.cart_total).toFixed(2));
+                    input.data('previous-quantity', response.current_quantity);
                 } else {
                     showErrorModal(response.error || 'Failed to update cart item.');
+                    restoreQuantity(input, response.current_quantity || input.data('previous-quantity'));
                 }
             },
             error: function(xhr) {
                 var errorMessage = xhr.responseJSON?.error || 'An error occurred while updating the cart item.';
                 showErrorModal(errorMessage);
+                restoreQuantity(input, xhr.responseJSON?.current_quantity || input.data('previous-quantity'));
             },
             complete: function() {
                 hideLoading();

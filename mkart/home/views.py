@@ -1041,17 +1041,7 @@ def cart(request):
 @never_cache
 @login_required
 def add_to_cart(request, id):
-
-    def cart_response(success, message, status=200):
-        cart = Cart.objects.filter(user=request.user).first()
-        return JsonResponse({
-            'success': success,
-            'message': message,
-            'wishlist_count': Wishlist.objects.filter(user=request.user).count(),
-            'cart_count': CartItem.objects.filter(cart__user=request.user).count(),
-            'cart_total': float(cart.get_total_price()) if cart else 0,
-        }, status=status)
-
+    def cart_response(success, message):
         if success:
             messages.success(request, message)
         else:
@@ -1071,10 +1061,15 @@ def add_to_cart(request, id):
         variant = get_object_or_404(ProductVariant, id=variant_id)
 
         if not variant.is_available:
-            return cart_response(False, "This product is currently unavailable.", status=400)
+            return cart_response(False, "This product is currently unavailable.")
 
-        if variant.stock < quantity:
-            return cart_response(False, f"Only {variant.stock} items available.", status=400)
+        max_allowed_quantity = min(variant.stock, 10)
+        if quantity > max_allowed_quantity:
+            if variant.stock < 10:
+                message = f"Only {variant.stock} item(s) available for {variant.product.name}."
+            else:
+                message = "You can purchase a maximum of 10 item(s) of this product."
+            return cart_response(False, message)
 
         cart, created = Cart.objects.get_or_create(user=request.user)
 
@@ -1085,6 +1080,14 @@ def add_to_cart(request, id):
         )
 
         if not item_created:
+            new_quantity = cart_item.quantity + quantity
+            if new_quantity > max_allowed_quantity:
+                if variant.stock < 10:
+                    message = f"Only {variant.stock} item(s) available for {variant.product.name}. You already have {cart_item.quantity} in your cart."
+                else:
+                    message = "You can purchase a maximum of 10 item(s) of this product."
+                return cart_response(False, message)
+
             cart_item.quantity += quantity
             cart_item.save()
 
@@ -1095,7 +1098,7 @@ def add_to_cart(request, id):
         Wishlist.objects.filter(user=request.user, variant=variant).delete()
         return cart_response(True, message)
 
-    return cart_response(False, "Invalid request.", status=400)
+    return cart_response(False, "Invalid request.")
 
 
 @never_cache
@@ -1104,7 +1107,32 @@ def update_cart(request, cart_item_id):
     if request.method == 'POST':
         try:
             cart_item = CartItem.objects.get(id=cart_item_id, cart__user=request.user)
-            quantity = int(request.POST.get('quantity', 1))
+            try:
+                quantity = int(request.POST.get('quantity', 1))
+            except (TypeError, ValueError):
+                quantity = cart_item.quantity
+
+            max_allowed_quantity = min(cart_item.product_variant.stock, 10)
+
+            if quantity < 1:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Quantity must be at least 1.',
+                    'current_quantity': cart_item.quantity,
+                }, status=400)
+
+            if quantity > max_allowed_quantity:
+                if cart_item.product_variant.stock < 10:
+                    error = f"Only {cart_item.product_variant.stock} item(s) available in stock."
+                else:
+                    error = "You can purchase a maximum of 10 item(s) of this product."
+
+                return JsonResponse({
+                    'success': False,
+                    'error': error,
+                    'current_quantity': cart_item.quantity,
+                    'max_allowed_quantity': max_allowed_quantity,
+                }, status=400)
             
             cart_item.quantity = quantity
             cart_item.save()
@@ -1116,12 +1144,13 @@ def update_cart(request, cart_item_id):
                 'success': True,
                 'item_total': item_total,
                 'cart_total': cart_total,
+                'current_quantity': cart_item.quantity,
             })
         except CartItem.DoesNotExist:
-            return JsonResponse({'success': False, 'error': 'Cart item not found.'})
+            return JsonResponse({'success': False, 'error': 'Cart item not found.'}, status=404)
         except Exception as e:
-            return JsonResponse({'success': False, 'error': str(e)})
-    return JsonResponse({'success': False, 'error': 'Invalid request method.'})
+            return JsonResponse({'success': False, 'error': str(e)}, status=400)
+    return JsonResponse({'success': False, 'error': 'Invalid request method.'}, status=400)
 
 @never_cache
 @login_required
