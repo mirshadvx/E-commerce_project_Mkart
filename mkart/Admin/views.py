@@ -1045,10 +1045,11 @@ def get_coupon_details(request):
             'id': coupon.id,
             'code': coupon.code,
             'discount': coupon.discount,
-            'valid_from': coupon.valid_from.isoformat(),
-            'valid_to': coupon.valid_to.isoformat(),
+            'valid_from': coupon.valid_from.strftime('%Y-%m-%dT%H:%M'),
+            'valid_to': coupon.valid_to.strftime('%Y-%m-%dT%H:%M'),
             'active': coupon.active,
             'usage_limit': coupon.usage_limit,
+            'min_purchase_amount': coupon.min_purchase_amount,
             'description': coupon.description,
         }
         return JsonResponse(data)
@@ -1063,13 +1064,104 @@ def edit_coupon(request):
         coupon_id = request.POST.get('id')
         try:
             coupon = Coupon.objects.get(id=coupon_id)
-            coupon.code = request.POST.get('code')
-            coupon.discount = request.POST.get('discount')
-            coupon.valid_from = parse_datetime(request.POST.get('valid_from'))
-            coupon.valid_to = parse_datetime(request.POST.get('valid_to'))
+
+            code = (request.POST.get('code') or '').strip()
+            discount = (request.POST.get('discount') or '').strip()
+            valid_from = (request.POST.get('valid_from') or '').strip()
+            valid_to = (request.POST.get('valid_to') or '').strip()
+            usage_limit = (request.POST.get('usage_limit') or '').strip()
+            min_purchase_amount = (request.POST.get('min_purchase_amount') or '').strip()
+            description = (request.POST.get('description') or '').strip()
+
+            errors = []
+
+            if not code:
+                errors.append('Coupon code is required.')
+            elif len(code) > 50:
+                errors.append('Coupon code cannot exceed 50 characters.')
+            elif Coupon.objects.filter(code__iexact=code).exclude(id=coupon.id).exists():
+                errors.append(f'A coupon with code "{code}" already exists.')
+
+            discount_value = None
+            if not discount:
+                errors.append('Discount percentage is required.')
+            else:
+                try:
+                    discount_value = Decimal(discount)
+                except (InvalidOperation, ValueError):
+                    errors.append('Discount must be a valid number.')
+                else:
+                    if discount_value <= 0:
+                        errors.append('Discount must be greater than 0.')
+                    elif discount_value > 70:
+                        errors.append('Discount cannot exceed 70%.')
+
+            valid_from_dt = None
+            valid_to_dt = None
+            now = django_timezone.now()
+
+            if not valid_from:
+                errors.append('Valid From date is required.')
+            else:
+                try:
+                    valid_from_dt = datetime.fromisoformat(valid_from)
+                    if django_timezone.is_naive(valid_from_dt):
+                        valid_from_dt = django_timezone.make_aware(valid_from_dt)
+                except ValueError:
+                    errors.append('Valid From is not a valid date/time.')
+                else:
+                    if valid_from_dt < now:
+                        errors.append('Valid From cannot be in the past.')
+
+            if not valid_to:
+                errors.append('Valid To date is required.')
+            else:
+                try:
+                    valid_to_dt = datetime.fromisoformat(valid_to)
+                    if django_timezone.is_naive(valid_to_dt):
+                        valid_to_dt = django_timezone.make_aware(valid_to_dt)
+                except ValueError:
+                    errors.append('Valid To is not a valid date/time.')
+                else:
+                    if valid_to_dt < now:
+                        errors.append('Valid To cannot be in the past.')
+
+            if valid_from_dt and valid_to_dt and valid_to_dt <= valid_from_dt:
+                errors.append('Valid To must be later than Valid From.')
+
+            usage_limit_value = None
+            if not usage_limit:
+                errors.append('Usage limit is required.')
+            else:
+                try:
+                    usage_limit_value = int(usage_limit)
+                except ValueError:
+                    errors.append('Usage limit must be a whole number.')
+                else:
+                    if usage_limit_value <= 0:
+                        errors.append('Usage limit must be at least 1.')
+
+            min_purchase_value = None
+            if min_purchase_amount:
+                try:
+                    min_purchase_value = Decimal(min_purchase_amount)
+                except (InvalidOperation, ValueError):
+                    errors.append('Minimum purchase amount must be a valid number.')
+                else:
+                    if min_purchase_value < 0:
+                        errors.append('Minimum purchase amount cannot be negative.')
+
+            if errors:
+                return JsonResponse({'success': False, 'error': ' '.join(errors)}, status=400)
+
+            coupon.code = code
+            coupon.discount = discount_value
+            coupon.valid_from = valid_from_dt
+            coupon.valid_to = valid_to_dt
             coupon.active = request.POST.get('active') == 'true'
-            coupon.usage_limit = request.POST.get('usage_limit')
-            coupon.description = request.POST.get('description')
+            coupon.usage_limit = usage_limit_value
+            coupon.min_purchase_amount = min_purchase_value
+            coupon.description = description
             coupon.full_clean()
             coupon.save()
             return JsonResponse({'success': True})

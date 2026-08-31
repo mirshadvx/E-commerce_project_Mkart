@@ -152,19 +152,23 @@
                     <input type="hidden" name="id" id="couponId">
                     <div class="form-group">
                         <label for="code">Coupon Code</label>
-                        <input type="text" class="form-control" id="code" name="code" >
+                        <input type="text" class="form-control" id="code" name="code" required>
+                        <span class="text-danger edit-error" id="editCodeError"></span>
                     </div>
                     <div class="form-group">
                         <label for="discount">Discount (%)</label>
-                        <input type="number" class="form-control" min="0" max="70" id="discount" name="discount" >
+                        <input type="number" class="form-control" min="0" max="70" step="0.01" id="discount" name="discount" required>
+                        <span class="text-danger edit-error" id="editDiscountError"></span>
                     </div>
                     <div class="form-group">
                         <label for="valid_from">Valid From</label>
                         <input type="datetime-local" class="form-control" id="valid_from" name="valid_from" required>
+                        <span class="text-danger edit-error" id="editValidFromError"></span>
                     </div>
                     <div class="form-group">
                         <label for="valid_to">Valid To</label>
                         <input type="datetime-local" class="form-control" id="valid_to" name="valid_to" required>
+                        <span class="text-danger edit-error" id="editValidToError"></span>
                     </div>
                     <div class="form-group">
                         <label for="active">Status</label>
@@ -176,6 +180,12 @@
                     <div class="form-group">
                         <label for="usage_limit">Usage Limit</label>
                         <input type="number" class="form-control" min="1" id="usage_limit" name="usage_limit" required>
+                        <span class="text-danger edit-error" id="editUsageLimitError"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="min_purchase_amount">Minimum Purchase Amount (optional)</label>
+                        <input type="number" class="form-control" min="0" step="0.01" id="min_purchase_amount" name="min_purchase_amount">
+                        <span class="text-danger edit-error" id="editMinPurchaseError"></span>
                     </div>
                     <div class="form-group">
                         <label for="description">Description</label>
@@ -234,6 +244,83 @@ $('.status-toggle').on('change', function() {
     </script>
 <script>
 $(document).ready(function() {
+  function getNowLocalString() {
+    var now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    return now.toISOString().slice(0, 16);
+  }
+
+  function validateEditCouponForm() {
+    var isValid = true;
+    var code = $('#code').val().trim();
+    var discount = $('#discount').val();
+    var validFrom = $('#valid_from').val();
+    var validTo = $('#valid_to').val();
+    var usageLimit = $('#usage_limit').val();
+    var minPurchaseAmount = $('#min_purchase_amount').val();
+    var now = new Date();
+
+    $('.edit-error').text('');
+
+    if (!code) {
+      $('#editCodeError').text('Please enter a coupon code.');
+      isValid = false;
+    } else if (code.length > 50) {
+      $('#editCodeError').text('Coupon code cannot exceed 50 characters.');
+      isValid = false;
+    }
+
+    if (!discount) {
+      $('#editDiscountError').text('Please enter a discount percentage.');
+      isValid = false;
+    } else if (parseFloat(discount) <= 0) {
+      $('#editDiscountError').text('Discount must be greater than 0.');
+      isValid = false;
+    } else if (parseFloat(discount) > 70) {
+      $('#editDiscountError').text('Discount cannot exceed 70%.');
+      isValid = false;
+    }
+
+    if (!validFrom) {
+      $('#editValidFromError').text('Please enter a valid start date.');
+      isValid = false;
+    } else if (new Date(validFrom) < now) {
+      $('#editValidFromError').text('Valid From cannot be in the past.');
+      isValid = false;
+    }
+
+    if (!validTo) {
+      $('#editValidToError').text('Please enter a valid end date.');
+      isValid = false;
+    } else if (new Date(validTo) < now) {
+      $('#editValidToError').text('Valid To cannot be in the past.');
+      isValid = false;
+    }
+
+    if (validFrom && validTo && new Date(validTo) <= new Date(validFrom)) {
+      $('#editValidToError').text('Valid To must be later than Valid From.');
+      isValid = false;
+    }
+
+    if (!usageLimit) {
+      $('#editUsageLimitError').text('Please enter a usage limit.');
+      isValid = false;
+    } else if (!Number.isInteger(Number(usageLimit))) {
+      $('#editUsageLimitError').text('Usage limit must be a whole number.');
+      isValid = false;
+    } else if (parseInt(usageLimit) < 1) {
+      $('#editUsageLimitError').text('Usage limit must be at least 1.');
+      isValid = false;
+    }
+
+    if (minPurchaseAmount && parseFloat(minPurchaseAmount) < 0) {
+      $('#editMinPurchaseError').text('Minimum purchase amount cannot be negative.');
+      isValid = false;
+    }
+
+    return isValid;
+  }
+
   // Edit coupon
   $('.edit-coupon').on('click', function() {
     var id = $(this).data('id');
@@ -249,7 +336,12 @@ $(document).ready(function() {
         $('#valid_to').val(data.valid_to);
         $('#active').val(data.active.toString());
         $('#usage_limit').val(data.usage_limit);
+        $('#min_purchase_amount').val(data.min_purchase_amount || '');
         $('#description').val(data.description);
+        $('.edit-error').text('');
+        var nowStr = getNowLocalString();
+        $('#valid_from').attr('min', nowStr);
+        $('#valid_to').attr('min', $('#valid_from').val() || nowStr);
         $('#editCouponModal').modal('show');
       },
       error: function(xhr, status, error) {
@@ -262,6 +354,10 @@ $(document).ready(function() {
   // Save edited coupon
   $('#editCouponForm').on('submit', function(e) {
     e.preventDefault();
+    if (!validateEditCouponForm()) {
+      return;
+    }
+
     var formData = $(this).serialize();
     $.ajax({
       url: '{% url "Admin:edit_coupon" %}',
@@ -272,14 +368,22 @@ $(document).ready(function() {
           $('#editCouponModal').modal('hide');
           location.reload();
         } else {
-          alert('Failed to update coupon. Please try again.');
+          Swal.fire('Error', response.error || 'Failed to update coupon. Please try again.', 'error');
         }
       },
       error: function(xhr, status, error) {
         console.error('Error updating coupon:', error);
-        alert('Failed to update coupon. Please try again later.');
+        Swal.fire('Error', xhr.responseJSON?.error || 'Failed to update coupon. Please try again later.', 'error');
       }
     });
+  });
+
+  $('#valid_from').on('change', function() {
+    var validFrom = $(this).val();
+    $('#valid_to').attr('min', validFrom || getNowLocalString());
+    if ($('#valid_to').val() && new Date($('#valid_to').val()) <= new Date(validFrom)) {
+      $('#valid_to').val('');
+    }
   });
 
 
