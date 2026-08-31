@@ -222,6 +222,41 @@
     border-radius: 30px;
   }
 
+  #couponModal .coupon-discount {
+    color: #155724;
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin: 1rem 0 0.5rem;
+  }
+
+  #couponModal .coupon-details {
+    background-color: #ffffff;
+    border-radius: 10px;
+    margin: 1rem 0;
+    padding: 0.9rem 1rem;
+  }
+
+  #couponModal .coupon-details p {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  #couponModal .coupon-details p:last-child {
+    margin-bottom: 0;
+  }
+
+  #couponModal .coupon-details strong {
+    color: #333;
+  }
+
+  #couponModal .coupon-status {
+    border-radius: 6px;
+    display: block;
+    padding: 0.5rem 0.75rem;
+  }
+
   #couponModal .copy-coupon {
     transition: all 0.3s ease;
     border-radius: 50px;
@@ -690,6 +725,32 @@
                   >
                 </h5>
                 <p class="card-text">{{ coupon.description }}</p>
+                <div class="coupon-discount text-center">
+                  {{ coupon.discount|floatformat:0 }}% OFF
+                </div>
+                <div class="coupon-details">
+                  <p>
+                    <span>Estimated discount</span>
+                    <strong>₹{{ coupon.checkout_discount_amount|floatformat:2 }}</strong>
+                  </p>
+                  <p>
+                    <span>Minimum purchase</span>
+                    <strong>
+                      {% if coupon.checkout_min_purchase > 0 %}
+                        ₹{{ coupon.checkout_min_purchase|floatformat:2 }}
+                      {% else %}
+                        No minimum
+                      {% endif %}
+                    </strong>
+                  </p>
+                </div>
+                {% if coupon.checkout_is_eligible %}
+                  <span class="coupon-status bg-success text-white text-center">You can use this coupon now</span>
+                {% else %}
+                  <span class="coupon-status bg-warning text-dark text-center">
+                    {{ coupon.checkout_unavailable_message|default:"This coupon is not available for your cart." }}
+                  </span>
+                {% endif %}
                 <p class="card-text text-center">
                   <small class="text-muted">
                     <i class="far fa-calendar-alt me-1"></i>

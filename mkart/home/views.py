@@ -1344,6 +1344,17 @@ def get_checkout_state(request):
         valid_from__lte=django_timezone.now(),
         valid_to__gte=django_timezone.now()
     )
+    for available_coupon in available_coupons:
+        min_purchase = available_coupon.min_purchase_amount or Decimal('0.00')
+        can_use, unavailable_message = available_coupon.can_use(request.user)
+        available_coupon.checkout_discount_amount = available_coupon.apply_discount(subtotal)
+        available_coupon.checkout_min_purchase = min_purchase
+        available_coupon.checkout_is_eligible = can_use and subtotal >= min_purchase
+        available_coupon.checkout_unavailable_message = unavailable_message
+        if subtotal < min_purchase:
+            available_coupon.checkout_unavailable_message = (
+                f"Add {min_purchase - subtotal:.2f} more to use this coupon."
+            )
 
     if coupon_code:
         try:
@@ -1945,22 +1956,23 @@ def create_order_items_and_update_stock(order, cart_items, payment_method):
 
 @require_POST
 def apply_coupon(request):
-    code = request.POST.get('coupon_code')
+    code = request.POST.get('coupon_code', '').strip()
     try:
-        coupon = Coupon.objects.get(code=code)
+        coupon = Coupon.objects.get(code__iexact=code)
         cart = Cart.objects.get(user=request.user)
         cart_total = cart.get_total_price()
+        min_purchase = coupon.min_purchase_amount or Decimal('0.00')
 
         if coupon.is_valid():
-            if cart_total > coupon.min_purchase_amount:
+            if cart_total >= min_purchase:
                 can_use, message = coupon.can_use(request.user)
                 if can_use:
-                    request.session['coupon'] = code
+                    request.session['coupon'] = coupon.code
                     messages.success(request, "Coupon applied successfully!")
                 else:
                     messages.error(request, message)
             else:
-                messages.error(request, f"This coupon requires a minimum purchase of {coupon.min_purchase_amount}.")
+                messages.error(request, f"This coupon requires a minimum purchase of {min_purchase}.")
         else:
             messages.error(request, "This coupon is invalid or has expired.")
     
