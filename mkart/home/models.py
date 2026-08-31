@@ -153,6 +153,7 @@ class Order(models.Model):
     PAYMENT_STATUS_CHOICES = [
         ('paid','Paid'),
         ('unpaid','Unpaid'),
+        ('failed', 'Failed'),
     ]
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='incomplete')
@@ -163,6 +164,9 @@ class Order(models.Model):
     payment_status = models.CharField(max_length=10,choices=PAYMENT_STATUS_CHOICES,default='unpaid')
     razorpay_order_id = models.CharField(max_length=100, blank=True, null=True)
     razorpay_payment_id = models.CharField(max_length=100, blank=True, null=True)
+    payment_failure_reason = models.CharField(max_length=100, blank=True, default='')
+    payment_failure_message = models.TextField(blank=True, default='')
+    payment_failed_at = models.DateTimeField(blank=True, null=True)
     coupon = models.CharField(max_length=50,null=True)
     discount_amount_coupon = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 

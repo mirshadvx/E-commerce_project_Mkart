@@ -127,8 +127,10 @@
     {% endif %}
 </td>
         <td>
-            {% if order.payment_status == 'paid'%} 
+            {% if order.payment_status == 'paid'%}
             <span class="badges bg-lightgreen">Paid</span>
+            {% elif order.payment_status == 'failed' %}
+            <span class="badges bg-lightred">Failed</span>
             {% else %}
             <span class="badges bg-lightred">Unpaid</span>
             {% endif %}

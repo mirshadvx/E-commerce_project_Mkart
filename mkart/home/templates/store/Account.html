@@ -264,6 +264,7 @@
                                                     <th>Status</th>
                                                     <th>Total</th>
                                                     <th>Payment Method</th>
+                                                    <th>Payment Status</th>
                                                     <th>Details</th>
                                                 </tr>
                                             </thead>
@@ -287,6 +288,7 @@
                                                         <td>{{ order.get_status_display }}</td>
                                                         <td>{{ order.total_price }}</td>
                                                         <td>{{ order.get_payment_method_display }}</td>
+                                                        <td>{{ order.get_payment_status_display }}</td>
                                                         <td>
                                                             <a href="{% url 'order_info' order_id=order.id %}" class="btn btn-outline-primary-2">View Details</a>
                                                         </td>

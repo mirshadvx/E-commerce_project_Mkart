@@ -182,6 +182,9 @@
                                 <h5 class="text-muted mb-3">Order Information</h5>
                                 <p><strong>Date:</strong> {{ order.created_at|date:"F d, Y" }}</p>
                                 <p><strong>Payment Method:</strong> {{ order.get_payment_method_display }}</p>
+                                {% if order.payment_status == 'failed' and order.payment_failure_message %}
+                                <p><strong>Failure Reason:</strong> {{ order.payment_failure_message }}</p>
+                                {% endif %}
                                 {% comment %} <p>
                                     <strong>Payment Status:</strong> 
                                     <span style="color: black; font-size: small;" class="badge bg-{{ order.payment_status }}">{{ order.get_payment_status_display }}</span>

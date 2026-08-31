@@ -42,6 +42,7 @@ urlpatterns = [
     path('apply_coupon/',views.apply_coupon,name='apply_coupon'),
     path('handle-failed-payment/', views.handle_failed_payment, name='handle_failed_payment'),
     path('razorpay_payment_success/', views.razorpay_payment_success, name='razorpay_payment_success'),
+    path('razorpay-webhook/', views.razorpay_webhook, name='razorpay_webhook'),
     path('contact/', views.contact, name='contact'),
     path('product/<int:product_id>/review/add/', views.add_review, name='add_review'),
     path('review/<int:review_id>/edit/', views.edit_review, name='edit_review'),

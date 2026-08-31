@@ -1064,6 +1064,15 @@
             event.preventDefault();
             return false;
         }
+
+        if (
+          $('input[name="payment_method"]:checked').val() === "razorpay" &&
+          !$("#razorpay_payment_id").val()
+        ) {
+          event.preventDefault();
+          $("#rzp-button1").trigger("click");
+          return false;
+        }
     });
 
     function validateField(selector, errorMessage, regex = null) {
@@ -1155,8 +1164,8 @@
       }
     }
 
-    function handlePaymentFailure(orderId) {
-      fetch("/handle-failed-payment/", {
+    function handlePaymentFailure(orderId, reason, errorDetails) {
+      return fetch("/handle-failed-payment/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -1164,17 +1173,17 @@
         },
         body: JSON.stringify({
           razorpay_order_id: orderId,
+          reason: reason || "payment_failed",
+          error: errorDetails || {},
         }),
       })
         .then((response) => response.json())
         .then((data) => {
           if (data.success) {
-            showPaymentError(
-              "Payment was not completed. No order was created.",
-            );
+            showPaymentError(data.message);
           } else {
             showPaymentError(
-              "An error occurred while processing your order. Please try again.",
+              data.message || "An error occurred while processing your order. Please try again.",
             );
           }
         })
@@ -1224,6 +1233,7 @@
           return data;
         })
         .then((data) => {
+          let paymentFinished = false;
           const options = {
             key: data.key,
             amount: data.amount,
@@ -1232,6 +1242,7 @@
             description: "Order Payment",
             order_id: data.order_id,
             handler: function (response) {
+              paymentFinished = true;
               document.getElementById("razorpay_payment_id").value =
                 response.razorpay_payment_id;
               document.getElementById("razorpay_order_id").value =
@@ -1251,17 +1262,19 @@
               ondismiss: function () {
                 button.disabled = false;
                 button.textContent = "Pay with Razorpay";
-                handlePaymentFailure(data.order_id);
+                if (!paymentFinished) {
+                  handlePaymentFailure(data.order_id, "payment_dismissed", {});
+                }
               },
             },
           };
 
           const razorpayCheckout = new Razorpay(options);
           razorpayCheckout.on("payment.failed", function (response) {
+            paymentFinished = true;
             button.disabled = false;
             button.textContent = "Pay with Razorpay";
-            showPaymentError(response.error.description);
-            handlePaymentFailure(data.order_id);
+            handlePaymentFailure(data.order_id, "payment_failed", response.error);
           });
           razorpayCheckout.open();
         })
@@ -1278,8 +1291,11 @@
     };
 
     function showPaymentError(message) {
-      $("#messageContent").html(
-        '<div class="alert alert-danger">' + message + "</div>",
+      $("#messageContent").empty().append(
+        $("<div>", {
+          class: "alert alert-danger",
+          text: message,
+        }),
       );
       $("#messageModal").modal("show");
 
