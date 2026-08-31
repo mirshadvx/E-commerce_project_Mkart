@@ -592,24 +592,24 @@
                   {{ item.product_variant.product.name }} - {{ item.product_variant.color }}
                 </td>
                 <td>{{ item.quantity }}</td>
-                <td>{{ item.get_total_price }}</td>
+                <td>{{ item.get_total_price|floatformat:2 }}</td>
               </tr>
               {% endfor %}
             </tbody>
             <tfoot>
               <tr>
                 <td colspan="2"><strong>Subtotal:</strong></td>
-                <td>{{ subtotal }}</td>
+                <td>{{ subtotal|floatformat:2 }}</td>
               </tr>
               {% if coupon %}
               <tr>
                 <td colspan="2"><strong>Coupon ({{ coupon }}):</strong></td>
-                <td>-{{ coupon_discount }}</td>
+                <td>-{{ coupon_discount|floatformat:2 }}</td>
               </tr>
               {% endif %}
               <tr>
                 <td colspan="2"><strong>Total:</strong></td>
-                <td><strong>{{ total }}</strong></td>
+                <td><strong>{{ total|floatformat:2 }}</strong></td>
               </tr>
             </tfoot>
           </table>
