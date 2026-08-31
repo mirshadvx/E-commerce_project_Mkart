@@ -118,6 +118,18 @@
     color: #555;
 }
 
+.order-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+
+.order-actions .btn {
+    min-width: 180px;
+}
+
 @media (max-width: 768px) {
     /* Responsive design tweaks */
     .order-details {
@@ -204,6 +216,15 @@
                 <p><strong>Email:</strong> {{ order.user.email }}</p>
                 <p><strong>Phone:</strong> {{ order.order_address.phone_number }}</p>
             </div>
+        </div>
+
+        <div class="order-actions">
+            <a href="{% url 'account' %}#tab-orders" class="btn btn-outline-primary-2">
+                <i class="fas fa-list-alt"></i> View Orders
+            </a>
+            <a href="{% url 'productslist' %}" class="btn btn-primary">
+                <i class="fas fa-shopping-bag"></i> Continue Shopping
+            </a>
         </div>
     </section>
 </main>
