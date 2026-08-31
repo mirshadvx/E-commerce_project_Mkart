@@ -25,7 +25,7 @@ from django.contrib.auth import logout
 from django.urls import reverse
 from home.models import *
 from django.views.decorators.csrf import csrf_exempt
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from django.core.exceptions import ValidationError
 from .models import *
 from django.utils import timezone
@@ -40,6 +40,7 @@ import cloudinary.uploader
 import logging
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import ProtectedError
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -845,73 +846,186 @@ def update_order_item_status(request):
     
     return JsonResponse({'success': False, 'error': 'Invalid request method.'})
 
+
 @never_cache
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
 def add_coupon(request):
+    form_data = {
+        'code': '',
+        'discount': '',
+        'valid_from': '',
+        'valid_to': '',
+        'active': 'True',
+        'usage_limit': '',
+        'min_purchase_amount': '',
+        'description': '',
+    }
+
     if request.method == 'POST':
-        try:
-          
-            code = request.POST.get('code')
-            discount = request.POST.get('discount')
-            valid_from = request.POST.get('valid_from')
-            valid_to = request.POST.get('valid_to')
-            active = request.POST.get('active') == 'True'
-            usage_limit = request.POST.get('usage_limit')
-            min_purchase_amount = request.POST.get('min_purchase_amount')
-            description = request.POST.get('description')
+        form_data.update({
+            'code': request.POST.get('code', '') or '',
+            'discount': request.POST.get('discount', '') or '',
+            'valid_from': request.POST.get('valid_from', '') or '',
+            'valid_to': request.POST.get('valid_to', '') or '',
+            'active': request.POST.get('active', 'True') or 'True',
+            'usage_limit': request.POST.get('usage_limit', '') or '',
+            'min_purchase_amount': request.POST.get('min_purchase_amount', '') or '',
+            'description': request.POST.get('description', '') or '',
+        })
 
-       
-            coupon = Coupon(
-                code=code,
-                discount=Decimal(discount),
-                valid_from=valid_from,
-                valid_to=valid_to,
-                active=active,
-                description=description
-            )
+        has_error = False
 
-     
-            if usage_limit:
-                coupon.usage_limit = int(usage_limit)
-            if min_purchase_amount:
-                coupon.min_purchase_amount = Decimal(min_purchase_amount)
-
-           
-            coupon.full_clean()
-
-         
-            coupon.save()
-
-            messages.success(request, f'Coupon "{code}" has been successfully added.')
-            return redirect('coupon_list')  
-
-        except ValidationError as e:
-          
-            error_messages = []
-            for field, errors in e.message_dict.items():
-                error_messages.extend(errors)
-            for message in error_messages:
-                messages.error(request, message)
-
-        except Exception as e:
-      
-            messages.error(request, f'An error occurred: {str(e)}')
-
- 
-    return render(request, 'addCoupon.html')
+        code = form_data['code'].strip()
+        discount = form_data['discount'].strip()
+        valid_from = form_data['valid_from'].strip()
+        valid_to = form_data['valid_to'].strip()
+        active = form_data['active'] == 'True'
+        usage_limit = form_data['usage_limit'].strip()
+        min_purchase_amount = form_data['min_purchase_amount'].strip()
+        description = form_data['description'].strip()
 
 
-def coupon_exists(request):
-    code = request.GET.get('code', None)
+        if not code:
+            messages.error(request, 'Coupon code is required.')
+            has_error = True
+        elif len(code) > 50:
+            messages.error(request, 'Coupon code cannot exceed 50 characters.')
+            has_error = True
+        elif Coupon.objects.filter(code__iexact=code).exists():
+            messages.error(request, f'A coupon with code "{code}" already exists.')
+            has_error = True
+
+        if not discount:
+            messages.error(request, 'Discount percentage is required.')
+            has_error = True
+        else:
+            try:
+                discount_value = Decimal(discount)
+            except (InvalidOperation, ValueError):
+                messages.error(request, 'Discount must be a valid number.')
+                has_error = True
+                discount_value = None
+            else:
+                if discount_value < 0:
+                    messages.error(request, 'Discount cannot be negative.')
+                    has_error = True
+                elif discount_value > 70:
+                    messages.error(request, 'Discount cannot exceed 70%.')
+                    has_error = True
     
-    if code:
-        code = code.lower()
-        exists = Coupon.objects.filter(code__iexact=code).exists()
-    else:
-        exists = False
+        valid_from_dt = None
+        valid_to_dt = None
+        now = django_timezone.now()
 
+        if not valid_from:
+            messages.error(request, 'Valid From date is required.')
+            has_error = True
+        else:
+            try:
+                valid_from_dt = datetime.fromisoformat(valid_from)
+                if django_timezone.is_naive(valid_from_dt):
+                    valid_from_dt = django_timezone.make_aware(valid_from_dt)
+            except ValueError:
+                messages.error(request, 'Valid From is not a valid date/time.')
+                has_error = True
+            else:
+                if valid_from_dt < now:
+                    messages.error(request, 'Valid From cannot be in the past.')
+                    has_error = True
+
+        if not valid_to:
+            messages.error(request, 'Valid To date is required.')
+            has_error = True
+        else:
+            try:
+                valid_to_dt = datetime.fromisoformat(valid_to)
+                if django_timezone.is_naive(valid_to_dt):
+                    valid_to_dt = django_timezone.make_aware(valid_to_dt)
+            except ValueError:
+                messages.error(request, 'Valid To is not a valid date/time.')
+                has_error = True
+            else:
+                if valid_to_dt < now:
+                    messages.error(request, 'Valid To cannot be in the past.')
+                    has_error = True
+
+        if valid_from_dt and valid_to_dt and valid_to_dt <= valid_from_dt:
+            messages.error(request, 'Valid To must be later than Valid From.')
+            has_error = True
+
+        usage_limit_value = None
+        if not usage_limit:
+            messages.error(request, 'Usage limit is required.')
+            has_error = True
+        else:
+            try:
+                usage_limit_value = int(usage_limit)
+            except ValueError:
+                messages.error(request, 'Usage limit must be a whole number.')
+                has_error = True
+            else:
+                if usage_limit_value <= 0:
+                    messages.error(request, 'Usage limit must be at least 1.')
+                    has_error = True
+
+        min_purchase_value = None
+        if min_purchase_amount:
+            try:
+                min_purchase_value = Decimal(min_purchase_amount)
+            except (InvalidOperation, ValueError):
+                messages.error(request, 'Minimum purchase amount must be a valid number.')
+                has_error = True
+            else:
+                if min_purchase_value < 0:
+                    messages.error(request, 'Minimum purchase amount cannot be negative.')
+                    has_error = True
+
+        if not has_error:
+            try:
+                coupon = Coupon(
+                    code=code,
+                    discount=discount_value,
+                    valid_from=valid_from_dt,
+                    valid_to=valid_to_dt,
+                    active=active,
+                    description=description,
+                )
+
+                coupon.usage_limit = usage_limit_value
+                if min_purchase_value is not None:
+                    coupon.min_purchase_amount = min_purchase_value
+
+                coupon.full_clean()
+                coupon.save()
+
+                messages.success(request, f'Coupon "{code}" has been successfully added.')
+                return redirect('Admin:coupon_list')
+
+            except ValidationError as e:
+                error_messages = []
+                if hasattr(e, 'message_dict'):
+                    for field, errors in e.message_dict.items():
+                        error_messages.extend(errors)
+                else:
+                    error_messages = e.messages
+                for message in error_messages:
+                    messages.error(request, message)
+
+            except Exception as e:
+                messages.error(request, f'An error occurred: {str(e)}')
+
+    return render(request, 'addCoupon.html', {'form_data': form_data})
+
+
+@never_cache
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def coupon_exists(request):
+    code = request.GET.get('code', '').strip()
+    exists = Coupon.objects.filter(code__iexact=code).exists()
     return JsonResponse({'exists': exists})
+
 
 @never_cache
 @login_required
@@ -954,12 +1068,20 @@ def edit_coupon(request):
             coupon.valid_from = parse_datetime(request.POST.get('valid_from'))
             coupon.valid_to = parse_datetime(request.POST.get('valid_to'))
             coupon.active = request.POST.get('active') == 'true'
-            coupon.usage_limit = request.POST.get('usage_limit') or None
+            coupon.usage_limit = request.POST.get('usage_limit')
             coupon.description = request.POST.get('description')
+            coupon.full_clean()
             coupon.save()
             return JsonResponse({'success': True})
         except Coupon.DoesNotExist:
-            return JsonResponse({'success': False})
+            return JsonResponse({'success': False, 'error': 'Coupon not found.'}, status=404)
+        except ValidationError as e:
+            if hasattr(e, 'message_dict'):
+                errors = [message for messages_list in e.message_dict.values() for message in messages_list]
+            else:
+                errors = e.messages
+            return JsonResponse({'success': False, 'error': ' '.join(errors)}, status=400)
+    return JsonResponse({'success': False, 'error': 'Invalid request method.'}, status=400)
 
 @csrf_exempt
 @login_required

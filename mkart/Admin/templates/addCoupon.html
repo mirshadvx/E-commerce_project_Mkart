@@ -58,6 +58,9 @@
         margin-top: 5px;
         font-size: 0.9em;
     }
+    .alert {
+        border-radius: 8px;
+    }
 </style>
 {% endblock %}
 
@@ -76,65 +79,76 @@
                 </div>
             </div>
             <div class="card-body">
+
                 <form method="POST" enctype="multipart/form-data" action="{% url 'Admin:add_coupon' %}" id="couponForm">
                     {% csrf_token %}
                     <div class="row">
                         <div class="col-lg-6 col-sm-6 col-12">
                             <div class="form-group">
                                 <label><i class="fas fa-barcode mr-2"></i> Coupon Code</label>
-                                <input type="text" name="code" id="couponCode" class="form-control"  />
+                                <input type="text" name="code" id="couponCode" class="form-control"
+                                       value="{{ form_data.code|default_if_none:'' }}" required />
                                 <span id="couponError" class="text-danger"></span>
                             </div>
                         </div>
                         <div class="col-lg-6 col-sm-6 col-12">
                             <div class="form-group">
-                                <label></i>Discount (%)</label>
-                                <input type="number" name="discount" step="0.01" class="form-control" id="discountField"  />
+                                <label>Discount (%)</label>
+                                <input type="number" name="discount" step="0.01" min="0" max="70"
+                                       class="form-control" id="discountField"
+                                       value="{{ form_data.discount|default_if_none:'' }}" required />
                                 <span id="discountError" class="text-danger"></span>
                             </div>
                         </div>
                         <div class="col-lg-6 col-sm-6 col-12">
                             <div class="form-group">
                                 <label><i class="far fa-calendar-alt mr-2"></i> Valid From</label>
-                                <input type="datetime-local" name="valid_from" class="form-control"  />
+                                <input type="datetime-local" name="valid_from" class="form-control"
+                                       value="{{ form_data.valid_from|default_if_none:'' }}" required />
+                                <span class="text-danger"></span>
                             </div>
                         </div>
                         <div class="col-lg-6 col-sm-6 col-12">
                             <div class="form-group">
                                 <label><i class="far fa-calendar-alt mr-2"></i> Valid To</label>
-                                <input type="datetime-local" name="valid_to" class="form-control"  />
+                                <input type="datetime-local" name="valid_to" class="form-control"
+                                       value="{{ form_data.valid_to|default_if_none:'' }}" required />
+                                <span class="text-danger"></span>
                             </div>
                         </div>
                         <div class="col-lg-6 col-sm-6 col-12">
                             <div class="form-group">
-                                <label></i>Active</label>
-                                <select name="active" class="form-control" >
-                                    <option value="True">Yes</option>
-                                    <option value="False">No</option>
+                                <label>Active</label>
+                                <select name="active" class="form-control">
+                                    <option value="True" {% if form_data.active == 'True' %}selected{% endif %}>Yes</option>
+                                    <option value="False" {% if form_data.active == 'False' %}selected{% endif %}>No</option>
                                 </select>
                             </div>
                         </div>
                         <div class="col-lg-6 col-sm-6 col-12">
                             <div class="form-group">
-                                <label><i class="fas fa-user-clock mr-2"></i> Usage Limit (optional)</label>
-                                <input type="number" name="usage_limit" min="0" class="form-control" />
+                                <label><i class="fas fa-user-clock mr-2"></i> Usage Limit</label>
+                                <input type="number" name="usage_limit" min="1" class="form-control"
+                                       value="{{ form_data.usage_limit|default_if_none:'' }}" required />
+                                <span id="usageLimitError" class="text-danger"></span>
                             </div>
                         </div>
                         <div class="col-lg-6 col-sm-6 col-12">
                             <div class="form-group">
                                 <label><i class="fas fa-shopping-cart mr-2"></i> Minimum Purchase Amount (optional)</label>
-                                <input type="number" name="min_purchase_amount" min="0" step="0.01" class="form-control" />
+                                <input type="number" name="min_purchase_amount" min="0" step="0.01" class="form-control"
+                                       value="{{ form_data.min_purchase_amount|default_if_none:'' }}" />
                             </div>
                         </div>
                         <div class="col-lg-12">
                             <div class="form-group">
                                 <label><i class="fas fa-info-circle mr-2"></i> Description</label>
-                                <textarea class="form-control" name="description" rows="4"></textarea>
+                                <textarea class="form-control" name="description" rows="4">{{ form_data.description|default_if_none:'' }}</textarea>
                             </div>
                         </div>
                         <div class="col-lg-12 mt-4">
-                            <button type="submit" class="btn btn-submit me-2"></i>Submit</button>
-                            <a href="#" class="btn btn-cancel">Cancel</a>
+                            <button type="submit" class="btn btn-submit me-2">Submit</button>
+                            <a href="{% url 'Admin:coupon_list' %}" class="btn btn-cancel">Cancel</a>
                         </div>
                     </div>
                 </form>
@@ -157,19 +171,42 @@
 <script src="{% static 'admin-assets/js/script.js' %}"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    $(document).ready(function() {            
+    $(document).ready(function() {
         let isValid = true;
+
+        // Returns current local datetime in the format datetime-local expects: YYYY-MM-DDTHH:MM
+        function getNowLocalString() {
+            let now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            return now.toISOString().slice(0, 16);
+        }
+
+        // Set minimum selectable datetime = now for both fields
+        let nowStr = getNowLocalString();
+        $('input[name="valid_from"]').attr('min', nowStr);
+        $('input[name="valid_to"]').attr('min', nowStr);
+
+        // When Valid From changes, push Valid To's minimum forward to match it
+        $('input[name="valid_from"]').on('change', function() {
+            let val = $(this).val();
+            if (val) {
+                $('input[name="valid_to"]').attr('min', val);
+                // If current Valid To is earlier than the new Valid From, clear it
+                let validTo = $('input[name="valid_to"]').val();
+                if (validTo && new Date(validTo) <= new Date(val)) {
+                    $('input[name="valid_to"]').val('');
+                }
+            }
+        });
 
         $('#couponCode').on('blur', function() {
             let couponCode = $(this).val();
-            $('#couponError').text(''); 
+            $('#couponError').text('');
 
             if (couponCode) {
                 $.ajax({
                     url: '{% url "Admin:coupon_exists" %}',
-                    data: {
-                        'code': couponCode
-                    },
+                    data: { 'code': couponCode },
                     dataType: 'json',
                     success: function(data) {
                         if (data.exists) {
@@ -189,153 +226,61 @@
         });
 
         $('#couponForm').on('submit', function(event) {
-            event.preventDefault(); 
-
             let discount = $('input[name="discount"]').val();
+            let validFrom = $('input[name="valid_from"]').val();
             let validTo = $('input[name="valid_to"]').val();
             let couponCode = $('input[name="code"]').val();
+            let usageLimit = $('input[name="usage_limit"]').val();
 
-      
             $('.text-danger').text('');
+            isValid = true;
 
-            isValid = true; 
-
-   
             if (!couponCode) {
                 $('#couponError').text('Please enter a coupon code.');
                 isValid = false;
             }
 
-         
             if (!discount) {
                 $('#discountError').text('Please enter a discount percentage.');
+                isValid = false;
+            } else if (parseFloat(discount) < 0) {
+                $('#discountError').text('Discount cannot be negative.');
                 isValid = false;
             } else if (parseFloat(discount) > 70) {
                 $('#discountError').text('Discount cannot exceed 70%.');
                 isValid = false;
             }
 
-         
+            if (!usageLimit) {
+                $('#usageLimitError').text('Please enter a usage limit.');
+                isValid = false;
+            } else if (!Number.isInteger(Number(usageLimit))) {
+                $('#usageLimitError').text('Usage limit must be a whole number.');
+                isValid = false;
+            } else if (parseInt(usageLimit) < 1) {
+                $('#usageLimitError').text('Usage limit must be at least 1.');
+                isValid = false;
+            }
+
+            if (!validFrom) {
+                $('input[name="valid_from"]').siblings('.text-danger').text('Please enter a valid start date.');
+                isValid = false;
+            }
+
             if (!validTo) {
                 $('input[name="valid_to"]').siblings('.text-danger').text('Please enter a valid end date.');
                 isValid = false;
             }
 
-            if (isValid) {
-                this.submit(); 
+            if (validFrom && validTo && new Date(validTo) <= new Date(validFrom)) {
+                $('input[name="valid_to"]').siblings('.text-danger').text('Valid To must be later than Valid From.');
+                isValid = false;
+            }
+
+            if (!isValid) {
+                event.preventDefault();
             }
         });
     });
 </script>
 {% endblock %}
-
-
-
-
-
-
-
-{% comment %} {% extends "Base.html" %}
-{% load static %}
-
-{% block title %}Add Coupon{% endblock %}
-
-{% block extra_style %}
-<link rel="shortcut icon" type="image/x-icon" href="{% static 'admin-assets/img/favicon.jpg' %}" />
-<link rel="stylesheet" href="{% static 'admin-assets/css/bootstrap.min.css' %}" />
-<link rel="stylesheet" href="{% static 'admin-assets/css/animate.css' %}" />
-<link rel="stylesheet" href="{% static 'admin-assets/plugins/select2/css/select2.min.css' %}" />
-<link rel="stylesheet" href="{% static 'admin-assets/css/dataTables.bootstrap4.min.css' %}" />
-<link rel="stylesheet" href="{% static 'admin-assets/plugins/fontawesome/css/fontawesome.min.css' %}" />
-<link rel="stylesheet" href="{% static 'admin-assets/plugins/fontawesome/css/all.min.css' %}" />
-<link rel="stylesheet" href="{% static 'admin-assets/css/style.css' %}" />
-{% endblock %}
-
-{% block content %}
-<div class="page-wrapper">
-    <div class="content">
-        <div class="page-header">
-            <div class="page-title">
-                <h4>Add Coupon</h4>
-            </div>
-        </div>
-        
-        <form method="POST" enctype="multipart/form-data" action="{% url 'Admin:add_coupon' %}" id="couponForm">
-            {% csrf_token %}
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-lg-6 col-sm-6 col-12">
-                        <div class="form-group">
-                            <label>Coupon Code</label>
-                            <input type="text" name="code" id="couponCode"  />
-                            <span id="couponError" style="color: red"></span>
-                        </div>
-                    </div>
-                    <div class="col-lg-6 col-sm-6 col-12">
-                        <div class="form-group">
-                            <label>Discount (%)</label>
-                            <input type="number" name="discount" min="0" max="100" step="0.01"  />
-                        </div>
-                    </div>
-                    <div class="col-lg-6 col-sm-6 col-12">
-                        <div class="form-group">
-                            <label>Valid From</label>
-                            <input type="datetime-local" name="valid_from"  />
-                        </div>
-                    </div>
-                    <div class="col-lg-6 col-sm-6 col-12">
-                        <div class="form-group">
-                            <label>Valid To</label>
-                            <input type="datetime-local" name="valid_to"  />
-                        </div>
-                    </div>
-                    <div class="col-lg-6 col-sm-6 col-12">
-                        <div class="form-group">
-                            <label>Active</label>
-                            <select name="active" >
-                                <option value="True">Yes</option>
-                                <option value="False">No</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-lg-6 col-sm-6 col-12">
-                        <div class="form-group">
-                            <label>Usage Limit (optional)</label>
-                            <input type="number" name="usage_limit" min="0" />
-                        </div>
-                    </div>
-                    <div class="col-lg-6 col-sm-6 col-12">
-                        <div class="form-group">
-                            <label>Minimum Purchase Amount (optional)</label>
-                            <input type="number" name="min_purchase_amount" min="0" step="0.01" />
-                        </div>
-                    </div>
-                    <div class="col-lg-12">
-                        <div class="form-group">
-                            <label>Description</label>
-                            <textarea class="form-control" name="description"></textarea>
-                        </div>
-                    </div>
-                    <div class="col-lg-12">
-                        <button type="submit" class="btn btn-submit me-2">Submit</button>
-                        <a  class="btn btn-cancel">Cancel</a>
-                    </div>
-                </div>
-            </div>
-        </form>
-    </div>
-</div>
-{% endblock %}
-
-{% block extra_js %}
-<script src="{% static 'admin-assets/js/jquery-3.6.0.min.js' %}"></script>
-<script src="{% static 'admin-assets/js/feather.min.js' %}"></script>
-<script src="{% static 'admin-assets/js/jquery.slimscroll.min.js' %}"></script>
-<script src="{% static 'admin-assets/js/jquery.dataTables.min.js' %}"></script>
-<script src="{% static 'admin-assets/js/dataTables.bootstrap4.min.js' %}"></script>
-<script src="{% static 'admin-assets/js/bootstrap.bundle.min.js' %}"></script>
-<script src="{% static 'admin-assets/plugins/select2/js/select2.min.js' %}"></script>
-<script src="{% static 'admin-assets/plugins/sweetalert/sweetalert2.all.min.js' %}"></script>
-<script src="{% static 'admin-assets/plugins/sweetalert/sweetalerts.min.js' %}"></script>
-<script src="{% static 'admin-assets/js/script.js' %}"></script>
-{% endblock %} {% endcomment %}
