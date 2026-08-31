@@ -1041,38 +1041,61 @@ def cart(request):
 @never_cache
 @login_required
 def add_to_cart(request, id):
+
+    def cart_response(success, message, status=200):
+        cart = Cart.objects.filter(user=request.user).first()
+        return JsonResponse({
+            'success': success,
+            'message': message,
+            'wishlist_count': Wishlist.objects.filter(user=request.user).count(),
+            'cart_count': CartItem.objects.filter(cart__user=request.user).count(),
+            'cart_total': float(cart.get_total_price()) if cart else 0,
+        }, status=status)
+
+        if success:
+            messages.success(request, message)
+        else:
+            messages.error(request, message)
+        return redirect(request.META.get('HTTP_REFERER', 'home'))
+
     if request.method == 'POST':
         variant_id = request.POST.get('variant_id')
-        quantity = int(request.POST.get('quantity', 1))
+        try:
+            quantity = int(request.POST.get('quantity', 1))
+        except (TypeError, ValueError):
+            quantity = 1
 
-        variant = get_object_or_404(ProductVariant,id=variant_id)
+        if quantity < 1:
+            quantity = 1
+
+        variant = get_object_or_404(ProductVariant, id=variant_id)
 
         if not variant.is_available:
-            messages.error( request, "This product is currently unavailable.")
-
-            return redirect(request.META.get('HTTP_REFERER', 'home'))
+            return cart_response(False, "This product is currently unavailable.", status=400)
 
         if variant.stock < quantity:
-            messages.error(request, f"Only {variant.stock} items available.")
-
-            return redirect(request.META.get('HTTP_REFERER', 'home'))
+            return cart_response(False, f"Only {variant.stock} items available.", status=400)
 
         cart, created = Cart.objects.get_or_create(user=request.user)
 
-        cart_item, item_created = CartItem.objects.get_or_create(cart=cart,product_variant=variant,defaults={'quantity': quantity})
+        cart_item, item_created = CartItem.objects.get_or_create(
+            cart=cart,
+            product_variant=variant,
+            defaults={'quantity': quantity}
+        )
 
         if not item_created:
             cart_item.quantity += quantity
             cart_item.save()
 
-            messages.success(request,f"Quantity updated in cart.")
+            message = "Quantity updated in cart."
         else:
-            messages.success( request, f"{variant.product.name} added to cart." )
+            message = f"{variant.product.name} added to cart."
 
-        return redirect(request.META.get('HTTP_REFERER', 'home'))
+        Wishlist.objects.filter(user=request.user, variant=variant).delete()
+        return cart_response(True, message)
 
-    messages.error(request, "Invalid request.")
-    return redirect('home')
+    return cart_response(False, "Invalid request.", status=400)
 
 
 @never_cache

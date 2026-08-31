@@ -193,15 +193,25 @@
         },
         success: function (response) {
           if (response.success) {
+            $("#wishlist-item-" + variantId).remove();
+            $(".wishlist-count").text(response.wishlist_count);
+            $(".cart-count").text(response.cart_count);
+            $(".cart-txt").text(response.cart_total);
+
             Swal.fire({
-              text: "Product added to cart!",
+              text: response.message || "Product added to cart!",
               icon: "success",
             });
-            // You can update the cart count or total here if needed
+
+            if ($(".table-wishlist tbody tr").length === 0) {
+              $(".table-wishlist").replaceWith(
+                "<p>Your wishlist is empty.</p>",
+              );
+            }
           } else {
             Swal.fire({
-              text: "Product added to cart!",
-              icon: "success",
+              text: response.message || "Failed to add product to cart.",
+              icon: "error",
             });
           }
         },
