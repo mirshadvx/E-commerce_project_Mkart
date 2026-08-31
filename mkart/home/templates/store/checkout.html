@@ -326,12 +326,9 @@
                   name="selected_address"
                   id="address{{ address.id }}"
                   value="{{ address.id }}"
-                  {%
-                  if
-                  forloop.first
-                  %}checked{%
-                  endif
-                  %}
+                  {% if checkout_selected_address_id %}
+                    {% if checkout_selected_address_id == address.id|stringformat:"s" %}checked{% endif %}
+                  {% elif forloop.first and not checkout_use_new_address %}checked{% endif %}
                 />
                 <label class="form-check-label" for="address{{ address.id }}">
                   {{ address.full_name }} {{ address.last_name }}, {{ address.address_line_1 }}, {{ address.city }}, 
@@ -348,13 +345,14 @@
                 type="checkbox"
                 id="use_new_address"
                 name="use_new_address"
+                {% if checkout_use_new_address %}checked{% endif %}
               />
               <label class="form-check-label" for="use_new_address">
                 Use a new address
               </label>
             </div>
 
-            <div id="new_address_form" style="display: none">
+            <div id="new_address_form" style="{% if checkout_use_new_address %}display: block{% else %}display: none{% endif %}">
               <div class="row">
                 <div class="col-md-6 mb-3">
                   <label for="full_name" class="form-label">Full Name</label>
@@ -365,6 +363,7 @@
                     name="full_name"
                     pattern="[A-Za-z]+"
                     maxlength="30"
+                    value="{{ checkout_address.full_name|default:'' }}"
                   />
                 </div>
                 <div class="col-md-6 mb-3">
@@ -376,6 +375,7 @@
                     name="last_name"
                     pattern="[A-Za-z]+"
                     maxlength="30"
+                    value="{{ checkout_address.last_name|default:'' }}"
                   />
                 </div>
               </div>
@@ -389,6 +389,7 @@
                       name="phone_number"
                       maxlength="10"
                       pattern="[0-9]{10}"
+                      value="{{ checkout_address.phone_number|default:'' }}"
                     />
                 </div>
                 <div class="col-md-6 mb-3">
@@ -398,6 +399,7 @@
                     class="form-control"
                     id="email"
                     name="email"
+                    value="{{ checkout_address.email|default:'' }}"
                   />
                 </div>
               </div>
@@ -410,6 +412,7 @@
                   class="form-control"
                   id="address_line_1"
                   name="address_line_1"
+                  value="{{ checkout_address.address_line_1|default:'' }}"
                 />
               </div>
               <div class="mb-3">
@@ -421,6 +424,7 @@
                   class="form-control"
                   id="address_line_2"
                   name="address_line_2"
+                  value="{{ checkout_address.address_line_2|default:'' }}"
                 />
               </div>
               <div class="row">
@@ -431,6 +435,7 @@
                     class="form-control"
                     id="city"
                     name="city"
+                    value="{{ checkout_address.city|default:'' }}"
                   />
                 </div>
                 <div class="col-md-6 mb-3">
@@ -440,6 +445,7 @@
                     class="form-control"
                     id="state"
                     name="state"
+                    value="{{ checkout_address.state|default:'' }}"
                   />
                 </div>
               </div>
@@ -453,6 +459,7 @@
                     name="postal_code"
                     maxlength="6"
                     pattern="[0-9]{6}"
+                    value="{{ checkout_address.postal_code|default:'' }}"
                   />
                 </div>
                 <div class="col-md-6 mb-3">
@@ -462,6 +469,7 @@
                     class="form-control"
                     id="country"
                     name="country"
+                    value="{{ checkout_address.country|default:'' }}"
                   />
                 </div>
               </div>
@@ -624,7 +632,7 @@
           <h3 class="mb-0">Apply Coupon</h3>
         </div>
         <div class="card-body">
-          <form method="post" class="coupon-form">
+          <form method="post" class="coupon-form checkout-state-form">
             {% csrf_token %}
             <div class="input-group mb-3">
               <input
@@ -646,7 +654,7 @@
           {% if coupon %}
           <div class="mt-2">
             <p>Applied Coupon: {{ coupon }}</p>
-            <form method="post">
+            <form method="post" class="checkout-state-form">
               {% csrf_token %}
               <button
                 type="submit"
@@ -827,6 +835,53 @@
       }
     });
     setNewAddressRequired($("#use_new_address").is(":checked"));
+
+    $(".checkout-state-form").on("submit", function () {
+      const $form = $(this);
+      const fieldsToPreserve = [
+        "selected_address",
+        "use_new_address",
+        "full_name",
+        "last_name",
+        "phone_number",
+        "email",
+        "address_line_1",
+        "address_line_2",
+        "city",
+        "state",
+        "postal_code",
+        "country",
+      ];
+
+      $form.find(".checkout-state-copy").remove();
+
+      fieldsToPreserve.forEach(function (fieldName) {
+        const $field = $('#checkout-form [name="' + fieldName + '"]');
+        let value = "";
+
+        if (!$field.length) {
+          return;
+        }
+
+        if ($field.first().attr("type") === "radio") {
+          value = $('#checkout-form [name="' + fieldName + '"]:checked').val() || "";
+        } else if ($field.first().attr("type") === "checkbox") {
+          if (!$field.first().is(":checked")) {
+            return;
+          }
+          value = $field.first().val() || "on";
+        } else {
+          value = $field.first().val() || "";
+        }
+
+        $("<input>", {
+          type: "hidden",
+          name: fieldName,
+          value: value,
+          class: "checkout-state-copy",
+        }).appendTo($form);
+      });
+    });
 
     $("#full_name, #last_name").on("input", function () {
         this.value = this.value.replace(/[^A-Za-z]/g, "");

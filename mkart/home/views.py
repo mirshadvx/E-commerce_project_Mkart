@@ -1297,6 +1297,7 @@ def checkout(request):
     if not checkout_state['cart_items']:
         messages.warning(request, "Your cart is empty. Add some items before checking out.")
         return redirect('cart')
+    checkout_address = request.session.get(CHECKOUT_ADDRESS_SESSION_KEY, {})
 
     context = {
         'cart_items': checkout_state['cart_items'],
@@ -1307,12 +1308,17 @@ def checkout(request):
         'available_coupons': checkout_state['available_coupons'],
         'coupon': checkout_state['coupon_code'],
         'wallet_balance': checkout_state['wallet'].balance,
+        'checkout_address': checkout_address,
+        'checkout_use_new_address': checkout_address.get('use_new_address') == 'on',
+        'checkout_selected_address_id': checkout_address.get('selected_address'),
     }
 
     if request.method == 'POST':
         if 'coupon_code' in request.POST:
+            preserve_checkout_address_form_data(request)
             return apply_coupon(request)
         elif 'remove_coupon' in request.POST:
+            preserve_checkout_address_form_data(request)
             if 'coupon' in request.session:
                 del request.session['coupon']
             messages.success(request, "Coupon removed successfully.")
@@ -1388,6 +1394,32 @@ def get_checkout_state(request):
 
 CHECKOUT_PAYMENT_METHODS = {'cod', 'razorpay', 'wallet'}
 PENDING_RAZORPAY_CHECKOUT_SESSION_KEY = 'pending_razorpay_checkout'
+CHECKOUT_ADDRESS_SESSION_KEY = 'checkout_address_form_data'
+CHECKOUT_ADDRESS_FIELDS = (
+    'selected_address',
+    'use_new_address',
+    'full_name',
+    'last_name',
+    'phone_number',
+    'email',
+    'address_line_1',
+    'address_line_2',
+    'city',
+    'state',
+    'postal_code',
+    'country',
+)
+
+
+def preserve_checkout_address_form_data(request):
+    address_data = {}
+    for field in CHECKOUT_ADDRESS_FIELDS:
+        if field in request.POST:
+            address_data[field] = request.POST.get(field, '').strip()
+
+    if address_data:
+        request.session[CHECKOUT_ADDRESS_SESSION_KEY] = address_data
+        request.session.modified = True
 
 def get_validated_checkout_data(request, payment_method=None, include_razorpay_fields=False):
     checkout_state = get_checkout_state(request)
@@ -1754,6 +1786,7 @@ def create_validated_order(request, validated, razorpay_order_id=None, razorpay_
 
         cart.items.all().delete()
         request.session.pop('coupon', None)
+        request.session.pop(CHECKOUT_ADDRESS_SESSION_KEY, None)
 
     return order
 
