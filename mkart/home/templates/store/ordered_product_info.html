@@ -294,7 +294,7 @@
                     {% if item.item_status != 'returned' %}
                       <div class="action-buttons">
                         {% if item.item_status != 'delivered' %}
-                          {% if item.action_status == 'cancel' and item.item_status != 'cancelled' %}
+                          {% if item.action_status == 'cancel' and item.item_status == 'processing' %}
                             <button
                               class="btn btn-sm btn-outline-danger cancel-item"
                               data-item-id="{{ item.id }}"

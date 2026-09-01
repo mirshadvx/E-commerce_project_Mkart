@@ -59,6 +59,10 @@ from .constants import (
 logger = logging.getLogger('registration')
 payment_logger = logging.getLogger('payment')
 
+CANCELLABLE_ORDER_ITEM_STATUS = 'processing'
+PAID_ORDER_STATUSES = {'paid'}
+PAID_ITEM_STATUSES = {'paid'}
+
 
 def redirect_to_product_reviews(product_id):
     return HttpResponseRedirect(f"{reverse('product_info', kwargs={'id': product_id})}#product-review-tab")
@@ -79,6 +83,65 @@ def attach_review_state(order_items, user):
         item.review_url = f"{reverse('product_info', kwargs={'id': product.id})}#product-review-tab"
 
     return order_items
+
+
+def order_item_has_been_paid(order_item):
+    return (
+        order_item.payment_status_item in PAID_ITEM_STATUSES
+        or order_item.order.payment_status in PAID_ORDER_STATUSES
+    )
+
+
+def credit_wallet_for_order_item_refund(order_item, description):
+    refund_amount = order_item.get_paid_amount()
+    if refund_amount <= 0 or not order_item_has_been_paid(order_item):
+        return Decimal('0.00')
+
+    wallet, _created = Wallet.objects.select_for_update().get_or_create(user=order_item.order.user)
+    wallet.balance += refund_amount
+    wallet.save(update_fields=['balance'])
+
+    WalletTransaction.objects.create(
+        wallet=wallet,
+        amount=refund_amount,
+        transaction_type='credit',
+        description=description,
+        balance_after=wallet.balance,
+        reference_type='order_item',
+        reference_id=str(order_item.id),
+    )
+    return refund_amount
+
+
+def refresh_order_status_after_item_change(order):
+    item_statuses = list(order.ordered_items.values_list('item_status', flat=True))
+    if item_statuses and all(status == 'cancelled' for status in item_statuses):
+        order.status = 'cancelled'
+    elif item_statuses and all(status in ['delivered', 'cancelled', 'returned'] for status in item_statuses):
+        order.status = 'completed'
+    else:
+        order.status = 'incomplete'
+    order.save(update_fields=['status', 'updated_at'])
+
+
+def restore_coupon_usage_for_cancelled_order(order):
+    if not order.coupon:
+        return
+
+    coupon = Coupon.objects.select_for_update().filter(code=order.coupon).first()
+    if not coupon:
+        return
+
+    coupon.times_used = max(coupon.times_used - 1, 0)
+    coupon.save(update_fields=['times_used'])
+
+    usage = User_Coupon_limit.objects.select_for_update().filter(
+        coupon=coupon,
+        user=order.user,
+    ).first()
+    if usage:
+        usage.count_usage = max(usage.count_usage - 1, 0)
+        usage.save(update_fields=['count_usage'])
 
 def custom_404(request, exception):
     return render(request, 'store/404.html', status=404)
@@ -2761,56 +2824,56 @@ def edit_details(request):
     return redirect(reverse('account') + '#tab-account')
 
 
+@login_required
 @require_POST
 @transaction.atomic
 def cancel_item(request):
     item_id = request.POST.get('item_id')
-    
+
     try:
-        item = OrderItem.objects.select_related('order', 'product_variant').get(id=item_id, order__user=request.user)
-        
-        if item.item_status in ['pending', 'processing', 'shipped']:
-           
-            refund_amount = item.get_total_price() - item.orderItem_coupon_discount
-    
-            item.item_status = 'cancelled'
-            item.save()
+        item = (
+            OrderItem.objects.select_for_update()
+            .select_related('order', 'product_variant')
+            .get(id=item_id, order__user=request.user)
+        )
 
-            item.product_variant.stock += item.quantity
-            item.product_variant.save()
-     
-            order = item.order
-            if all(i.item_status == 'cancelled' for i in order.ordered_items.all()):
-                order.status = 'cancelled'
-                order.save()
-
-            if order.payment_status == 'paid':
-                user_wallet, _ = Wallet.objects.get_or_create(user=request.user)
-                user_wallet.balance += Decimal(refund_amount)
-                user_wallet.save()
-
-                WalletTransaction.objects.create(
-                    wallet=user_wallet,
-                    amount=refund_amount,
-                    transaction_type='credit',
-                    description=f'Refund for cancelled item in order #{order.id}',
-                    balance_after=user_wallet.balance,
-                    reference_type='order_item',
-                    reference_id=str(item.id),
-                )
-
+        if item.item_status != CANCELLABLE_ORDER_ITEM_STATUS:
             return JsonResponse({
-                'success': True, 
-                'message': 'Item cancelled successfully',
-                'refund_amount': float(refund_amount) if order.payment_status == 'paid' else 0
-            })
-        else:
-            return JsonResponse({'success': False, 'message': 'Item cannot be cancelled in its current status'})
+                'success': False,
+                'message': 'Only processing items can be cancelled.'
+            }, status=400)
+
+        order = item.order
+        previous_order_status = order.status
+        item.item_status = 'cancelled'
+        item.action_status = 'cancel'
+        item.save(update_fields=['item_status', 'action_status'])
+
+        ProductVariant.objects.filter(id=item.product_variant_id).update(stock=F('stock') + item.quantity)
+
+        refund_amount = credit_wallet_for_order_item_refund(
+            item,
+            f'Refund for cancelled item in order #{order.id}',
+        )
+        refresh_order_status_after_item_change(order)
+        if order.status == 'cancelled' and previous_order_status != 'cancelled':
+            restore_coupon_usage_for_cancelled_order(order)
+
+        message = 'Item cancelled successfully.'
+        if refund_amount > 0:
+            message += f' ₹{refund_amount:.2f} has been added to your wallet.'
+
+        return JsonResponse({
+            'success': True,
+            'message': message,
+            'refund_amount': float(refund_amount),
+        })
 
     except OrderItem.DoesNotExist:
-        return JsonResponse({'success': False, 'message': 'Item not found'})
-    except Exception as e:
-        return JsonResponse({'success': False, 'message': f'An error occurred: {str(e)}'})
+        return JsonResponse({'success': False, 'message': 'Item not found'}, status=404)
+    except Exception:
+        logger.exception("Order item cancellation failed for item %s user %s", item_id, request.user.id)
+        return JsonResponse({'success': False, 'message': 'Unable to cancel this item right now.'}, status=500)
 
 @never_cache
 @login_required

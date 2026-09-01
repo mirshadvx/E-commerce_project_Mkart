@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from products.models import Product, ProductVariant
 from django.core.validators import MinValueValidator, MaxValueValidator
+from decimal import Decimal, ROUND_HALF_UP
 import uuid
 from django.db import models
 import string
@@ -218,6 +219,12 @@ class OrderItem(models.Model):
     
     def get_total_price(self):
         return self.quantity * self.price
+
+    def get_paid_amount(self):
+        return max(
+            self.get_total_price() - self.orderItem_coupon_discount,
+            Decimal('0.00')
+        ).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
     
     def update_status(self, new_status):
 

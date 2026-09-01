@@ -810,11 +810,10 @@ def update_order_item_status(request):
                         order_item.payment_status_item = 'paid'
                         order_item.save()
                     elif order_item.item_status == 'returned':
-                        
                         wallet, created = Wallet.objects.get_or_create(user=order_item.order.user)
-                        refund_amount = order_item.get_total_price() - order_item.orderItem_coupon_discount
-                        wallet.balance += Decimal(refund_amount)
-                        wallet.save()
+                        refund_amount = order_item.get_paid_amount()
+                        wallet.balance += refund_amount
+                        wallet.save(update_fields=['balance'])
                         
                        
                         WalletTransaction.objects.create(
