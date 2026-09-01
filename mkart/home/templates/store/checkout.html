@@ -1179,6 +1179,11 @@
       })
         .then((response) => response.json())
         .then((data) => {
+          if (data.success && data.order_id) {
+            window.location.href = "/order-confirmation/" + data.order_id + "/";
+            return;
+          }
+
           if (data.success) {
             showPaymentError(data.message);
           } else {

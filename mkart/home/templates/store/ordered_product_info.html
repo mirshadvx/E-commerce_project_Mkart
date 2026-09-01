@@ -201,18 +201,49 @@
           <p>Payment Method</p>
           <strong>{{ order.get_payment_method_display }}</strong>
         </div>
-        {% if order.payment_method == 'razorpay' and order.payment_status != 'paid' %}
+        {% if can_retry_payment %}
           <div class="razorpay-retry-payment">
             <h3>Retry Payment</h3>
             <p>
-              Your payment for this order is pending or failed. Click the button below to retry the payment.
+              Your payment for this order is pending. Complete payment before {{ order.payment_expires_at|date:"M d, Y h:i A" }}.
             </p>
             {% if order.payment_failure_message %}
               <p class="text-danger">{{ order.payment_failure_message }}</p>
             {% endif %}
-            {% if razorpay_order %}
-            <button id="rzp-button1" class="btn btn-primary">Pay Now</button>
-            {% endif %}
+            <form method="post" action="{% url 'complete_pending_order_payment' order.id %}" id="pending-payment-form">
+              {% csrf_token %}
+              <div class="form-check">
+                <input class="form-check-input pending-payment-method" type="radio" name="payment_method" id="pending_payment_cod" value="cod" {% if not razorpay_order %}checked{% endif %}>
+                <label class="form-check-label" for="pending_payment_cod">
+                  <i class="fas fa-money-bill-wave"></i> Cash on Delivery
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input pending-payment-method" type="radio" name="payment_method" id="pending_payment_razorpay" value="razorpay" {% if razorpay_order %}checked{% endif %}>
+                <label class="form-check-label" for="pending_payment_razorpay">
+                  <i class="fas fa-credit-card"></i> Razorpay
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input pending-payment-method" type="radio" name="payment_method" id="pending_payment_wallet" value="wallet">
+                <label class="form-check-label" for="pending_payment_wallet">
+                  <i class="fas fa-wallet"></i> Wallet (₹{{ wallet_balance|floatformat:2 }})
+                </label>
+              </div>
+              {% if razorpay_order %}
+              <button id="rzp-button1" class="btn btn-primary mt-2">Pay Now</button>
+              <button type="submit" id="pending-offline-payment-btn" class="btn btn-primary mt-2" style="display: none;">Continue</button>
+              {% else %}
+              <button type="submit" id="pending-offline-payment-btn" class="btn btn-primary mt-2">Continue</button>
+              {% endif %}
+            </form>
+          </div>
+        {% elif order.payment_method == 'razorpay' and order.payment_status == 'cancelled' %}
+          <div class="razorpay-retry-payment">
+            <h3>Payment Expired</h3>
+            <p class="text-danger">
+              Payment was not completed within 10 minutes. This order was cancelled and stock has been released.
+            </p>
           </div>
         {% endif %}
       </div>
@@ -490,6 +521,15 @@
     rzp1.open();
     e.preventDefault();
   };
+  $(".pending-payment-method").on("change", function () {
+    if ($(this).val() === "razorpay") {
+      $("#rzp-button1").show();
+      $("#pending-offline-payment-btn").hide();
+    } else {
+      $("#rzp-button1").hide();
+      $("#pending-offline-payment-btn").show();
+    }
+  });
 </script>
 {% endif %}
 

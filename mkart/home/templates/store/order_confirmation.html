@@ -130,6 +130,23 @@
     min-width: 180px;
 }
 
+.pending-payment-card {
+    margin: 0 0 30px;
+    padding: 20px;
+    border: 1px solid #f0c36d;
+    border-radius: 5px;
+    background-color: #fff8e8;
+}
+
+.pending-payment-card h3 {
+    margin-bottom: 10px;
+    font-size: 20px;
+}
+
+.pending-payment-card p {
+    margin-bottom: 8px;
+}
+
 @media (max-width: 768px) {
     /* Responsive design tweaks */
     .order-details {
@@ -153,15 +170,63 @@
 <main class="order-summary-container">
     <section class="order-summary">
         <div class="order-header">
+            {% if can_retry_payment %}
+            <h2>Order placed, payment pending</h2>
+            <p>Please complete payment within 10 minutes to keep this order active.</p>
+            {% elif order.payment_status == 'cancelled' %}
+            <h2>Payment time expired</h2>
+            <p>This order was cancelled and the reserved stock has been released.</p>
+            {% else %}
             <h2>Thank you for your order, {{ order.user.username }}!</h2>
             <p>Your order has been successfully placed and is being processed.</p>
+            {% endif %}
         </div>
+
+        {% if can_retry_payment %}
+        <div class="pending-payment-card">
+            <h3>Complete Payment</h3>
+            <p><strong>Payment Method:</strong> {{ order.get_payment_method_display }}</p>
+            <p><strong>Payment Status:</strong> {{ order.get_payment_status_display }}</p>
+            <p><strong>Pay Before:</strong> {{ order.payment_expires_at|date:"F d, Y h:i A" }}</p>
+            {% if order.payment_failure_message %}
+            <p class="text-danger">{{ order.payment_failure_message }}</p>
+            {% endif %}
+            <form method="post" action="{% url 'complete_pending_order_payment' order.id %}" id="pending-payment-form">
+                {% csrf_token %}
+                <div class="form-check">
+                    <input class="form-check-input pending-payment-method" type="radio" name="payment_method" id="pending_payment_cod" value="cod" {% if not razorpay_order %}checked{% endif %}>
+                    <label class="form-check-label" for="pending_payment_cod">
+                        <i class="fas fa-money-bill-wave"></i> Cash on Delivery
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input pending-payment-method" type="radio" name="payment_method" id="pending_payment_razorpay" value="razorpay" {% if razorpay_order %}checked{% endif %}>
+                    <label class="form-check-label" for="pending_payment_razorpay">
+                        <i class="fas fa-credit-card"></i> Razorpay
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input pending-payment-method" type="radio" name="payment_method" id="pending_payment_wallet" value="wallet">
+                    <label class="form-check-label" for="pending_payment_wallet">
+                        <i class="fas fa-wallet"></i> Wallet (₹{{ wallet_balance|floatformat:2 }})
+                    </label>
+                </div>
+                {% if razorpay_order %}
+                <button id="rzp-button1" class="btn btn-primary mt-3">Pay Now</button>
+                <button type="submit" id="pending-offline-payment-btn" class="btn btn-primary mt-3" style="display: none;">Continue</button>
+                {% else %}
+                <button type="submit" id="pending-offline-payment-btn" class="btn btn-primary mt-3">Continue</button>
+                {% endif %}
+            </form>
+        </div>
+        {% endif %}
         
         <div class="order-details">
             <div class="order-detail-card">
                 <h3>Order Details</h3>
                 <p><strong>Order Number:</strong> #{{ order.id }}</p>
                 <p><strong>Status:</strong> {{ order.get_status_display }}</p>
+                <p><strong>Payment:</strong> {{ order.get_payment_status_display }}</p>
                 <p><strong>Date Created:</strong> {{ order.created_at|date:"F d, Y" }}</p>
             </div>
 
@@ -228,4 +293,100 @@
         </div>
     </section>
 </main>
+{% endblock %}
+
+{% block extra_js %}
+{% if razorpay_order %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+  function reportRetryPaymentFailure(error, reason) {
+    $.ajax({
+      url: '{% url "handle_failed_payment" %}',
+      type: "POST",
+      contentType: "application/json",
+      data: JSON.stringify({
+        order_id: "{{ order.id }}",
+        razorpay_order_id: "{{ razorpay_order.id }}",
+        razorpay_payment_id: error && error.metadata ? error.metadata.payment_id : "",
+        reason: reason || "payment_failed",
+        error: error || {},
+      }),
+      headers: {
+        "X-CSRFToken": "{{ csrf_token }}",
+      },
+      complete: function () {
+        location.reload();
+      },
+    });
+  }
+
+  var paymentFinished = false;
+  var options = {
+    key: "{{ razorpay_key_id }}",
+    amount: "{{ razorpay_order.amount }}",
+    currency: "INR",
+    name: "Mkart",
+    description: "Order #{{ order.id }}",
+    order_id: "{{ razorpay_order.id }}",
+    handler: function (response) {
+      paymentFinished = true;
+      $.ajax({
+        url: '{% url "razorpay_payment_success" %}',
+        type: "POST",
+        data: {
+          razorpay_payment_id: response.razorpay_payment_id,
+          razorpay_order_id: response.razorpay_order_id,
+          razorpay_signature: response.razorpay_signature,
+          order_id: "{{ order.id }}",
+          csrfmiddlewaretoken: "{{ csrf_token }}",
+        },
+        success: function (response) {
+          if (response.success) {
+            location.reload();
+          } else {
+            reportRetryPaymentFailure({}, "verification_failed");
+          }
+        },
+        error: function () {
+          reportRetryPaymentFailure({}, "verification_failed");
+        },
+      });
+    },
+    prefill: {
+      name: "{{ order.order_address.full_name }}",
+      email: "{{ order.order_address.email }}",
+      contact: "{{ order.order_address.phone_number }}",
+    },
+    theme: {
+      color: "#3399cc",
+    },
+    modal: {
+      ondismiss: function () {
+        if (!paymentFinished) {
+          reportRetryPaymentFailure({}, "payment_dismissed");
+        }
+      },
+    },
+  };
+  var rzp1 = new Razorpay(options);
+  rzp1.on("payment.failed", function (response) {
+    paymentFinished = true;
+    reportRetryPaymentFailure(response.error, "payment_failed");
+  });
+  document.getElementById("rzp-button1").onclick = function (e) {
+    rzp1.open();
+    e.preventDefault();
+  };
+  $(".pending-payment-method").on("change", function () {
+    if ($(this).val() === "razorpay") {
+      $("#rzp-button1").show();
+      $("#pending-offline-payment-btn").hide();
+    } else {
+      $("#rzp-button1").hide();
+      $("#pending-offline-payment-btn").show();
+    }
+  });
+</script>
+{% endif %}
 {% endblock %}

@@ -32,11 +32,12 @@ from xhtml2pdf import pisa
 from io import BytesIO
 from django.shortcuts import get_object_or_404
 from django.db import transaction
-from django.db.models import Min, Sum, IntegerField
+from django.db.models import Min, Sum, IntegerField, F
 from django.db.models.functions import Coalesce
 import json
 import logging
 from json import JSONDecodeError
+from datetime import timedelta
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth.views import PasswordResetView
 from django.utils.encoding import force_bytes
@@ -45,6 +46,14 @@ from .services.email_service import (
     send_otp_email,
     send_password_reset_email,
     send_welcome_email,
+)
+from .constants import (
+    CHECKOUT_ADDRESS_FIELDS,
+    CHECKOUT_ADDRESS_SESSION_KEY,
+    CHECKOUT_PAYMENT_METHODS,
+    PENDING_RAZORPAY_CHECKOUT_SESSION_KEY,
+    RAZORPAY_FAILURE_MESSAGES,
+    RAZORPAY_RETRY_WINDOW_MINUTES,
 )
 
 logger = logging.getLogger('registration')
@@ -1176,6 +1185,8 @@ def remove_cart(request, id):
 @never_cache
 @login_required
 def account(request):
+    expire_pending_payment_orders_for_user(request.user)
+
     try:
         user_wishlist_count = Wishlist.objects.filter(user=request.user).count()
     except Wishlist.DoesNotExist:
@@ -1394,33 +1405,6 @@ def get_checkout_state(request):
         'available_coupons': available_coupons,
     }
 
-CHECKOUT_PAYMENT_METHODS = {'cod', 'razorpay', 'wallet'}
-PENDING_RAZORPAY_CHECKOUT_SESSION_KEY = 'pending_razorpay_checkout'
-CHECKOUT_ADDRESS_SESSION_KEY = 'checkout_address_form_data'
-RAZORPAY_FAILURE_MESSAGES = {
-    'payment_failed': 'Payment failed. No order was created. Please try again or choose another payment method.',
-    'payment_cancelled': 'Payment was cancelled. No order was created.',
-    'payment_dismissed': 'Payment window was closed. No order was created.',
-    'payment_start_failed': 'Unable to start Razorpay payment. Please try again.',
-    'verification_failed': "Payment verification failed. Please contact support if money was debited.",
-    'session_mismatch': 'Payment session mismatch. Please refresh checkout and try again.',
-}
-CHECKOUT_ADDRESS_FIELDS = (
-    'selected_address',
-    'use_new_address',
-    'full_name',
-    'last_name',
-    'phone_number',
-    'email',
-    'address_line_1',
-    'address_line_2',
-    'city',
-    'state',
-    'postal_code',
-    'country',
-)
-
-
 def normalize_razorpay_failure(error=None, default_reason='payment_failed'):
     error = error or {}
     if not isinstance(error, dict):
@@ -1442,10 +1426,17 @@ def normalize_razorpay_failure(error=None, default_reason='payment_failed'):
 
 
 def mark_razorpay_order_failed(order, reason, message, razorpay_order_id=None, razorpay_payment_id=None):
-    order.payment_status = 'failed'
+    if order.payment_expires_at and order.payment_expires_at <= django_timezone.now():
+        expire_pending_payment_order(order)
+        return
+
+    order.payment_status = 'pending'
     order.payment_failure_reason = reason
     order.payment_failure_message = message
-    order.payment_failed_at = django_timezone.now()
+    order.payment_failed_at = order.payment_failed_at or django_timezone.now()
+    order.payment_expires_at = order.payment_expires_at or (
+        order.payment_failed_at + timedelta(minutes=RAZORPAY_RETRY_WINDOW_MINUTES)
+    )
     if razorpay_order_id:
         order.razorpay_order_id = razorpay_order_id
     if razorpay_payment_id:
@@ -1455,10 +1446,177 @@ def mark_razorpay_order_failed(order, reason, message, razorpay_order_id=None, r
         'payment_failure_reason',
         'payment_failure_message',
         'payment_failed_at',
+        'payment_expires_at',
         'razorpay_order_id',
         'razorpay_payment_id',
         'updated_at',
     ])
+
+
+def get_payment_retry_deadline():
+    return django_timezone.now() + timedelta(minutes=RAZORPAY_RETRY_WINDOW_MINUTES)
+
+
+def order_can_retry_payment(order):
+    return (
+        order.payment_method == 'razorpay'
+        and order.payment_status in ('pending', 'failed', 'unpaid')
+        and order.status != 'cancelled'
+        and not order.stock_released
+        and order.payment_expires_at
+        and order.payment_expires_at > django_timezone.now()
+    )
+
+
+def release_pending_order_stock(order):
+    if order.stock_released:
+        return
+
+    for item in OrderItem.objects.select_for_update().filter(order=order).select_related('product_variant'):
+        ProductVariant.objects.filter(id=item.product_variant_id).update(stock=F('stock') + item.quantity)
+        if item.item_status != 'cancelled':
+            item.item_status = 'cancelled'
+            item.save(update_fields=['item_status'])
+
+    if order.coupon:
+        coupon = Coupon.objects.select_for_update().filter(code=order.coupon).first()
+        if coupon:
+            coupon.times_used = max(coupon.times_used - 1, 0)
+            coupon.save(update_fields=['times_used'])
+            usage = User_Coupon_limit.objects.select_for_update().filter(
+                coupon=coupon,
+                user=order.user,
+            ).first()
+            if usage:
+                usage.count_usage = max(usage.count_usage - 1, 0)
+                usage.save(update_fields=['count_usage'])
+
+    order.stock_released = True
+
+
+def expire_pending_payment_order(order):
+    with transaction.atomic():
+        locked_order = Order.objects.select_for_update().get(id=order.id)
+        if (
+            locked_order.payment_method != 'razorpay'
+            or locked_order.payment_status == 'paid'
+            or locked_order.status == 'cancelled'
+            or not locked_order.payment_expires_at
+            or locked_order.payment_expires_at > django_timezone.now()
+        ):
+            return locked_order
+
+        release_pending_order_stock(locked_order)
+        locked_order.status = 'cancelled'
+        locked_order.payment_status = 'cancelled'
+        locked_order.payment_failure_reason = 'payment_expired'
+        locked_order.payment_failure_message = RAZORPAY_FAILURE_MESSAGES['payment_expired']
+        locked_order.save(update_fields=[
+            'status',
+            'payment_status',
+            'payment_failure_reason',
+            'payment_failure_message',
+            'stock_released',
+            'updated_at',
+        ])
+        return locked_order
+
+
+def expire_pending_payment_orders_for_user(user):
+    overdue_orders = Order.objects.filter(
+        user=user,
+        payment_method='razorpay',
+        payment_status__in=('pending', 'failed', 'unpaid'),
+        status__in=('incomplete', 'completed'),
+        payment_expires_at__lte=django_timezone.now(),
+        stock_released=False,
+    )
+    for order in overdue_orders:
+        expire_pending_payment_order(order)
+
+
+def create_pending_razorpay_order_from_checkout(request, pending_checkout, reason, message, razorpay_payment_id=None):
+    if not pending_checkout:
+        return None
+
+    with transaction.atomic():
+        cart = Cart.objects.select_for_update().filter(user=request.user).first()
+        snapshot = pending_checkout.get('cart_snapshot') or []
+        if not snapshot:
+            raise ValueError("Unable to create pending order because the checkout session is missing cart items.")
+
+        variant_ids = [item['variant_id'] for item in snapshot]
+        locked_variants = {
+            variant.id: variant
+            for variant in ProductVariant.objects.select_for_update()
+            .filter(id__in=variant_ids)
+            .select_related('product', 'color')
+        }
+
+        subtotal = Decimal('0.00')
+        for item in snapshot:
+            variant = locked_variants.get(item['variant_id'])
+            quantity = int(item['quantity'])
+            if not variant:
+                raise ValueError("One of your checkout items is no longer available.")
+            if quantity > variant.stock:
+                raise ValueError(f"Only {variant.stock} item(s) available for {variant.product.name} - {variant.color}.")
+            subtotal += quantity * Decimal(str(item['price']))
+
+        coupon_code = pending_checkout.get('coupon')
+        coupon_discount = Decimal(str(pending_checkout.get('coupon_discount') or '0.00'))
+        total = Decimal(str(pending_checkout.get('total') or '0.00'))
+        payment_failed_at = django_timezone.now()
+        order = Order.objects.create(
+            user=request.user,
+            total_price=total,
+            payment_method='razorpay',
+            payment_status='pending',
+            status='incomplete',
+            razorpay_order_id=pending_checkout.get('razorpay_order_id'),
+            razorpay_payment_id=razorpay_payment_id,
+            payment_failure_reason=reason,
+            payment_failure_message=message,
+            payment_failed_at=payment_failed_at,
+            payment_expires_at=get_payment_retry_deadline(),
+            stock_released=False,
+            coupon=coupon_code,
+            discount_amount_coupon=coupon_discount,
+        )
+
+        OrderAddress.objects.create(order=order, **pending_checkout['address_data'])
+
+        for item in snapshot:
+            variant = locked_variants[item['variant_id']]
+            quantity = int(item['quantity'])
+            price = Decimal(str(item['price']))
+            if subtotal > 0:
+                item_coupon_discount = (quantity * price / subtotal) * coupon_discount
+            else:
+                item_coupon_discount = Decimal('0.00')
+
+            OrderItem.objects.create(
+                order=order,
+                product_variant=variant,
+                quantity=quantity,
+                price=price,
+                item_status='pending',
+                payment_status_item='unpaid',
+                orderItem_coupon_discount=item_coupon_discount,
+            )
+            ProductVariant.objects.filter(id=variant.id).update(stock=F('stock') - quantity)
+
+        if coupon_code:
+            coupon = Coupon.objects.select_for_update().filter(code=coupon_code).first()
+            if coupon:
+                coupon.increment_usage(request.user)
+
+        if cart:
+            cart.items.all().delete()
+        request.session.pop('coupon', None)
+        request.session.pop(CHECKOUT_ADDRESS_SESSION_KEY, None)
+
+    return order
 
 
 def preserve_checkout_address_form_data(request):
@@ -1658,9 +1816,6 @@ def handle_failed_payment(request):
             'message': RAZORPAY_FAILURE_MESSAGES['session_mismatch']
         }, status=400)
 
-    request.session.pop(PENDING_RAZORPAY_CHECKOUT_SESSION_KEY, None)
-    request.session.modified = True
-
     order = None
     order_marked_failed = False
     if local_order_id:
@@ -1678,6 +1833,27 @@ def handle_failed_payment(request):
                 razorpay_payment_id=razorpay_payment_id,
             )
             order_marked_failed = True
+    elif pending_checkout:
+        try:
+            order = create_pending_razorpay_order_from_checkout(
+                request,
+                pending_checkout,
+                failure_reason,
+                failure_message,
+                razorpay_payment_id=razorpay_payment_id,
+            )
+            order_marked_failed = True
+        except ValueError as exc:
+            failure_message = str(exc)
+            payment_logger.warning(
+                "Unable to create pending Razorpay order for user %s. razorpay_order_id=%s reason=%s",
+                request.user.id,
+                razorpay_order_id,
+                exc,
+            )
+
+    request.session.pop(PENDING_RAZORPAY_CHECKOUT_SESSION_KEY, None)
+    request.session.modified = True
 
     payment_logger.warning(
         "Razorpay payment failed for user %s. razorpay_order_id=%s local_order_id=%s reason=%s error=%s",
@@ -1691,6 +1867,7 @@ def handle_failed_payment(request):
     return JsonResponse({
         'success': True,
         'message': failure_message,
+        'order_id': order.id if order else None,
         'order_marked_failed': order_marked_failed,
     })
 
@@ -2130,22 +2307,156 @@ def apply_coupon(request):
     
     return redirect('checkout')
 
+
+@login_required
+@require_POST
+def complete_pending_order_payment(request, order_id):
+    payment_method = request.POST.get('payment_method')
+    if payment_method not in CHECKOUT_PAYMENT_METHODS:
+        messages.error(request, "Please select a valid payment method.")
+        return redirect('order_confirmation', order_id=order_id)
+
+    if payment_method == 'razorpay':
+        return redirect('order_confirmation', order_id=order_id)
+
+    with transaction.atomic():
+        order = get_object_or_404(
+            Order.objects.select_for_update(),
+            id=order_id,
+            user=request.user,
+            payment_method='razorpay',
+        )
+
+        if order.payment_status == 'paid':
+            messages.info(request, "This order is already paid.")
+            return redirect('order_confirmation', order_id=order.id)
+
+        if order.payment_expires_at and order.payment_expires_at <= django_timezone.now():
+            release_pending_order_stock(order)
+            order.status = 'cancelled'
+            order.payment_status = 'cancelled'
+            order.payment_failure_reason = 'payment_expired'
+            order.payment_failure_message = RAZORPAY_FAILURE_MESSAGES['payment_expired']
+            order.save(update_fields=[
+                'status',
+                'payment_status',
+                'payment_failure_reason',
+                'payment_failure_message',
+                'stock_released',
+                'updated_at',
+            ])
+            messages.error(request, RAZORPAY_FAILURE_MESSAGES['payment_expired'])
+            return redirect('order_confirmation', order_id=order.id)
+
+        if order.stock_released or order.status == 'cancelled':
+            messages.error(request, RAZORPAY_FAILURE_MESSAGES['payment_expired'])
+            return redirect('order_confirmation', order_id=order.id)
+
+        if payment_method == 'wallet':
+            wallet, _created = Wallet.objects.select_for_update().get_or_create(user=request.user)
+            if order.total_price > wallet.balance:
+                messages.error(request, "Insufficient balance in your wallet to complete this purchase.")
+                return redirect('order_confirmation', order_id=order.id)
+
+            wallet.balance -= order.total_price
+            wallet.save(update_fields=['balance'])
+            WalletTransaction.objects.create(
+                wallet=wallet,
+                amount=order.total_price,
+                transaction_type='debit',
+                description=f'Wallet payment for order #{order.id}',
+                balance_after=wallet.balance,
+                reference_type='order',
+                reference_id=str(order.id),
+            )
+            order.payment_method = 'wallet'
+            order.payment_status = 'paid'
+            order.payment_failure_reason = ''
+            order.payment_failure_message = ''
+            order.payment_failed_at = None
+            order.payment_expires_at = None
+            order.save(update_fields=[
+                'payment_method',
+                'payment_status',
+                'payment_failure_reason',
+                'payment_failure_message',
+                'payment_failed_at',
+                'payment_expires_at',
+                'updated_at',
+            ])
+            OrderItem.objects.filter(order=order).exclude(item_status='cancelled').update(
+                item_status='processing',
+                payment_status_item='paid',
+            )
+            messages.success(request, "Wallet payment completed successfully.")
+            return redirect('order_confirmation', order_id=order.id)
+
+        if payment_method == 'cod':
+            if order.total_price < Decimal('1000.00'):
+                messages.error(request, "Cash on Delivery is not available for orders below ₹1000.")
+                return redirect('order_confirmation', order_id=order.id)
+
+            order.payment_method = 'cod'
+            order.payment_status = 'unpaid'
+            order.payment_failure_reason = ''
+            order.payment_failure_message = ''
+            order.payment_failed_at = None
+            order.payment_expires_at = None
+            order.save(update_fields=[
+                'payment_method',
+                'payment_status',
+                'payment_failure_reason',
+                'payment_failure_message',
+                'payment_failed_at',
+                'payment_expires_at',
+                'updated_at',
+            ])
+            OrderItem.objects.filter(order=order).exclude(item_status='cancelled').update(
+                item_status='pending',
+                payment_status_item='unpaid',
+            )
+            messages.success(request, "Payment method changed to Cash on Delivery.")
+            return redirect('order_confirmation', order_id=order.id)
+
 @login_required
 def order_confirmation(request, order_id):
+    expire_pending_payment_orders_for_user(request.user)
+
     try:
         order = Order.objects.get(id=order_id, user=request.user)
     except Order.DoesNotExist:
         messages.error(request, "Order not found.")
         return redirect('home')
 
+    razorpay_order = None
+    if order_can_retry_payment(order):
+        try:
+            client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+            razorpay_order = client.order.create({
+                'amount': int(order.total_price * 100),
+                'currency': 'INR',
+                'payment_capture': '1'
+            })
+            order.razorpay_order_id = razorpay_order['id']
+            order.save(update_fields=['razorpay_order_id', 'updated_at'])
+        except Exception:
+            payment_logger.exception("Razorpay retry order creation failed for order %s", order.id)
+            messages.error(request, "Unable to start Razorpay payment. Please try again later.")
+
     context = {
-        'order': order
+        'order': order,
+        'razorpay_order': razorpay_order,
+        'razorpay_key_id': settings.RAZORPAY_KEY_ID,
+        'can_retry_payment': order_can_retry_payment(order),
+        'wallet_balance': Wallet.objects.get_or_create(user=request.user)[0].balance,
     }
     return render(request, 'store/order_confirmation.html', context)
 
 @never_cache
 @login_required
 def show_order_details(request, order_id):
+    expire_pending_payment_orders_for_user(request.user)
+
     order = get_object_or_404(Order, id=order_id, user=request.user)
     order_items = attach_review_state(
         list(OrderItem.objects.filter(order=order).select_related('product_variant__product')),
@@ -2167,7 +2478,7 @@ def show_order_details(request, order_id):
     cart_total = cart.get_total_price()
 
     razorpay_order = None
-    if order.payment_method == 'razorpay' and order.payment_status in ('unpaid', 'failed'):
+    if order_can_retry_payment(order):
         try:
             client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
             razorpay_order = client.order.create({
@@ -2190,6 +2501,8 @@ def show_order_details(request, order_id):
         'cart_total': cart_total,
         'razorpay_order': razorpay_order,
         'razorpay_key_id': settings.RAZORPAY_KEY_ID,
+        'can_retry_payment': order_can_retry_payment(order),
+        'wallet_balance': Wallet.objects.get_or_create(user=request.user)[0].balance,
     }
     return render(request, 'store/ordered_product_info.html', context)
 
@@ -2232,21 +2545,35 @@ def razorpay_payment_success(request):
         razorpay_order_id=razorpay_order_id,
     )
 
+    if order.payment_status != 'paid' and order.payment_expires_at and order.payment_expires_at <= django_timezone.now():
+        expire_pending_payment_order(order)
+        return JsonResponse({'success': False, 'message': RAZORPAY_FAILURE_MESSAGES['payment_expired']}, status=400)
+
+    if order.stock_released or order.status == 'cancelled':
+        return JsonResponse({'success': False, 'message': RAZORPAY_FAILURE_MESSAGES['payment_expired']}, status=400)
+
     order.payment_status = 'paid'
+    order.status = 'incomplete'
     order.razorpay_payment_id = razorpay_payment_id
     order.payment_failure_reason = ''
     order.payment_failure_message = ''
     order.payment_failed_at = None
+    order.payment_expires_at = None
     order.save(update_fields=[
+        'status',
         'payment_status',
         'razorpay_payment_id',
         'payment_failure_reason',
         'payment_failure_message',
         'payment_failed_at',
+        'payment_expires_at',
         'updated_at',
     ])
 
-    OrderItem.objects.filter(order=order).update(payment_status_item='paid')
+    OrderItem.objects.filter(order=order).exclude(item_status='cancelled').update(
+        payment_status_item='paid',
+        item_status='processing',
+    )
 
     return JsonResponse({'success': True})
 

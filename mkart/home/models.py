@@ -141,7 +141,8 @@ class CartItem(models.Model):
 class Order(models.Model):
     STATUS_CHOICES = [
         ('completed', 'Completed'),
-        ('incomplete', 'InComplete')
+        ('incomplete', 'InComplete'),
+        ('cancelled', 'Cancelled'),
     ]
 
     PAYMENT_METHODS = [
@@ -153,7 +154,9 @@ class Order(models.Model):
     PAYMENT_STATUS_CHOICES = [
         ('paid','Paid'),
         ('unpaid','Unpaid'),
+        ('pending', 'Pending'),
         ('failed', 'Failed'),
+        ('cancelled', 'Cancelled'),
     ]
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='incomplete')
@@ -167,6 +170,8 @@ class Order(models.Model):
     payment_failure_reason = models.CharField(max_length=100, blank=True, default='')
     payment_failure_message = models.TextField(blank=True, default='')
     payment_failed_at = models.DateTimeField(blank=True, null=True)
+    payment_expires_at = models.DateTimeField(blank=True, null=True)
+    stock_released = models.BooleanField(default=False)
     coupon = models.CharField(max_length=50,null=True)
     discount_amount_coupon = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
