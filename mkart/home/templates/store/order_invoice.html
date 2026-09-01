@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Invoice - Order #{{ order.id }}</title>
+    <style>
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            color: #222;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+        h1 {
+            font-size: 24px;
+            margin: 0 0 4px;
+        }
+        h2 {
+            font-size: 15px;
+            margin: 18px 0 8px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 4px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 6px;
+            vertical-align: top;
+        }
+        th {
+            background: #f4f6f8;
+            text-align: left;
+        }
+        .meta-table td,
+        .summary-table td {
+            border: none;
+            padding: 3px 0;
+        }
+        .label {
+            font-weight: bold;
+        }
+        .amount {
+            text-align: right;
+            white-space: nowrap;
+        }
+        .muted {
+            color: #666;
+        }
+        .total-row td {
+            font-weight: bold;
+            border-top: 1px solid #999;
+        }
+    </style>
+</head>
+<body>
+    <h1>INVOICE</h1>
+    <div class="muted">Order #{{ order.id }} | {{ order.created_at|date:"F d, Y" }}</div>
+
+    <h2>Order Information</h2>
+    <table class="meta-table">
+        <tr>
+            <td><span class="label">Order Status:</span> {{ order.get_status_display }}</td>
+            <td><span class="label">Payment Status:</span> {{ order.get_payment_status_display }}</td>
+        </tr>
+        <tr>
+            <td><span class="label">Payment Method:</span> {{ order.get_payment_method_display }}</td>
+            <td><span class="label">Coupon:</span> {{ order.coupon|default:"No coupon applied" }}</td>
+        </tr>
+        {% if order.razorpay_payment_id %}
+        <tr>
+            <td colspan="2"><span class="label">Payment ID:</span> {{ order.razorpay_payment_id }}</td>
+        </tr>
+        {% endif %}
+    </table>
+
+    <h2>Billing And Shipping</h2>
+    <table class="meta-table">
+        <tr>
+            <td>
+                <span class="label">Customer:</span>
+                {% if order.user.get_full_name %}{{ order.user.get_full_name }}{% else %}{{ order.user.username }}{% endif %}
+            </td>
+            <td><span class="label">Email:</span> {{ order.user.email }}</td>
+        </tr>
+        <tr>
+            <td><span class="label">Phone:</span> {{ order.order_address.phone_number }}</td>
+            <td><span class="label">Ship To:</span> {{ order.order_address.full_name }} {{ order.order_address.last_name }}</td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <span class="label">Address:</span>
+                {{ order.order_address.address_line_1 }}
+                {% if order.order_address.address_line_2 %}, {{ order.order_address.address_line_2 }}{% endif %},
+                {{ order.order_address.city }}, {{ order.order_address.state }},
+                {{ order.order_address.country }} - {{ order.order_address.postal_code }}
+            </td>
+        </tr>
+    </table>
+
+    <h2>Items</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>Qty</th>
+                <th class="amount">Unit Price</th>
+                <th class="amount">Subtotal</th>
+                <th class="amount">Coupon Discount</th>
+                <th class="amount">Net Amount</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in billable_items %}
+            <tr>
+                <td>
+                    {{ item.product_variant.product.name }}<br>
+                    <span class="muted">
+                        {{ item.product_variant.product.brand.name }} |
+                        {{ item.product_variant.product.category.name }} |
+                        {{ item.product_variant.color.name }}
+                    </span>
+                </td>
+                <td>{{ item.quantity }}</td>
+                <td class="amount">Rs. {{ item.price|floatformat:2 }}</td>
+                <td class="amount">Rs. {{ item.line_total|floatformat:2 }}</td>
+                <td class="amount">- Rs. {{ item.orderItem_coupon_discount|floatformat:2 }}</td>
+                <td class="amount">Rs. {{ item.paid_amount|floatformat:2 }}</td>
+                <td>{{ item.get_item_status_display }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h2>Payment Summary</h2>
+    <table class="summary-table">
+        <tr>
+            <td>Items Subtotal</td>
+            <td class="amount">Rs. {{ order.invoice_subtotal|floatformat:2 }}</td>
+        </tr>
+        <tr>
+            <td>Coupon Discount</td>
+            <td class="amount">- Rs. {{ order.invoice_coupon_discount|floatformat:2 }}</td>
+        </tr>
+        <tr>
+            <td>Shipping</td>
+            <td class="amount">Rs. 0.00</td>
+        </tr>
+        <tr>
+            <td>Tax</td>
+            <td class="amount">Rs. 0.00</td>
+        </tr>
+        <tr class="total-row">
+            <td>Invoice Total</td>
+            <td class="amount">Rs. {{ order.invoice_paid_total|floatformat:2 }}</td>
+        </tr>
+    </table>
+</body>
+</html>

@@ -1531,6 +1531,40 @@ def order_can_retry_payment(order):
     )
 
 
+def prepare_order_invoice_details(order):
+    order_items = list(
+        OrderItem.objects.filter(order=order)
+        .select_related(
+            'product_variant__product__brand',
+            'product_variant__product__category',
+            'product_variant__color',
+        )
+    )
+    billable_subtotal = Decimal('0.00')
+    billable_coupon_discount = Decimal('0.00')
+    paid_total = Decimal('0.00')
+    billable_items = []
+
+    for item in order_items:
+        item.line_total = item.get_total_price()
+        item.paid_amount = item.get_paid_amount()
+        if item.item_status not in ['cancelled', 'returned']:
+            billable_subtotal += item.line_total
+            billable_coupon_discount += item.orderItem_coupon_discount
+            paid_total += item.paid_amount
+            billable_items.append(item)
+
+    order.invoice_subtotal = billable_subtotal
+    order.invoice_coupon_discount = billable_coupon_discount
+    order.invoice_paid_total = paid_total
+    order.invoice_can_download = (
+        order.status != 'cancelled'
+        and order.payment_status not in ['pending', 'failed', 'cancelled']
+        and bool(billable_items)
+    )
+    return order_items, billable_items
+
+
 def release_pending_order_stock(order):
     if order.stock_released:
         return
@@ -2491,6 +2525,7 @@ def order_confirmation(request, order_id):
         messages.error(request, "Order not found.")
         return redirect('home')
 
+    prepare_order_invoice_details(order)
     razorpay_order = None
     if order_can_retry_payment(order):
         try:
@@ -2521,6 +2556,7 @@ def show_order_details(request, order_id):
     expire_pending_payment_orders_for_user(request.user)
 
     order = get_object_or_404(Order, id=order_id, user=request.user)
+    prepare_order_invoice_details(order)
     order_items = attach_review_state(
         list(OrderItem.objects.filter(order=order).select_related('product_variant__product')),
         request.user
@@ -2695,6 +2731,34 @@ def razorpay_webhook(request):
             )
 
     return JsonResponse({'success': True})
+
+@login_required
+def download_order_invoice(request, order_id):
+    expire_pending_payment_orders_for_user(request.user)
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+    order_items, billable_items = prepare_order_invoice_details(order)
+
+    if not order.invoice_can_download:
+        return HttpResponse("Invoice is not available for this order.", status=400)
+
+    template = get_template('store/order_invoice.html')
+    html = template.render({
+        'order': order,
+        'order_items': order_items,
+        'billable_items': billable_items,
+        'user': request.user,
+    })
+
+    result = BytesIO()
+    pdf = pisa.pisaDocument(BytesIO(html.encode("UTF-8")), result)
+
+    if not pdf.err:
+        response = HttpResponse(result.getvalue(), content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="invoice_order_{order.id}.pdf"'
+        return response
+
+    return HttpResponse("Error generating invoice PDF", status=400)
+
 
 @login_required
 def download_invoice(request, item_id):

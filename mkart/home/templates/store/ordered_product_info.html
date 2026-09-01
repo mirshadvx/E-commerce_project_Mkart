@@ -55,6 +55,13 @@
     color: #0288d1;
   }
 
+  .order-level-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin: -15px 0 25px;
+  }
+
   .order-meta {
     display: flex;
     justify-content: space-between;
@@ -184,6 +191,15 @@
         <h2>Order #{{ order.id }}</h2>
         <span class="order-status">{{ order.get_status_display }}</span>
       </div>
+
+      {% if order.invoice_can_download %}
+        <div class="order-level-actions">
+          <a href="{% url 'download_order_invoice' order.id %}" class="btn btn-outline-primary">
+            <i class="fas fa-file-invoice"></i>
+            Download Invoice
+          </a>
+        </div>
+      {% endif %}
 
       <div class="order-meta">
         <div class="order-meta-item">

@@ -158,7 +158,7 @@
                     <a href="javascript:void(0);" class="btn btn-primary" onclick="window.print()">
                         <i class="fas fa-print me-2"></i> Print
                     </a>
-                    <a href="javascript:void(0);" class="btn btn-secondary">
+                    <a href="{% url 'Admin:download_order_details_pdf' id=order.id %}" class="btn btn-secondary">
                         <i class="fas fa-file-pdf me-2"></i> Download PDF
                     </a>
                 </div>
@@ -182,6 +182,13 @@
                                 <h5 class="text-muted mb-3">Order Information</h5>
                                 <p><strong>Date:</strong> {{ order.created_at|date:"F d, Y" }}</p>
                                 <p><strong>Payment Method:</strong> {{ order.get_payment_method_display }}</p>
+                                <p><strong>Payment Status:</strong> {{ order.get_payment_status_display }}</p>
+                                {% if order.razorpay_order_id %}
+                                <p><strong>Razorpay Order ID:</strong> {{ order.razorpay_order_id }}</p>
+                                {% endif %}
+                                {% if order.razorpay_payment_id %}
+                                <p><strong>Razorpay Payment ID:</strong> {{ order.razorpay_payment_id }}</p>
+                                {% endif %}
                                 {% if order.payment_status == 'failed' and order.payment_failure_message %}
                                 <p><strong>Failure Reason:</strong> {{ order.payment_failure_message }}</p>
                                 {% endif %}
@@ -217,20 +224,36 @@
                                 <h5 class="text-muted mb-3">Order Summary</h5>
                                 <table class="table table-borderless summary-table">
                                     <tr>
-                                        <td>Subtotal:</td>
-                                        <td class="text-end">{{ order.total_price }}</td>
+                                        <td>Items Subtotal:</td>
+                                        <td class="text-end">₹{{ order.subtotal_before_coupon|floatformat:2 }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Coupon:</td>
+                                        <td class="text-end">{{ order.coupon|default:"No coupon applied" }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Coupon Discount:</td>
+                                        <td class="text-end text-success">-₹{{ order.total_coupon_discount_display|floatformat:2 }}</td>
                                     </tr>
                                     <tr>
                                         <td>Shipping:</td>
-                                        <td class="text-end">0.00</td>
+                                        <td class="text-end">₹0.00</td>
                                     </tr>
                                     <tr>
                                         <td>Tax:</td>
-                                        <td class="text-end">0.00</td>
+                                        <td class="text-end">₹0.00</td>
                                     </tr>
                                     <tr class="total-row">
-                                        <td>Total:</td>
-                                        <td class="text-end">{{ order.total_price }}</td>
+                                        <td>Paid / Payable Total:</td>
+                                        <td class="text-end">₹{{ order.total_price|floatformat:2 }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Refunded / Cancelled Value:</td>
+                                        <td class="text-end text-danger">₹{{ order.refunded_amount_display|floatformat:2 }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Active Order Value:</td>
+                                        <td class="text-end">₹{{ order.active_paid_amount_display|floatformat:2 }}</td>
                                     </tr>
                                 </table>
                             </div>
@@ -243,15 +266,17 @@
                                     <tr>
                                         <th>Product</th>
                                         <th>Quantity</th>
-                                        <th>Price</th>
-                                        <th>Total</th>
+                                        <th>Unit Price</th>
+                                        <th>Item Subtotal</th>
+                                        <th>Coupon Discount</th>
+                                        <th>Paid Amount</th>
                                         <th>Status</th>
                                         <th>Payment Status</th>
-                                        <th>Rrequest</th>
+                                        <th>Request</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {% for item in order.ordered_items.all %}
+                                    {% for item in order_items %}
                                     <tr>
                                         <td>
                                             <div class="d-flex align-items-center">
@@ -267,8 +292,10 @@
                                             </div>
                                         </td>
                                         <td>{{ item.quantity }}</td>
-                                        <td>{{ item.price }}</td>
-                                        <td>{{ item.get_total_price }}</td>
+                                        <td>₹{{ item.price|floatformat:2 }}</td>
+                                        <td>₹{{ item.line_total|floatformat:2 }}</td>
+                                        <td class="text-success">-₹{{ item.orderItem_coupon_discount|floatformat:2 }}</td>
+                                        <td>₹{{ item.paid_amount|floatformat:2 }}</td>
                                         <td>
                                             {% comment %} <select class="form-select status-dropdown" data-item-id="{{ item.id }}">
                                                 {% for status, display in item.STATUS_CHOICES %}
@@ -287,7 +314,13 @@
                                         <td>
                                             <span style="color: black; font-size: small;" class="badge bg-{{ item.payment_status_item }}">{{ item.get_payment_status_item_display }}</span>
                                         </td>
-                                        {% if item.return_request == True %}<td><span style="color:red;">Requested to return</span></td>{% endif %}
+                                        <td>
+                                            {% if item.return_request == True %}
+                                                <span style="color:red;">Requested to return</span>
+                                            {% else %}
+                                                <span class="text-muted">No request</span>
+                                            {% endif %}
+                                        </td>
                                     </tr>
                                     {% endfor %}
                                 </tbody>

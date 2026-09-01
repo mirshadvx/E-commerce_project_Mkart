@@ -29,6 +29,7 @@ urlpatterns = [
     path('logout', views.logout_admin, name='logout'),
     path('order_list/', views.show_order_list, name='order_list'),
     path('order_list/order_details/<int:id>/', views.show_order_details, name='order_details'),
+    path('order_list/order_details/<int:id>/download-pdf/', views.download_order_details_pdf, name='download_order_details_pdf'),
     path('update_order_item_status/', views.update_order_item_status, name='update_order_item_status'),
     path('addcoupon/', views.add_coupon, name='add_coupon'),
     path('couponList/',views.show_coupon_list,name='coupon_list'),

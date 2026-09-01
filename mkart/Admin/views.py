@@ -41,6 +41,8 @@ import logging
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import ProtectedError
 from datetime import datetime
+from django.template.loader import get_template
+from xhtml2pdf import pisa
 
 logger = logging.getLogger(__name__)
 
@@ -779,20 +781,71 @@ def show_order_list(request):
     }
     return render(request,'orderlist.html',context)
 
-@never_cache
-@login_required
-@user_passes_test(lambda u: u.is_superuser)
-def show_order_details(request, id):
+
+def get_order_with_pricing_details(order_id):
     order = get_object_or_404(Order.objects.select_related('user', 'order_address').prefetch_related(
         'ordered_items__product_variant__product__brand',
         'ordered_items__product_variant__product__category',
         'ordered_items__product_variant__color'
-    ), id=id)
+    ), id=order_id)
+    order_items = list(order.ordered_items.all())
+    subtotal = Decimal('0.00')
+    total_coupon_discount = Decimal('0.00')
+    total_paid_amount = Decimal('0.00')
+    refunded_amount = Decimal('0.00')
+
+    for item in order_items:
+        item.line_total = item.get_total_price()
+        item.paid_amount = item.get_paid_amount()
+        subtotal += item.line_total
+        total_coupon_discount += item.orderItem_coupon_discount
+        if item.item_status in ['cancelled', 'returned']:
+            refunded_amount += item.paid_amount
+        else:
+            total_paid_amount += item.paid_amount
+
+    order.subtotal_before_coupon = subtotal
+    order.total_coupon_discount_display = total_coupon_discount
+    order.total_paid_amount_display = subtotal - total_coupon_discount
+    order.refunded_amount_display = refunded_amount
+    order.active_paid_amount_display = total_paid_amount
+    return order, order_items
+
+
+@never_cache
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def show_order_details(request, id):
+    order, order_items = get_order_with_pricing_details(id)
 
     context = {
         'order': order,
+        'order_items': order_items,
     }
     return render(request, 'order_Details.html', context)
+
+
+@never_cache
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def download_order_details_pdf(request, id):
+    order, order_items = get_order_with_pricing_details(id)
+    template = get_template('order_details_pdf.html')
+    html = template.render({
+        'order': order,
+        'order_items': order_items,
+    })
+
+    result = BytesIO()
+    pdf = pisa.pisaDocument(BytesIO(html.encode('UTF-8')), result)
+
+    if pdf.err:
+        logger.error("Admin order PDF generation failed for order %s", id)
+        return HttpResponse("Error generating order PDF", status=400)
+
+    response = HttpResponse(result.getvalue(), content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="order_{order.id}_details.pdf"'
+    return response
 
 @login_required
 @user_passes_test(lambda u: u.is_superuser)

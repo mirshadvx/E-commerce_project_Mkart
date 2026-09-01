@@ -130,6 +130,11 @@
     min-width: 180px;
 }
 
+.invoice-action {
+    text-align: center;
+    margin: 0 0 30px;
+}
+
 .pending-payment-card {
     margin: 0 0 30px;
     padding: 20px;
@@ -221,6 +226,14 @@
         </div>
         {% endif %}
         
+        {% if order.invoice_can_download %}
+        <div class="invoice-action">
+            <a href="{% url 'download_order_invoice' order.id %}" class="btn btn-outline-primary-2">
+                <i class="fas fa-file-invoice"></i> Download Invoice
+            </a>
+        </div>
+        {% endif %}
+
         <div class="order-details">
             <div class="order-detail-card">
                 <h3>Order Details</h3>
@@ -287,6 +300,11 @@
             <a href="{% url 'account' %}#tab-orders" class="btn btn-outline-primary-2">
                 <i class="fas fa-list-alt"></i> View Orders
             </a>
+            {% if order.invoice_can_download %}
+            <a href="{% url 'download_order_invoice' order.id %}" class="btn btn-outline-primary-2">
+                <i class="fas fa-file-invoice"></i> Download Invoice
+            </a>
+            {% endif %}
             <a href="{% url 'productslist' %}" class="btn btn-primary">
                 <i class="fas fa-shopping-bag"></i> Continue Shopping
             </a>
