@@ -10,28 +10,35 @@ import string
 import random
 from Admin.models import *
 
+
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     phone = models.CharField(max_length=15, blank=True, default="")
-    referral_code = models.CharField(max_length=10, unique=True, blank=True,null=True)
-    referred_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='referrals')
+    referral_code = models.CharField(max_length=10, unique=True, blank=True, null=True)
+    referred_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True, related_name="referrals"
+    )
 
     def __str__(self):
         return self.user.username
 
     def generate_referral_code(self):
-        random_suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
-        self.referral_code = f'{self.user.id}{random_suffix}'
-        
+        random_suffix = "".join(
+            random.choices(string.ascii_uppercase + string.digits, k=4)
+        )
+        self.referral_code = f"{self.user.id}{random_suffix}"
+
         while Profile.objects.filter(referral_code=self.referral_code).exists():
-            random_suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
-            self.referral_code = f'{self.user.id}{random_suffix}'
+            random_suffix = "".join(
+                random.choices(string.ascii_uppercase + string.digits, k=4)
+            )
+            self.referral_code = f"{self.user.id}{random_suffix}"
 
     def save(self, *args, **kwargs):
         if not self.referral_code:
             self.generate_referral_code()
         super().save(*args, **kwargs)
-        
+
     @classmethod
     def apply_referral(cls, user, referral_code):
         try:
@@ -40,8 +47,8 @@ class Profile(models.Model):
             user.profile.save()
             return True
         except cls.DoesNotExist:
-            return False    
-            
+            return False
+
     @classmethod
     def apply_referral(cls, user, referral_code):
         try:
@@ -50,7 +57,9 @@ class Profile(models.Model):
             user.profile.save()
 
             user_wallet, _ = Wallet.objects.get_or_create(user=user)
-            referrer_wallet, _ = Wallet.objects.get_or_create(user=referred_by_profile.user)
+            referrer_wallet, _ = Wallet.objects.get_or_create(
+                user=referred_by_profile.user
+            )
 
             user_wallet.balance += 50
             user_wallet.save()
@@ -61,36 +70,40 @@ class Profile(models.Model):
             WalletTransaction.objects.create(
                 wallet=user_wallet,
                 amount=50,
-                transaction_type='credit',
-                description='Referral signup bonus',
+                transaction_type="credit",
+                description="Referral signup bonus",
                 balance_after=user_wallet.balance,
-                reference_type='referral',
+                reference_type="referral",
                 reference_id=str(referred_by_profile.user_id),
             )
             WalletTransaction.objects.create(
                 wallet=referrer_wallet,
                 amount=100,
-                transaction_type='credit',
-                description=f'Referral reward for inviting {user.username}',
+                transaction_type="credit",
+                description=f"Referral reward for inviting {user.username}",
                 balance_after=referrer_wallet.balance,
-                reference_type='referral',
+                reference_type="referral",
                 reference_id=str(user.id),
             )
 
             return True
         except cls.DoesNotExist:
             return False
-         
+
+
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+
+
 @receiver(post_save, sender=User)
 def create_or_update_user_profile(sender, instance, created, **kwargs):
     if created:
         Profile.objects.create(user=instance)
-    instance.profile.save() 
-    
+    instance.profile.save()
+
+
 class UserAddress(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='addresses')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="addresses")
     full_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
     phone_number = models.CharField(max_length=15)
@@ -104,18 +117,20 @@ class UserAddress(models.Model):
     is_default = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"{self.full_name}, {self.address_line_1}, {self.city}, {self.country}"    
+        return f"{self.full_name}, {self.address_line_1}, {self.city}, {self.country}"
+
 
 class Wishlist(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    variant = models.ForeignKey('products.ProductVariant', on_delete=models.CASCADE)
+    variant = models.ForeignKey("products.ProductVariant", on_delete=models.CASCADE)
     added_date = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('user', 'variant')
+        unique_together = ("user", "variant")
 
     def __str__(self):
         return f"{self.user.username}'s wishlist item: {self.variant.product.name} - {self.variant.color.name}"
+
 
 class Cart(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -124,57 +139,67 @@ class Cart(models.Model):
 
     def __str__(self):
         return f"{self.user.username} cart"
-    
+
     def get_total_price(self):
         total = sum(item.get_total_price() for item in self.items.all())
         return total
 
+
 class CartItem(models.Model):
-    cart = models.ForeignKey(Cart, related_name='items', on_delete=models.CASCADE)
+    cart = models.ForeignKey(Cart, related_name="items", on_delete=models.CASCADE)
     product_variant = models.ForeignKey(ProductVariant, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
     added_at = models.DateTimeField(auto_now_add=True)
-    
+
     def get_total_price(self):
         discounted_price = self.product_variant.product.get_discounted_price()
         return self.quantity * discounted_price
 
+
 class Order(models.Model):
     STATUS_CHOICES = [
-        ('completed', 'Completed'),
-        ('incomplete', 'InComplete'),
-        ('cancelled', 'Cancelled'),
+        ("completed", "Completed"),
+        ("incomplete", "InComplete"),
+        ("cancelled", "Cancelled"),
     ]
 
     PAYMENT_METHODS = [
-        ('cod', 'Cash on Delivery'),
-        ('razorpay', 'Razorpay'),
-        ('wallet', 'Wallet'),
+        ("cod", "Cash on Delivery"),
+        ("razorpay", "Razorpay"),
+        ("wallet", "Wallet"),
     ]
-    
+
     PAYMENT_STATUS_CHOICES = [
-        ('paid','Paid'),
-        ('unpaid','Unpaid'),
-        ('pending', 'Pending'),
-        ('failed', 'Failed'),
-        ('cancelled', 'Cancelled'),
+        ("paid", "Paid"),
+        ("unpaid", "Unpaid"),
+        ("pending", "Pending"),
+        ("failed", "Failed"),
+        ("cancelled", "Cancelled"),
     ]
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='incomplete')
+    status = models.CharField(
+        max_length=20, choices=STATUS_CHOICES, default="incomplete"
+    )
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
-    payment_method = models.CharField(max_length=20, choices=PAYMENT_METHODS, default='cod')
-    payment_status = models.CharField(max_length=10,choices=PAYMENT_STATUS_CHOICES,default='unpaid')
+    payment_method = models.CharField(
+        max_length=20, choices=PAYMENT_METHODS, default="cod"
+    )
+    payment_status = models.CharField(
+        max_length=10, choices=PAYMENT_STATUS_CHOICES, default="unpaid"
+    )
     razorpay_order_id = models.CharField(max_length=100, blank=True, null=True)
     razorpay_payment_id = models.CharField(max_length=100, blank=True, null=True)
-    payment_failure_reason = models.CharField(max_length=100, blank=True, default='')
-    payment_failure_message = models.TextField(blank=True, default='')
+    payment_failure_reason = models.CharField(max_length=100, blank=True, default="")
+    payment_failure_message = models.TextField(blank=True, default="")
     payment_failed_at = models.DateTimeField(blank=True, null=True)
     payment_expires_at = models.DateTimeField(blank=True, null=True)
     stock_released = models.BooleanField(default=False)
-    coupon = models.CharField(max_length=50,null=True)
-    discount_amount_coupon = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    coupon = models.CharField(max_length=50, null=True)
+    discount_amount_coupon = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0
+    )
 
     def __str__(self):
         return f"Order {self.id} - {self.user.username}"
@@ -184,57 +209,79 @@ class Order(models.Model):
         self.total_price = total
         self.save()
         return total
-    
+
     class Meta:
-        ordering = ['-id']
+        ordering = ["-id"]
+
 
 class OrderItem(models.Model):
-    
+
     STATUS_CHOICES = [
-        ('pending', 'Pending'),
-        ('processing', 'Processing'),
-        ('shipped', 'Shipped' ),
-        ('delivered', 'Delivered'),
-        ('returned','Returned'),
-        ('cancelled', 'Cancelled'),
+        ("pending", "Pending"),
+        ("processing", "Processing"),
+        ("shipped", "Shipped"),
+        ("delivered", "Delivered"),
+        ("returned", "Returned"),
+        ("cancelled", "Cancelled"),
     ]
     PAYMENT_STATUS_CHOICES = [
-        ('paid','Paid'),
-        ('unpaid','Unpaid'),
+        ("paid", "Paid"),
+        ("unpaid", "Unpaid"),
     ]
     Action_status_choice = [
-        ('cancel','Cancel'),
-        ('return','Return'),
+        ("cancel", "Cancel"),
+        ("return", "Return"),
     ]
-    order = models.ForeignKey(Order,related_name='ordered_items', on_delete=models.SET_NULL, blank=True, null=True)
-    product_variant = models.ForeignKey('products.ProductVariant',related_name='order_items', on_delete=models.CASCADE)
+    order = models.ForeignKey(
+        Order,
+        related_name="ordered_items",
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+    )
+    product_variant = models.ForeignKey(
+        "products.ProductVariant", related_name="order_items", on_delete=models.CASCADE
+    )
     quantity = models.IntegerField(default=0, null=True, blank=True)
     date_added = models.DateTimeField(auto_now_add=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    item_status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    payment_status_item = models.CharField(max_length=10,choices=PAYMENT_STATUS_CHOICES,default='unpaid')
-    action_status = models.CharField(max_length=10,choices=Action_status_choice,default='cancel')
+    item_status = models.CharField(
+        max_length=20, choices=STATUS_CHOICES, default="pending"
+    )
+    payment_status_item = models.CharField(
+        max_length=10, choices=PAYMENT_STATUS_CHOICES, default="unpaid"
+    )
+    action_status = models.CharField(
+        max_length=10, choices=Action_status_choice, default="cancel"
+    )
     return_request = models.BooleanField(default=False)
-    orderItem_coupon_discount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    
+    # user provided reason for return
+    return_reason = models.TextField(blank=True, default="")
+    # whether admin has explicitly rejected a return (prevents re-submission)
+    return_rejected = models.BooleanField(default=False)
+    # optional message from admin explaining rejection
+    return_reject_message = models.TextField(blank=True, default="")
+    orderItem_coupon_discount = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0
+    )
+
     def get_total_price(self):
         return self.quantity * self.price
 
     def get_paid_amount(self):
         return max(
-            self.get_total_price() - self.orderItem_coupon_discount,
-            Decimal('0.00')
-        ).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-    
+            self.get_total_price() - self.orderItem_coupon_discount, Decimal("0.00")
+        ).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
     def update_status(self, new_status):
 
         valid_transitions = {
-            'pending': ['processing', 'shipped', 'delivered'],
-            'processing': ['shipped', 'delivered'],
-            'shipped': ['delivered'],
-            'delivered': ['returned'],
-            'returned': [],
-            'cancelled': [],
+            "pending": ["processing", "shipped", "delivered"],
+            "processing": ["shipped", "delivered"],
+            "shipped": ["delivered"],
+            "delivered": ["returned"],
+            "returned": [],
+            "cancelled": [],
         }
 
         if new_status in valid_transitions.get(self.item_status, []):
@@ -242,9 +289,12 @@ class OrderItem(models.Model):
             self.save()
             return True
         return False
-    
+
+
 class OrderAddress(models.Model):
-    order = models.OneToOneField('Order', on_delete=models.CASCADE, related_name='order_address')
+    order = models.OneToOneField(
+        "Order", on_delete=models.CASCADE, related_name="order_address"
+    )
     full_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
     phone_number = models.CharField(max_length=15)
@@ -259,24 +309,37 @@ class OrderAddress(models.Model):
     def __str__(self):
         return f"Address for Order {self.order.id} - {self.full_name} {self.last_name}"
 
+
 class Review(models.Model):
-    product = models.ForeignKey('products.Product', on_delete=models.CASCADE, related_name='reviews')
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reviews')
-    order_item = models.OneToOneField(OrderItem, on_delete=models.CASCADE, related_name='review', null=True, blank=True)
-    rating = models.PositiveIntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
+    product = models.ForeignKey(
+        "products.Product", on_delete=models.CASCADE, related_name="reviews"
+    )
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="reviews")
+    order_item = models.OneToOneField(
+        OrderItem,
+        on_delete=models.CASCADE,
+        related_name="review",
+        null=True,
+        blank=True,
+    )
+    rating = models.PositiveIntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(5)]
+    )
     title = models.CharField(max_length=100, blank=True)
     comment = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = ('product', 'user')
-        ordering = ['-created_at']
+        unique_together = ("product", "user")
+        ordering = ["-created_at"]
 
     def __str__(self):
         return f"{self.user.username} - {self.product.name} ({self.rating}⭐)"
 
     @classmethod
     def get_average_rating(cls, product):
-        agg = cls.objects.filter(product=product).aggregate(avg=models.Avg('rating'), count=models.Count('id'))
-        return agg['avg'] or 0, agg['count']
+        agg = cls.objects.filter(product=product).aggregate(
+            avg=models.Avg("rating"), count=models.Count("id")
+        )
+        return agg["avg"] or 0, agg["count"]

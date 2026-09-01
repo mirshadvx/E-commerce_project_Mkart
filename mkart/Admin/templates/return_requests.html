@@ -1,0 +1,401 @@
+{% extends "Base.html" %} {% load static %} 
+{% block title %}Return Requests{% endblock %} {% block extra_style %}
+<link
+  rel="stylesheet"
+  href="{% static 'admin-assets/css/bootstrap.min.css' %}"
+/>
+<link
+  rel="stylesheet"
+  href="{% static 'admin-assets/css/dataTables.bootstrap4.min.css' %}"
+/>
+<link
+  rel="stylesheet"
+  href="{% static 'admin-assets/plugins/fontawesome/css/all.min.css' %}"
+/>
+<link rel="stylesheet" href="{% static 'admin-assets/css/style.css' %}" />
+<style>
+  .product-cell {
+    min-width: 260px;
+    max-width: 320px;
+  }
+  .product-img {
+    width: 52px;
+    height: 52px;
+    object-fit: cover;
+    border-radius: 6px;
+    flex-shrink: 0;
+  }
+  .product-info {
+    min-width: 0; /* required for text-truncate to work inside a flex child */
+  }
+  .product-name {
+    display: block;
+    max-width: 220px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: default;
+  }
+  .product-meta {
+    display: block;
+    max-width: 220px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: default;
+  }
+  .return-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    min-width: 260px;
+  }
+  .amount-cell {
+    white-space: nowrap;
+  }
+</style>
+{% endblock %} {% block content %}
+<div class="page-wrapper">
+  <div class="content">
+    <div class="page-header">
+      <div class="page-title">
+        <h4>Return Requests</h4>
+        <h6>Review customer return requests and issue wallet refunds</h6>
+      </div>
+    </div>
+
+    {% if messages %} {% for message in messages %}
+    <div
+      class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-{{ message.tags }}{% endif %} alert-dismissible fade show"
+      role="alert"
+    >
+      {{ message }}
+      <button
+        type="button"
+        class="btn-close"
+        data-bs-dismiss="alert"
+        aria-label="Close"
+      ></button>
+    </div>
+    {% endfor %} {% endif %}
+
+    <div class="card">
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table datanew">
+            <thead>
+              <tr>
+                <th>Request</th>
+                <th>Order</th>
+                <th>Customer</th>
+                <th class="product-cell">Product</th>
+                <th>Qty</th>
+                <th>Subtotal</th>
+                <th>Discount</th>
+                <th>Refund</th>
+                <th>Reason</th>
+                <th>Status</th>
+                <th class="text-end">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in return_items %}
+              <tr>
+                <td>{{ item.date_added|date:"d M Y" }}</td>
+                <td>
+                  <a href="{% url 'Admin:order_details' id=item.order.id %}">
+                    #{{ item.order.id }}
+                  </a>
+                </td>
+                <td>
+                  {{ item.order.user.username }}<br />
+                  <span class="text-muted">{{ item.order.user.email }}</span>
+                </td>
+                <td class="product-cell">
+                  <div class="d-flex align-items-center">
+                    {% if item.product_variant.image_1 %}
+                    <img
+                      src="{{ item.product_variant.image_1.url }}"
+                      alt="{{ item.product_variant.product.name }}"
+                      class="product-img me-2"
+                    />
+                    {% endif %}
+                    <div class="product-info">
+                      <strong
+                        class="product-name"
+                        title="{{ item.product_variant.product.name }}"
+                        >{{ item.product_variant.product.name }}</strong
+                      >
+                      <span
+                        class="product-meta text-muted"
+                        title="{{ item.product_variant.product.brand.name }} | {{ item.product_variant.product.category.name }} | {{ item.product_variant.color.name }}"
+                      >
+                        {{ item.product_variant.product.brand.name }} | 
+                        {{ item.product_variant.product.category.name }} | 
+                        {{ item.product_variant.color.name }}
+                      </span>
+                    </div>
+                  </div>
+                </td>
+                <td>{{ item.quantity }}</td>
+                <td class="amount-cell">
+                  ₹{{ item.line_total|floatformat:2 }}
+                </td>
+                <td class="amount-cell text-success">
+                  -₹{{ item.orderItem_coupon_discount|floatformat:2 }}
+                </td>
+                <td class="amount-cell">
+                  ₹{{ item.refund_amount|floatformat:2 }}
+                </td>
+                <td>
+                  {% if item.return_reason or item.return_reject_message %}
+                  <button
+                    type="button"
+                    class="btn btn-sm"
+                    style="
+                      background-color: #f0ad4e;
+                      border-color: #f0ad4e;
+                      color: #fff;
+                    "
+                    data-bs-toggle="modal"
+                    data-bs-target="#reasonModal"
+                    data-user-reason="{{ item.return_reason|default:'' }}"
+                    data-admin-reason="{{ item.return_reject_message|default:'' }}"
+                  >
+                    View Reason
+                  </button>
+                  {% else %}
+                  <span class="text-muted">&mdash;</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <span class="badges bg-lightyellow"
+                    >{{ item.get_item_status_display }}</span
+                  >
+                </td>
+                <td>
+                  <div class="return-actions">
+                    <a
+                      href="{% url 'Admin:order_details' id=item.order.id %}"
+                      class="btn btn-sm"
+                      style="
+                        background-color: #6c757d;
+                        border-color: #6c757d;
+                        color: #fff;
+                      "
+                    >
+                      View Order
+                    </a>
+
+                    <form
+                      method="post"
+                      action="{% url 'Admin:manage_return_request' %}"
+                    >
+                      {% csrf_token %}
+                      <input
+                        type="hidden"
+                        name="item_id"
+                        value="{{ item.id }}"
+                      />
+                      <input type="hidden" name="action" value="approve" />
+                      <button type="submit" class="btn btn-sm btn-success">
+                        Approve
+                      </button>
+                    </form>
+
+                    <form
+                      method="post"
+                      action="{% url 'Admin:manage_return_request' %}"
+                      id="reject-form-{{ item.id }}"
+                    >
+                      {% csrf_token %}
+                      <input
+                        type="hidden"
+                        name="item_id"
+                        value="{{ item.id }}"
+                      />
+                      <input type="hidden" name="action" value="reject" />
+                      <input
+                        type="hidden"
+                        name="admin_message"
+                        id="admin-message-{{ item.id }}"
+                        value=""
+                      />
+                      <button
+                        type="button"
+                        data-item-id="{{ item.id }}"
+                        class="btn btn-sm btn-danger btn-reject"
+                      >
+                        Reject
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        {% if not return_items %}
+        <div class="text-center py-4">
+          <p class="text-muted mb-0">
+            No return requests are waiting for review.
+          </p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Reason View Modal -->
+<div
+  class="modal fade"
+  id="reasonModal"
+  tabindex="-1"
+  aria-labelledby="reasonModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="reasonModalLabel">Return Reason</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <div id="reasonModalUserWrap" class="mb-3" style="display: none">
+          <strong>Customer:</strong>
+          <p id="reasonModalUserText" class="mb-0"></p>
+        </div>
+        <div id="reasonModalAdminWrap" style="display: none">
+          <strong>Admin:</strong>
+          <p id="reasonModalAdminText" class="mb-0"></p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_js %}
+<script src="{% static 'admin-assets/js/jquery-3.6.0.min.js' %}"></script>
+<script src="{% static 'admin-assets/js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'admin-assets/js/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'admin-assets/js/dataTables.bootstrap4.min.js' %}"></script>
+<script src="{% static 'admin-assets/js/script.js' %}"></script>
+
+<div
+  class="modal fade"
+  id="rejectModal"
+  tabindex="-1"
+  aria-labelledby="rejectModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="rejectModalLabel">Reject Return Request</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label for="rejectMessage" class="form-label"
+            >Rejection message (optional)</label
+          >
+          <textarea
+            class="form-control"
+            id="rejectMessage"
+            rows="4"
+            placeholder="Enter message visible to customer"
+          ></textarea>
+        </div>
+      </div>
+      <div class="modal-footer d-flex justify-content-between">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Cancel
+        </button>
+        <button type="button" id="confirmRejectBtn" class="btn btn-danger">
+          Reject
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    let currentRejectId = null;
+
+    document.querySelectorAll(".btn-reject").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        currentRejectId = btn.getAttribute("data-item-id");
+        document.getElementById("rejectMessage").value = "";
+        const modal = new bootstrap.Modal(
+          document.getElementById("rejectModal"),
+        );
+        modal.show();
+      });
+    });
+
+    document
+      .getElementById("confirmRejectBtn")
+      .addEventListener("click", function () {
+        if (!currentRejectId) return;
+
+        const msg = document.getElementById("rejectMessage").value || "";
+        const input = document.getElementById(
+          "admin-message-" + currentRejectId,
+        );
+        if (input) input.value = msg;
+
+        const form = document.getElementById("reject-form-" + currentRejectId);
+        if (form) form.submit();
+      });
+  })();
+
+  // Populate the "View Reason" modal each time it is opened
+  (function () {
+    const reasonModal = document.getElementById("reasonModal");
+    if (!reasonModal) return;
+
+    reasonModal.addEventListener("show.bs.modal", function (event) {
+      const btn = event.relatedTarget;
+      if (!btn) return;
+
+      const userReason = btn.getAttribute("data-user-reason") || "";
+      const adminReason = btn.getAttribute("data-admin-reason") || "";
+
+      const userWrap = document.getElementById("reasonModalUserWrap");
+      const adminWrap = document.getElementById("reasonModalAdminWrap");
+
+      if (userReason.trim()) {
+        document.getElementById("reasonModalUserText").textContent = userReason;
+        userWrap.style.display = "block";
+      } else {
+        userWrap.style.display = "none";
+      }
+
+      if (adminReason.trim()) {
+        document.getElementById("reasonModalAdminText").textContent = adminReason;
+        adminWrap.style.display = "block";
+      } else {
+        adminWrap.style.display = "none";
+      }
+    });
+  })();
+</script>
+{% endblock %}

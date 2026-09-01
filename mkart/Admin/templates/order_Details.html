@@ -317,6 +317,16 @@
                                         <td>
                                             {% if item.return_request == True %}
                                                 <span style="color:red;">Requested to return</span>
+                                                {% if item.return_reason %}
+                                                    <div class="text-muted small">User reason: {{ item.return_reason }}</div>
+                                                {% endif %}
+                                            {% elif item.return_rejected %}
+                                                <div>
+                                                    <span class="text-danger">Return request rejected</span>
+                                                    {% if item.return_reject_message %}
+                                                        <div class="text-muted small">Admin message: {{ item.return_reject_message }}</div>
+                                                    {% endif %}
+                                                </div>
                                             {% else %}
                                                 <span class="text-muted">No request</span>
                                             {% endif %}

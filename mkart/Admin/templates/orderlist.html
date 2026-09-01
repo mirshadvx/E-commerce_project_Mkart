@@ -118,12 +118,14 @@
         <td>{{ order.user.username }} {{ order.user.last_name }}</td>
         <td>{{ order.ordered_items.count }}</td>
 <td>
-    {% if order.status == 'incomplete' %}
+    {% if order.admin_display_status == 'incomplete' %}
     <span class="badge bg-lightred bg-danger">Incomplete</span>
-    {% elif order.status == 'completed' %}
+    {% elif order.admin_display_status == 'completed' %}
     <span class="badge bg-lightgreen bg-success">Completed</span>
+    {% elif order.admin_display_status == 'cancelled' %}
+    <span class="badge bg-lightred bg-danger">Cancelled</span>
     {% else %}
-    <span class="badge bg-lightgreen bg-success">Completed</span>
+    <span class="badge bg-lightyellow bg-warning">{{ order.get_status_display }}</span>
     {% endif %}
 </td>
         <td>

@@ -1,8 +1,6 @@
 {% extends "store/main_base.html" %}
 {% load static %}
-
 {% block title %}Order Information{% endblock %}
-
 {% block extra_style %}
 <link rel="mask-icon" href="store-assets/assets/images/icons/safari-pinned-tab.svg" color="#666666" />
 <meta name="apple-mobile-web-app-title" content="timexo" />
@@ -16,169 +14,383 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
 
 <style>
+  :root {
+    --ink: #1f2933;
+    --muted: #6b7684;
+    --hairline: #eceef1;
+    --surface: #f7f8fa;
+    --brand: #2f6fed;
+    --brand-soft: #eaf1ff;
+    --ok: #1a9c5a;
+    --ok-soft: #e7f7ee;
+    --warn: #b45309;
+    --warn-soft: #fef3e2;
+    --bad: #d1364a;
+    --bad-soft: #fdeaee;
+    --neutral-soft: #eef0f2;
+    --radius-lg: 14px;
+    --radius-md: 10px;
+    --radius-sm: 7px;
+  }
+
   body {
     font-family: "Poppins", Arial, sans-serif;
-    background-color: #f8f9fa;
-    color: #333;
+    background-color: var(--surface);
+    color: var(--ink);
   }
 
   .order-details-container {
-    max-width: 1000px;
+    max-width: 980px;
     margin: 40px auto;
-    padding: 30px;
+    padding: 36px;
     background-color: #fff;
-    border-radius: 15px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 1px 2px rgba(20, 24, 30, 0.04), 0 12px 32px rgba(20, 24, 30, 0.06);
   }
 
+  @media (max-width: 576px) {
+    .order-details-container {
+      margin: 0;
+      padding: 22px 16px;
+      border-radius: 0;
+      box-shadow: none;
+    }
+  }
+
+  /* ---------- Header ---------- */
   .order-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    margin-bottom: 30px;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 24px;
     padding-bottom: 20px;
-    border-bottom: 2px solid #f1f1f1;
+    border-bottom: 1px solid var(--hairline);
+    flex-wrap: wrap;
   }
 
   .order-header h2 {
-    font-size: 32px;
+    font-size: 26px;
     font-weight: 600;
-    color: #2c3e50;
+    color: var(--ink);
     margin: 0;
+    letter-spacing: -0.01em;
+  }
+
+  .order-header-sub {
+    color: var(--muted);
+    font-size: 14px;
+    margin-top: 4px;
   }
 
   .order-status {
-    font-size: 16px;
-    padding: 8px 15px;
-    border-radius: 20px;
-    background-color: #e1f5fe;
-    color: #0288d1;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 7px 14px;
+    border-radius: 999px;
+    background-color: var(--brand-soft);
+    color: var(--brand);
+    white-space: nowrap;
   }
 
   .order-level-actions {
     display: flex;
     justify-content: flex-end;
-    gap: 10px;
-    margin: -15px 0 25px;
+    margin-bottom: 20px;
   }
 
+  .order-level-actions .btn {
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 16px;
+    border-radius: var(--radius-sm);
+  }
+
+  /* ---------- Meta strip ---------- */
   .order-meta {
     display: flex;
-    justify-content: space-between;
-    margin-bottom: 30px;
+    gap: 12px;
+    margin-bottom: 28px;
     flex-wrap: wrap;
   }
 
   .order-meta-item {
-    text-align: center;
     flex: 1;
     min-width: 150px;
-    margin-bottom: 20px;
+    background: var(--surface);
+    border-radius: var(--radius-md);
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
   }
 
   .order-meta-item i {
-    font-size: 24px;
-    color: #3498db;
-    margin-bottom: 10px;
+    font-size: 16px;
+    color: var(--brand);
+    background: var(--brand-soft);
+    width: 34px;
+    height: 34px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
   }
 
   .order-meta-item p {
     margin: 0;
-    font-size: 14px;
-    color: #7f8c8d;
+    font-size: 12px;
+    color: var(--muted);
   }
 
   .order-meta-item strong {
     display: block;
-    font-size: 18px;
-    color: #2c3e50;
-    margin-top: 5px;
+    font-size: 16px;
+    color: var(--ink);
+    margin-top: 2px;
   }
 
+  /* ---------- Retry payment ---------- */
+  .razorpay-retry-payment {
+    flex-basis: 100%;
+    background: var(--warn-soft);
+    border: 1px solid #f3d9ab;
+    border-radius: var(--radius-md);
+    padding: 20px;
+  }
+
+  .razorpay-retry-payment h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--warn);
+    margin: 0 0 6px;
+  }
+
+  .razorpay-retry-payment p {
+    font-size: 14px;
+    color: var(--ink);
+    margin-bottom: 10px;
+  }
+
+  .razorpay-retry-payment .form-check {
+    margin-bottom: 8px;
+  }
+
+  .razorpay-retry-payment .btn {
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+  }
+
+  /* ---------- Section title ---------- */
   .section-title {
-    font-size: 24px;
+    font-size: 18px;
     font-weight: 600;
-    color: #2c3e50;
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 2px solid #f1f1f1;
+    color: var(--ink);
+    margin-bottom: 16px;
   }
 
-  .table {
-    margin-bottom: 30px;
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0 10px;
+  /* ---------- Order items: card list (no horizontal scroll) ---------- */
+  .order-items {
+    margin-bottom: 8px;
   }
 
-  .table thead th {
-    background-color: #f8f9fa;
-    color: #2c3e50;
+  .order-item-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .order-item-card {
+    display: flex;
+    gap: 16px;
+    padding: 16px;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-md);
+    align-items: flex-start;
+  }
+
+  .order-item-image img {
+    width: 76px;
+    height: 76px;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    flex-shrink: 0;
+  }
+
+  .order-item-body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .order-item-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+
+  .order-item-name {
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    padding: 12px;
+    font-size: 15px;
+    color: var(--ink);
+    line-height: 1.35;
+    word-break: break-word;
+  }
+
+  .order-item-badges {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+  }
+
+  .badge-pill {
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 999px;
+    white-space: nowrap;
+    line-height: 1.5;
+  }
+
+  .badge-paid { background: var(--ok-soft); color: var(--ok); }
+  .badge-unpaid { background: var(--bad-soft); color: var(--bad); }
+  .badge-processing { background: var(--brand-soft); color: var(--brand); }
+  .badge-shipped { background: #f1e9fe; color: #7c3aed; }
+  .badge-delivered { background: var(--ok-soft); color: var(--ok); }
+  .badge-cancelled { background: var(--bad-soft); color: var(--bad); }
+  .badge-returned { background: var(--neutral-soft); color: var(--muted); }
+
+  .order-item-facts {
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: 22px;
+    row-gap: 6px;
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  .order-item-facts strong {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  .order-item-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .order-item-actions .btn {
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    line-height: 1.4;
+  }
+
+  .icon-btn {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    border: 1px solid var(--hairline);
+    background: #fff;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+
+  .icon-btn:hover {
+    background: var(--surface);
+    color: var(--ink);
+  }
+
+  .order-item-note {
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .order-item-note.rejected {
+    color: var(--bad);
+  }
+
+  .order-item-note .reason-text {
+    color: var(--muted);
+    font-size: 12.5px;
+    margin-top: 2px;
+  }
+
+  /* ---------- Address / summary ---------- */
+  .order-address,
+  .order-summary {
+    background-color: var(--surface);
+    padding: 20px;
+    border-radius: var(--radius-md);
+    margin-bottom: 24px;
+    height: 100%;
+  }
+
+  .order-address p {
+    font-size: 14px;
+    margin-bottom: 8px;
+    color: var(--ink);
+  }
+
+  .order-address p strong {
+    color: var(--muted);
+    font-weight: 600;
+    margin-right: 4px;
+  }
+
+  .order-summary table td,
+  .order-summary table th {
+    padding: 8px 0;
+    font-size: 14px;
     border: none;
   }
 
-  .table tbody td {
-    vertical-align: middle;
-    padding: 12px;
-    border-top: 1px solid #f1f1f1;
+  .order-summary table th {
+    border-top: 1px solid var(--hairline);
+    font-size: 16px;
   }
 
-  .product-img {
-    width: 80px;
-    height: 80px;
-    object-fit: cover;
-    border-radius: 5px;
-  }
-
-  .order-address,
-  .order-summary {
-    background-color: #f8f9fa;
-    padding: 20px;
-    border-radius: 10px;
-    margin-bottom: 30px;
-  }
-
+  /* ---------- Bottom actions ---------- */
   .order-actions {
-    text-align: right;
-    margin-top: 30px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 24px;
+    flex-wrap: wrap;
   }
 
   .order-actions a {
-    margin-left: 15px;
-    padding: 10px 20px;
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-
-  .item-status {
     font-size: 14px;
-    padding: 4px 8px;
-    border-radius: 12px;
-    background-color: #e1f5fe;
-    color: #0288d1;
-    display: inline-block;
+    padding: 10px 20px;
+    border-radius: var(--radius-sm);
   }
 
-  .action-buttons {
-    display: flex;
-    gap: 5px;
-    justify-content: flex-start;
-  }
-
-  .action-buttons .btn {
-    padding: 4px 8px;
-    font-size: 12px;
-    white-space: nowrap;
-    border-radius: 4px;
-  }
-
-  .table-responsive {
-    overflow-x: auto;
+  @media (max-width: 480px) {
+    .order-item-card {
+      flex-direction: column;
+    }
+    .order-actions {
+      justify-content: stretch;
+    }
+    .order-actions a {
+      flex: 1;
+      text-align: center;
+    }
   }
 </style>
 {% endblock %}
@@ -188,199 +400,184 @@
   <div class="page-content">
     <div class="order-details-container">
       <div class="order-header">
-        <h2>Order #{{ order.id }}</h2>
+        <div>
+          <h2>Order #{{ order.id }}</h2>
+          <div class="order-header-sub">Placed on {{ order.created_at|date:"M d, Y" }}</div>
+        </div>
         <span class="order-status">{{ order.get_status_display }}</span>
       </div>
 
       {% if order.invoice_can_download %}
-        <div class="order-level-actions">
-          <a href="{% url 'download_order_invoice' order.id %}" class="btn btn-outline-primary">
-            <i class="fas fa-file-invoice"></i>
-            Download Invoice
-          </a>
-        </div>
+      <div class="order-level-actions">
+        <a href="{% url 'download_order_invoice' order.id %}" class="btn btn-outline-primary">
+          <i class="fas fa-file-invoice"></i>
+          Download Invoice
+        </a>
+      </div>
       {% endif %}
 
       <div class="order-meta">
         <div class="order-meta-item">
           <i class="far fa-calendar-alt"></i>
-          <p>Order Date</p>
-          <strong>{{ order.created_at|date:"M d, Y" }}</strong>
+          <div>
+            <p>Order Date</p>
+            <strong>{{ order.created_at|date:"M d, Y" }}</strong>
+          </div>
         </div>
         <div class="order-meta-item">
           <i class="fas fa-rupee-sign"></i>
-          <p>Total Amount</p>
-          <strong>₹{{ order.total_price }}</strong>
+          <div>
+            <p>Total Amount</p>
+            <strong>₹{{ order.total_price }}</strong>
+          </div>
         </div>
         <div class="order-meta-item">
           <i class="fas fa-credit-card"></i>
-          <p>Payment Method</p>
-          <strong>{{ order.get_payment_method_display }}</strong>
+          <div>
+            <p>Payment Method</p>
+            <strong>{{ order.get_payment_method_display }}</strong>
+          </div>
         </div>
+
         {% if can_retry_payment %}
-          <div class="razorpay-retry-payment">
-            <h3>Retry Payment</h3>
-            <p>
-              Your payment for this order is pending. Complete payment before {{ order.payment_expires_at|date:"M d, Y h:i A" }}.
-            </p>
-            {% if order.payment_failure_message %}
-              <p class="text-danger">{{ order.payment_failure_message }}</p>
+        <div class="razorpay-retry-payment">
+          <h3>Retry payment</h3>
+          <p>Your payment for this order is pending. Complete payment before {{ order.payment_expires_at|date:"M d, Y h:i A" }}.</p>
+          {% if order.payment_failure_message %}
+          <p class="text-danger">{{ order.payment_failure_message }}</p>
+          {% endif %}
+          <form method="post" action="{% url 'complete_pending_order_payment' order.id %}" id="pending-payment-form">
+            {% csrf_token %}
+            <div class="form-check">
+              <input class="form-check-input pending-payment-method" type="radio" name="payment_method" id="pending_payment_cod" value="cod" {% if not razorpay_order %}checked{% endif %} />
+              <label class="form-check-label" for="pending_payment_cod">
+                <i class="fas fa-money-bill-wave"></i> Cash on Delivery
+              </label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input pending-payment-method" type="radio" name="payment_method" id="pending_payment_razorpay" value="razorpay" {% if razorpay_order %}checked{% endif %} />
+              <label class="form-check-label" for="pending_payment_razorpay">
+                <i class="fas fa-credit-card"></i> Razorpay
+              </label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input pending-payment-method" type="radio" name="payment_method" id="pending_payment_wallet" value="wallet" />
+              <label class="form-check-label" for="pending_payment_wallet">
+                <i class="fas fa-wallet"></i> Wallet (₹{{ wallet_balance|floatformat:2 }})
+              </label>
+            </div>
+            {% if razorpay_order %}
+            <button id="rzp-button1" class="btn btn-primary mt-2">Pay Now</button>
+            <button type="submit" id="pending-offline-payment-btn" class="btn btn-primary mt-2" style="display: none;">Continue</button>
+            {% else %}
+            <button type="submit" id="pending-offline-payment-btn" class="btn btn-primary mt-2">Continue</button>
             {% endif %}
-            <form method="post" action="{% url 'complete_pending_order_payment' order.id %}" id="pending-payment-form">
-              {% csrf_token %}
-              <div class="form-check">
-                <input class="form-check-input pending-payment-method" type="radio" name="payment_method" id="pending_payment_cod" value="cod" {% if not razorpay_order %}checked{% endif %}>
-                <label class="form-check-label" for="pending_payment_cod">
-                  <i class="fas fa-money-bill-wave"></i> Cash on Delivery
-                </label>
-              </div>
-              <div class="form-check">
-                <input class="form-check-input pending-payment-method" type="radio" name="payment_method" id="pending_payment_razorpay" value="razorpay" {% if razorpay_order %}checked{% endif %}>
-                <label class="form-check-label" for="pending_payment_razorpay">
-                  <i class="fas fa-credit-card"></i> Razorpay
-                </label>
-              </div>
-              <div class="form-check">
-                <input class="form-check-input pending-payment-method" type="radio" name="payment_method" id="pending_payment_wallet" value="wallet">
-                <label class="form-check-label" for="pending_payment_wallet">
-                  <i class="fas fa-wallet"></i> Wallet (₹{{ wallet_balance|floatformat:2 }})
-                </label>
-              </div>
-              {% if razorpay_order %}
-              <button id="rzp-button1" class="btn btn-primary mt-2">Pay Now</button>
-              <button type="submit" id="pending-offline-payment-btn" class="btn btn-primary mt-2" style="display: none;">Continue</button>
-              {% else %}
-              <button type="submit" id="pending-offline-payment-btn" class="btn btn-primary mt-2">Continue</button>
-              {% endif %}
-            </form>
-          </div>
+          </form>
+        </div>
         {% elif order.payment_method == 'razorpay' and order.payment_status == 'cancelled' %}
-          <div class="razorpay-retry-payment">
-            <h3>Payment Expired</h3>
-            <p class="text-danger">
-              Payment was not completed within 10 minutes. This order was cancelled and stock has been released.
-            </p>
-          </div>
+        <div class="razorpay-retry-payment">
+          <h3>Payment expired</h3>
+          <p class="text-danger mb-0">Payment was not completed within 10 minutes. This order was cancelled and stock has been released.</p>
+        </div>
         {% endif %}
       </div>
 
       <div class="order-items">
-        <h3 class="section-title">Items in Your Order</h3>
-        <div class="table-responsive">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>Product</th>
-                <th>Image</th>
-                <th>Quantity</th>
-                <th>Price</th>
-                <th>Total(include all offers)</th>
-                <th>Payment Status</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for item in order_items %}
-                <tr>
-                  <td>{{ item.product_variant.product.name }}</td>
-                  <td>
-                    <img
-                      src="{{ item.product_variant.image_1.url|default_if_none:'/static/store-assets/default-image.png' }}"
-                      alt="{{ item.product_variant.product.name }}"
-                      class="product-img"
-                    />
-                  </td>
-                  <td>{{ item.quantity }}</td>
-                  <td>₹{{ item.price }}</td>
-                  <td>₹{{ item.orderItem_coupon_discount }}</td>
+        <h3 class="section-title">Items in your order</h3>
+
+        <div class="order-item-list">
+          {% for item in order_items %}
+          <div class="order-item-card">
+            <div class="order-item-image">
+              <img src="{{ item.product_variant.image_1.url|default_if_none:'/static/store-assets/default-image.png' }}" alt="{{ item.product_variant.product.name }}" />
+            </div>
+
+            <div class="order-item-body">
+              <div class="order-item-top">
+                <div class="order-item-name">{{ item.product_variant.product.name }}</div>
+                <div class="order-item-badges">
                   {% if item.payment_status_item == 'paid' %}
-                    <td>
-                      <span style="color: #4de52d; font-weight: bold">Paid</span>
-                    </td>
+                  <span class="badge-pill badge-paid">Paid</span>
                   {% else %}
-                    <td>
-                      <span style="color: #ee4949; font-weight: bold">Not paid</span>
-                    </td>
+                  <span class="badge-pill badge-unpaid">Not paid</span>
                   {% endif %}
-                  <td>
-                    <span class="item-status">{{ item.get_item_status_display }}</span>
-                  </td>
-                  <td>
-                    {% if item.item_status != 'returned' %}
-                      <div class="action-buttons">
-                        {% if item.item_status != 'delivered' %}
-                          {% if item.action_status == 'cancel' and item.item_status == 'processing' %}
-                            <button
-                              class="btn btn-sm btn-outline-danger cancel-item"
-                              data-item-id="{{ item.id }}"
-                              data-variant-id="{{ item.product_variant.id }}"
-                              data-inc-quantity="{{ item.quantity }}"
-                            >
-                              Cancel
-                            </button>
-                          {% endif %}
-                        {% else %}
-                          {% if not item.return_request %}
-                            <button
-                              class="btn btn-sm btn-outline-warning return-item"
-                              data-item-id="{{ item.id }}"
-                            >
-                              Return
-                            </button>
-                          {% endif %}
-                          {% if item.item_status == 'delivered' %}
-                            {% if item.can_review %}
-                              <a
-                                href="{{ item.review_url }}"
-                                class="btn btn-sm btn-outline-success"
-                              >
-                                Write Review
-                              </a>
-                            {% elif item.user_review %}
-                              <a
-                                href="{{ item.review_url }}"
-                                class="btn btn-sm btn-outline-success"
-                              >
-                                Edit Review
-                              </a>
-                            {% endif %}
-                          {% endif %}
-                        {% endif %}
-                      </div>
-                    {% else %}
-                      <span class="text-muted">Returned</span>
+
+                  {% if item.item_status == 'delivered' %}
+                  <span class="badge-pill badge-delivered">{{ item.get_item_status_display }}</span>
+                  {% elif item.item_status == 'cancelled' %}
+                  <span class="badge-pill badge-cancelled">{{ item.get_item_status_display }}</span>
+                  {% elif item.item_status == 'returned' %}
+                  <span class="badge-pill badge-returned">{{ item.get_item_status_display }}</span>
+                  {% elif item.item_status == 'shipped' or item.item_status == 'out_for_delivery' %}
+                  <span class="badge-pill badge-shipped">{{ item.get_item_status_display }}</span>
+                  {% else %}
+                  <span class="badge-pill badge-processing">{{ item.get_item_status_display }}</span>
+                  {% endif %}
+                </div>
+              </div>
+
+              <div class="order-item-facts">
+                <span>Qty <strong>{{ item.quantity }}</strong></span>
+                <span>Price <strong>₹{{ item.price }}</strong></span>
+                <span>Total (with offers) <strong>₹{{ item.orderItem_coupon_discount }}</strong></span>
+              </div>
+
+              <div class="order-item-actions">
+                {% if item.item_status == 'returned' %}
+                <span class="order-item-note">Returned</span>
+                {% else %}
+                  {% if item.item_status != 'delivered' %}
+                    {% if item.action_status == 'cancel' and item.item_status == 'processing' %}
+                    <button class="btn btn-sm btn-outline-danger cancel-item" data-item-id="{{ item.id }}" data-variant-id="{{ item.product_variant.id }}" data-inc-quantity="{{ item.quantity }}">Cancel</button>
                     {% endif %}
-                  </td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+                  {% else %}
+                    {% if item.return_request %}
+                    <span class="order-item-note">Requested to return</span>
+                    {% elif item.return_rejected %}
+                    <div class="order-item-note rejected">
+                      Return request rejected
+                      {% if item.return_reject_message %}
+                      <div class="reason-text">Reason: {{ item.return_reject_message }}</div>
+                      {% endif %}
+                    </div>
+                    {% else %}
+                    <button class="btn btn-sm btn-outline-warning return-item" data-item-id="{{ item.id }}">Return</button>
+                    {% endif %}
+
+                    {% if item.can_review %}
+                    <a href="{{ item.review_url }}" class="btn btn-sm btn-outline-success">Write Review</a>
+                    {% elif item.user_review %}
+                    <a href="{{ item.review_url }}" class="btn btn-sm btn-outline-success">Edit Review</a>
+                    {% endif %}
+                  {% endif %}
+                {% endif %}
+
+                {% if item.return_reason %}
+                <button class="icon-btn show-return-reason" data-reason="{{ item.return_reason|escapejs }}" title="View return reason">
+                  <i class="fas fa-info"></i>
+                </button>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
         </div>
       </div>
 
       <div class="row">
         <div class="col-md-6">
           <div class="order-address">
-            <h3 class="section-title">Shipping Address</h3>
-            <p>
-              <strong>Name:</strong>
-              {{ order_address.full_name }} {{ order_address.last_name }}
-            </p>
-            <p><strong>Phone:</strong> {{ order_address.phone_number }}</p>
-            <p><strong>Email:</strong> {{ order_address.email }}</p>
-            <p>
-              <strong>Address:</strong>
-              {{ order_address.address_line_1 }}, {{ order_address.address_line_2 }},
-              {{ order_address.city }}, {{ order_address.state }},
-              {{ order_address.country }} - {{ order_address.postal_code }}
-            </p>
+            <h3 class="section-title">Shipping address</h3>
+            <p><strong>Name</strong> {{ order_address.full_name }} {{ order_address.last_name }}</p>
+            <p><strong>Phone</strong> {{ order_address.phone_number }}</p>
+            <p><strong>Email</strong> {{ order_address.email }}</p>
+            <p><strong>Address</strong> {{ order_address.address_line_1 }}, {{ order_address.address_line_2 }}, {{ order_address.city }}, {{ order_address.state }}, {{ order_address.country }} - {{ order_address.postal_code }}</p>
           </div>
         </div>
         <div class="col-md-6">
           <div class="order-summary">
-            <h3 class="section-title">Order Summary</h3>
-            <table class="table table-borderless">
+            <h3 class="section-title">Order summary</h3>
+            <table class="table table-borderless mb-0">
               <tr>
                 <td>Subtotal</td>
                 <td class="text-right">₹{{ order.total_price }}</td>
@@ -445,7 +642,6 @@
 <script src="{% static 'store-assets/assets/js/jquery.plugin.min.js' %}"></script>
 <script src="{% static 'store-assets/assets/js/jquery.magnific-popup.min.js' %}"></script>
 <script src="{% static 'store-assets/assets/js/jquery.countdown.min.js' %}"></script>
-<!-- Main JS File -->
 <script src="{% static 'store-assets/assets/js/main.js' %}"></script>
 <script src="{% static 'store-assets/assets/js/demos/demo-6.js' %}"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -545,6 +741,17 @@
 
 <script>
   $(document).ready(function () {
+    $(".show-return-reason").click(function () {
+      var reason = $(this).data("reason");
+      Swal.fire({
+        title: "Return Reason",
+        text: reason,
+        icon: "info",
+        confirmButtonColor: "#3085d6",
+        confirmButtonText: "OK",
+      });
+    });
+
     $(".cancel-item").click(function () {
       var itemId = $(this).data("item-id");
       var variantId = $(this).data("variant-id");
@@ -579,11 +786,7 @@
               }
             },
             error: function () {
-              Swal.fire(
-                "Error!",
-                "An error occurred while processing your request",
-                "error",
-              );
+              Swal.fire("Error!", "An error occurred while processing your request", "error");
             },
           });
         }
@@ -634,11 +837,7 @@
               }
             },
             error: function () {
-              Swal.fire(
-                "Error!",
-                "An error occurred while processing your request",
-                "error",
-              );
+              Swal.fire("Error!", "An error occurred while processing your request", "error");
             },
           });
         }
