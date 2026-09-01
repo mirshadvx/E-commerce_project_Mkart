@@ -228,7 +228,7 @@ def delete_category(request, category_id):
         return JsonResponse(
             {
                 "success": True,
-                "message": f"Category "{category_name}" deleted successfully.",
+                "message": f"Category '{category_name}' deleted successfully.",
             }
         )
 
@@ -490,8 +490,9 @@ def add_product(request):
 
         for i in range(1, 4):
             val = request.POST.get(f"cropped_image_{i}", "")
+            starts_with_data = val.startswith("data:image") if val else False
             print(
-                f"cropped_image_{i} length: {len(val)} | starts_with_data: {val.startswith("data:image") if val else False}"
+                f"cropped_image_{i} length: {len(val)} | starts_with_data: {starts_with_data}"
             )
 
         try:
@@ -665,7 +666,7 @@ def delete_product(request, product_id):
 
             messages.success(
                 request,
-                f"Product "{product.name}" and all its variants have been deleted successfully.",
+                f"Product '{product.name}' and all its variants have been deleted successfully.",
             )
             return JsonResponse({"success": True})
 
@@ -776,7 +777,7 @@ def add_variant(request, id):
                 ).exists():
                     messages.warning(
                         request,
-                        f"A variant with color "{Color.objects.get(id=color_id).name}" already exists for this product.",
+                        f"A variant with color '{Color.objects.get(id=color_id).name}' already exists for this product.",
                     )
                     return render(request, "addVariant.html", get_context(product))
 
@@ -963,7 +964,7 @@ def download_order_details_pdf(request, id):
 
     response = HttpResponse(result.getvalue(), content_type="application/pdf")
     response["Content-Disposition"] = (
-        f"attachment; filename="order_{order.id}_details.pdf""
+        f"attachment; filename='order_{order.id}_details.pdf'"
     )
     return response
 
@@ -1039,7 +1040,7 @@ def manage_return_request(request):
             refresh_order_status(order_item.order)
             messages.success(
                 request,
-                f"Return approved. ₹{refund_amount:.2f} refunded to the customer"s wallet.",
+                f"Return approved. ₹{refund_amount:.2f} refunded to the customer's wallet.",
             )
         else:
             # mark rejected and save admin message so customer and admins can see why
@@ -1145,7 +1146,7 @@ def add_coupon(request):
             messages.error(request, "Coupon code cannot exceed 50 characters.")
             has_error = True
         elif Coupon.objects.filter(code__iexact=code).exists():
-            messages.error(request, f"A coupon with code "{code}" already exists.")
+            messages.error(request, f"A coupon with code '{code}' already exists.")
             has_error = True
 
         if not discount:
@@ -1260,7 +1261,7 @@ def add_coupon(request):
 
             except ValidationError as e:
                 error_messages = []
-                if hasattr(e, 'message_dict"):
+                if hasattr(e, 'message_dict'):
                     for field, errors in e.message_dict.items():
                         error_messages.extend(errors)
                 else:
@@ -1341,7 +1342,7 @@ def edit_coupon(request):
             elif (
                 Coupon.objects.filter(code__iexact=code).exclude(id=coupon.id).exists()
             ):
-                errors.append(f"A coupon with code "{code}" already exists.")
+                errors.append(f"A coupon with code '{code}' already exists.")
 
             discount_value = None
             if not discount:
@@ -1642,10 +1643,10 @@ def update_category_offer(request):
         if offer_id and offer_id.strip():  # Offer selected → Apply offer
             offer = get_object_or_404(Offer, id=offer_id)
             category.offer = offer
-            message = f"Offer "{offer.name}" has been successfully applied to category "{category.name}"."
+            message = f"Offer '{offer.name}' has been successfully applied to category '{category.name}'."
         else:  # No offer selected → Remove offer
             category.offer = None
-            message = f"Offer has been removed from category "{category.name}"."
+            message = f"Offer has been removed from category '{category.name}'."
 
         category.save()
 
