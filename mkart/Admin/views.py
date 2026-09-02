@@ -1,9 +1,9 @@
 from django.db import IntegrityError
-from django.shortcuts import render, redirect , get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.utils.text import slugify
 from django.utils.text import Truncator
-from products.models import Category , Brand, Color, Gender, Product , ProductVariant
+from products.models import Category, Brand, Color, Gender, Product, ProductVariant
 from django.contrib import messages
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.http import require_POST, require_GET
@@ -19,7 +19,7 @@ from io import BytesIO
 from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
-from django.contrib.auth.decorators import user_passes_test , login_required
+from django.contrib.auth.decorators import user_passes_test, login_required
 from django.core.exceptions import PermissionDenied
 from django.contrib.auth import logout
 from django.urls import reverse
@@ -33,7 +33,7 @@ from datetime import timedelta
 from django.db.models import Count, Sum
 from django.utils.dateparse import parse_datetime
 from django.views.decorators.cache import never_cache
-from django.db.models import Sum, F, Count, DecimalField, Case, When, Value , Q
+from django.db.models import Sum, F, Count, DecimalField, Case, When, Value, Q
 from django.db.models.functions import Coalesce
 from django.db import transaction
 import cloudinary.uploader
@@ -46,7 +46,9 @@ from xhtml2pdf import pisa
 
 logger = logging.getLogger(__name__)
 
-CATEGORY_NAME_PATTERN = re.compile(r'^[A-Za-z]+$')
+CATEGORY_NAME_PATTERN = re.compile(r"^[A-Za-z]+$")
+
+
 def _is_valid_category_name(name):
     return bool(name and CATEGORY_NAME_PATTERN.fullmatch(name))
 
@@ -59,7 +61,7 @@ def _get_int_param(request, name, default):
 
 
 def _cloudinary_public_id(image_field):
-    return getattr(image_field, 'public_id', None) or str(image_field)
+    return getattr(image_field, "public_id", None) or str(image_field)
 
 
 def _delete_cloudinary_image(image_field):
@@ -69,7 +71,7 @@ def _delete_cloudinary_image(image_field):
     if not public_id:
         return
     try:
-        cloudinary.uploader.destroy(public_id, resource_type='image')
+        cloudinary.uploader.destroy(public_id, resource_type="image")
     except Exception as exc:
         logger.warning("Cloudinary delete failed for %s: %s", public_id, exc)
 
@@ -78,56 +80,62 @@ def _delete_cloudinary_image(image_field):
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
 def dashboard(request):
-    return render(request,'dashboard.html') 
+    return render(request, "dashboard.html")
 
 
 @never_cache
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
 def add_Category(request):
-    if request.method == 'POST':
-        name = request.POST.get('name', '').strip()
-        description = request.POST.get('description', '').strip()
-        logo = request.FILES.get('logo')
+    if request.method == "POST":
+        name = request.POST.get("name", "").strip()
+        description = request.POST.get("description", "").strip()
+        logo = request.FILES.get("logo")
 
         if not _is_valid_category_name(name):
-            messages.error(request, 'Category name must contain letters only, without spaces or special characters.')
-            return render(request, 'addCategory.html', {'name': name, 'description': description})
+            messages.error(
+                request,
+                "Category name must contain letters only, without spaces or special characters.",
+            )
+            return render(
+                request, "addCategory.html", {"name": name, "description": description}
+            )
 
         if Category.objects.filter(name__iexact=name).exists():
-            messages.error(request, 'A category with this name already exists.')
-            return render(request, 'addCategory.html', {'name': name, 'description': description})
+            messages.error(request, "A category with this name already exists.")
+            return render(
+                request, "addCategory.html", {"name": name, "description": description}
+            )
 
         slug = slugify(name)
 
         if Category.objects.filter(slug=slug).exists():
-            messages.error(request, 'A category with this name already exists.')
-            return render(request, 'addCategory.html', {'name': name, 'description': description})
+            messages.error(request, "A category with this name already exists.")
+            return render(
+                request, "addCategory.html", {"name": name, "description": description}
+            )
 
-        category = Category(
-            name=name,
-            description=description,
-            slug=slug
-        )
+        category = Category(name=name, description=description, slug=slug)
         if logo:
             category.logo.save(f"{slug}_logo.png", logo, save=False)
-        
+
         category.save()
 
-        messages.success(request, 'Category added successfully.')
-    return render(request,'addCategory.html')
+        messages.success(request, "Category added successfully.")
+    return render(request, "addCategory.html")
+
 
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
 def check_category(request):
-    category_name = request.GET.get('name', '').strip()
-    category_id = request.GET.get('id')
+    category_name = request.GET.get("name", "").strip()
+    category_id = request.GET.get("id")
     category_query = Category.objects.filter(name__iexact=category_name)
     if category_id:
         category_query = category_query.exclude(id=category_id)
     data = {
-        'exists': category_query.exists(),
-        'valid': _is_valid_category_name(category_name),
+        "exists": category_query.exists(),
+        "valid": _is_valid_category_name(category_name),
     }
     return JsonResponse(data)
 
@@ -137,15 +145,15 @@ def check_category(request):
 @user_passes_test(lambda u: u.is_superuser)
 def category_list(request):
     offers = Offer.objects.filter(is_active=True)
-    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        columns = ['name', 'description', 'status', 'offer__name', 'id']
-        draw = _get_int_param(request, 'draw', 1)
-        start = max(_get_int_param(request, 'start', 0), 0)
-        length = _get_int_param(request, 'length', 10)
+    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+        columns = ["name", "description", "status", "offer__name", "id"]
+        draw = _get_int_param(request, "draw", 1)
+        start = max(_get_int_param(request, "start", 0), 0)
+        length = _get_int_param(request, "length", 10)
         length = 10 if length <= 0 else min(length, 100)
-        search_value = request.GET.get('search[value]', '').strip()
+        search_value = request.GET.get("search[value]", "").strip()
 
-        categories = Category.objects.select_related('offer').all()
+        categories = Category.objects.select_related("offer").all()
         records_total = categories.count()
 
         if search_value:
@@ -157,36 +165,44 @@ def category_list(request):
 
         records_filtered = categories.count()
 
-        order_column = request.GET.get('order[0][column]', '0')
-        order_dir = request.GET.get('order[0][dir]', 'asc')
+        order_column = request.GET.get("order[0][column]", "0")
+        order_dir = request.GET.get("order[0][dir]", "asc")
         try:
             order_field = columns[int(order_column)]
         except (ValueError, IndexError):
-            order_field = 'name'
-        if order_dir == 'desc':
-            order_field = f'-{order_field}'
+            order_field = "name"
+        if order_dir == "desc":
+            order_field = f"-{order_field}"
 
-        page_categories = categories.order_by(order_field, 'id')[start:start + length]
+        page_categories = categories.order_by(order_field, "id")[start : start + length]
         data = [
             {
-                'id': category.id,
-                'name': category.name,
-                'description': Truncator(category.description or '-').words(7),
-                'status': category.status,
-                'offer_id': category.offer_id,
+                "id": category.id,
+                "name": category.name,
+                "description": Truncator(category.description or "-").words(7),
+                "status": category.status,
+                "offer_id": category.offer_id,
             }
             for category in page_categories
         ]
 
-        return JsonResponse({
-            'draw': draw,
-            'recordsTotal': records_total,
-            'recordsFiltered': records_filtered,
-            'data': data,
-        })
+        return JsonResponse(
+            {
+                "draw": draw,
+                "recordsTotal": records_total,
+                "recordsFiltered": records_filtered,
+                "data": data,
+            }
+        )
 
-    offer_options = [{'id': offer.id, 'label': f'{offer.name} {offer.discount}% off'} for offer in offers]
-    return render(request, 'categoryList.html', {'offers': offers, 'offer_options': offer_options})
+    offer_options = [
+        {"id": offer.id, "label": f"{offer.name} {offer.discount}% off"}
+        for offer in offers
+    ]
+    return render(
+        request, "categoryList.html", {"offers": offers, "offer_options": offer_options}
+    )
+
 
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
@@ -195,7 +211,7 @@ def toggle_category_status(request, category_id):
     category = get_object_or_404(Category, id=category_id)
     category.status = not category.status
     category.save()
-    return JsonResponse({'status': category.status})
+    return JsonResponse({"status": category.status})
 
 
 @never_cache
@@ -331,29 +347,30 @@ def edit_brand(request):
         brand.save()
         return JsonResponse({"success": True})
     except Brand.DoesNotExist:
-        return JsonResponse({'success': False, 'error': 'Brand not found.'})
+        return JsonResponse({"success": False, "error": "Brand not found."})
+
 
 @require_POST
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
 def delete_brand(request):
-    brand_id = request.POST.get('id')
+    brand_id = request.POST.get("id")
     try:
         brand = Brand.objects.get(id=brand_id)
         brand.delete()
-        return JsonResponse({'success': True})
+        return JsonResponse({"success": True})
     except Brand.DoesNotExist:
-        return JsonResponse({'success': False, 'error': 'Brand not found.'})
-    
+        return JsonResponse({"success": False, "error": "Brand not found."})
+
 
 @never_cache
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
 def edit_product(request, product_id):
-    product  = get_object_or_404(Product, id=product_id)
-    variants = product.variants.select_related('color').all()
- 
-    if request.method == 'POST':
+    product = get_object_or_404(Product, id=product_id)
+    variants = product.variants.select_related("color").all()
+
+    if request.method == "POST":
         try:
             with transaction.atomic():
 
@@ -1256,12 +1273,14 @@ def add_coupon(request):
                 coupon.full_clean()
                 coupon.save()
 
-                messages.success(request, f'Coupon "{code}" has been successfully added.')
-                return redirect('Admin:coupon_list')
+                messages.success(
+                    request, f'Coupon "{code}" has been successfully added.'
+                )
+                return redirect("Admin:coupon_list")
 
             except ValidationError as e:
                 error_messages = []
-                if hasattr(e, 'message_dict'):
+                if hasattr(e, "message_dict"):
                     for field, errors in e.message_dict.items():
                         error_messages.extend(errors)
                 else:
